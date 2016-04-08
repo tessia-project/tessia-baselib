@@ -2,5 +2,6 @@
 .*.swp
 __pycache__/
 .eggs/
-UNKNOWN.egg-info/
-html/
+tessia_baselib.egg-info/
+build/
+.tox/
