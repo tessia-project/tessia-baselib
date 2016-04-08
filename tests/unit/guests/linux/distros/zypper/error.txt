@@ -1,0 +1,2 @@
+No provider of 'another_invalid_pkg' found.
+No provider of 'invalid_pkg' found.

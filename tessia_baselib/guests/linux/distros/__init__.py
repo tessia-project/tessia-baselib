@@ -15,14 +15,16 @@
 #
 # IMPORTS
 #
-from tessia_baselib.guests.cms.cms import GuestCms
+from tessia_baselib.common.tools import importModules
+
+import os
 
 #
 # CONSTANTS AND DEFINITIONS
 #
-
-# the guest class to expose to the factory
-GUESTCLASS = GuestCms
+DISTRO_MODULES = importModules(
+    os.path.dirname(os.path.abspath(__file__))
+)
 
 #
 # CODE

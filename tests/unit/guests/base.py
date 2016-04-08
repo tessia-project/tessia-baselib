@@ -69,7 +69,6 @@ class TestGuestBase(TestCase):
         # use sentinels for arguments to make sure we have the same value when
         # validating the object's attributes
         guestObj = self.guestModule.GuestBase(
-            sentinel.logger,
             sentinel.system_name,
             sentinel.host_name,
             sentinel.user,
@@ -78,8 +77,7 @@ class TestGuestBase(TestCase):
         )
 
         # validate attributes
-        self.assertEqual('base', guestObj.guest_id)
-        self.assertIs(sentinel.logger, guestObj.logger)
+        self.assertEqual('base', guestObj.GUEST_ID)
         self.assertIs(sentinel.system_name, guestObj.name)
         self.assertIs(sentinel.host_name, guestObj.host_name)
         self.assertIs(sentinel.user, guestObj.user)
@@ -107,7 +105,6 @@ class TestGuestBase(TestCase):
         # use sentinels for arguments to make sure we have the same value when
         # validating the object's attributes
         guestObj = self.guestModule.GuestBase(
-            sentinel.logger,
             sentinel.system_name,
             sentinel.host_name,
             sentinel.user,

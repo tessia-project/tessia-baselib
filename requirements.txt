@@ -1,4 +1,4 @@
 # order is the order pip will install, so if package A depends on B make sure B comes first
 flask>=0.10.1
 setuptools>=17.1.1
-
+paramiko>=1.16
