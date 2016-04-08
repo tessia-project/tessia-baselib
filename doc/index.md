@@ -27,10 +27,9 @@ The following sections are available:
 - [Command line client](users/client.md)
 - [Rest-like API](users/api.md)
 
-**Developers**  
+**Developers**
 
-- [Architecture](developers/architecture.md)
 - [Coding guidelines](developers/coding_guidelines.md)
-- [Creating unit tests](developers/unit_tests.md)
-- [How to send a patch](developers/development_process.md)
-- [Repository structure](developers/repo_structure.md)
+- [Development process](developers/dev_process.md)
+- [Unit tests](developers/unit_tests.md)
+- [Working with documentation](developers/documentation.md)
