@@ -1,0 +1,7 @@
+The following 3 NEW packages are going to be installed:
+  python3 python3-gobject python3-gobject-cairo
+
+3 new packages to install.
+Overall download size: 2.1 MiB. Already cached: 0 B. After the operation,
+additional 4.5 MiB will be used.
+Continue? [y/n/? shows all options] (y): y

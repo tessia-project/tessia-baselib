@@ -24,7 +24,7 @@ Many requests accept an 'extensions' field and its content is specific to the hy
 
 ## Authentication method
 
-TODO
+TODO (some shared key...)
 
 # Endpoints
 
@@ -247,6 +247,8 @@ This will open a websocket for sending input and receiving output directly from 
     'username': 'user',
     'password': 'password',
     'type': 'linux|cms',
+ }
+ 'action': {
     'method': 'attach|detach',
     'resources': {
         'cpu': qty_to_add,
@@ -283,6 +285,9 @@ This will open a websocket for sending input and receiving output directly from 
     'password': 'password',
     'type': 'linux|cms',
  },
+ 'action': {
+    'timeout': seconds,
+ },
  'extensions': {}
 }
 ```
@@ -292,7 +297,7 @@ This will open a websocket for sending input and receiving output directly from 
 # TODO
 ```
 
-## Pull files from guest
+## Pull a file from guest
 
 `POST /guests/{guest_name}/pull`
 
@@ -304,7 +309,9 @@ This will open a websocket for sending input and receiving output directly from 
     'username': 'user',
     'password': 'password',
     'type': 'linux|cms',
-    'path': 'path_to_file_or_dir',
+ },
+ 'action': {
+     'path': 'path_to_file_or_dir'
  },
  'extensions': {}
 }
@@ -315,7 +322,7 @@ This will open a websocket for sending input and receiving output directly from 
 # TODO
 ```
 
-## Push files to guest
+## Push a file to guest
 
 `POST /guests/{guest_name}/push`
 
@@ -328,6 +335,9 @@ This will open a websocket for sending input and receiving output directly from 
     'password': 'password',
     'type': 'linux|cms',
     'path': 'target_path',
+ },
+ 'action': {
+     'path': 'target_file_path',
  },
  'extensions': {}
 }
@@ -350,6 +360,8 @@ This will open a websocket for sending input and receiving output directly from 
     'username': 'user',
     'password': 'password',
     'type': 'linux|cms',
+ },
+ 'action': {
     'packages': ['pkg1', 'pkg2'],
  },
  'extensions': {}

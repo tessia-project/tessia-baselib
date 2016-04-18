@@ -29,8 +29,7 @@ class GuestCms(GuestBase):
     """
     This class implements the driver to support the CMS guest type
     """
-
-    # guest class identififer
-    guest_id = 'cms'
+    # the identifier for this guest class, should be a lowercase string
+    GUEST_ID = 'cms'
 
 # GuestCms

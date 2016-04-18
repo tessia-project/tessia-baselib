@@ -15,15 +15,27 @@
 #
 # IMPORTS
 #
-from tessia_baselib.guests.cms.cms import GuestCms
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 
-# the guest class to expose to the factory
-GUESTCLASS = GuestCms
-
 #
 # CODE
 #
+# this module defines all the exceptions used by ssh package
+class SshClientError(Exception):
+    """
+    Exception used by SshClient class when problems related to the underlying
+    library occur.
+    """
+    pass
+# SshClientError
+
+class SshShellError(Exception):
+    """
+    Exception used by SshShell class when problems related to the actual shell
+    usage occur.
+    """
+    pass
+# SshShellError

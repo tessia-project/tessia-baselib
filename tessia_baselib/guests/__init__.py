@@ -15,15 +15,15 @@
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux import guestClass as guestLinux
-from tessia_baselib.guests.cms import guestClass as guestCms
+from tessia_baselib.guests.cms import GUESTCLASS as guestCms
+from tessia_baselib.guests.linux import GUESTCLASS as guestLinux
 
 #
 # CONSTANTS AND DEFINITIONS
 #
-SUPPORTED_DRIVERS = {
-    guestCms.guest_id: guestCms,
-    guestLinux.guest_id: guestLinux,
+GUEST_TYPES = {
+    guestCms.GUEST_ID: guestCms,
+    guestLinux.GUEST_ID: guestLinux,
 }
 
 
@@ -44,7 +44,7 @@ class Guest(object):
         Constructor
 
         Args:
-            guest_type: one of the types specified in SUPPORTED_DRIVERS
+            guest_type: one of the types specified in GUEST_TYPES
             args: positional arguments to forward to driver's constructor
             kwargs: keyword arguments to forward to driver's constructor
 
@@ -54,15 +54,15 @@ class Guest(object):
         Raises:
             RuntimeError: in case guest_type is not supported
         """
-        # fetch the correct class based on provided type
-        driverClass = SUPPORTED_DRIVERS.get(guest_type)
-        if driverClass is None:
+        # fetch the correct factory based on provided type
+        guestClass = GUEST_TYPES.get(guest_type)
+        if guestClass is None:
             raise RuntimeError(
                 'Guest type {} is not supported'.format(guest_type)
             )
 
         # instantiate the driver and forward arguments from user
-        self.__driver = driverClass(*args, **kwargs)
+        self.__driver = guestClass(*args, **kwargs)
 
     # __init__()
 
@@ -84,4 +84,3 @@ class Guest(object):
     # __getattr__()
 
 # Guest
-

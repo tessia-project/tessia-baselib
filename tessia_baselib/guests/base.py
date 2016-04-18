@@ -31,15 +31,13 @@ class GuestBase(object):
     """
 
     # the identifier for this guest class, should be a lowercase string
-    guest_id = 'base'
+    GUEST_ID = 'base'
 
-    def __init__(self, logger, system_name, host_name, user,
-                 passwd, extensions):
+    def __init__(self, system_name, host_name, user, passwd, extensions):
         """
-        Constructor
+        Constructor.
 
         Args:
-            logger: logging object
             system_name: string containing the guest name
             host_name: hostname or ip address of system
             user: user to login to system
@@ -54,7 +52,6 @@ class GuestBase(object):
             None
         """
         # store instance values
-        self.logger = logger
         self.name = system_name
         self.host_name = host_name
         self.user = user
@@ -62,6 +59,25 @@ class GuestBase(object):
         self.extensions = extensions
 
     # __init__()
+
+    def hotplug(self, method, resources, extensions):
+        """
+        Hotplug/unplug a given dictionary of resources to/from the guest.
+
+        Args:
+            method: attach (hotplug) or detach (hotunplug)
+            resources: dict in the form:
+                       {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
+            extensions: dict with specific attributes depending on guest type
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        raise NotImplementedError()
+    # hotplug()
 
     def login(self, timeout=60):
         """
@@ -80,6 +96,23 @@ class GuestBase(object):
         raise NotImplementedError()
     # login()
 
+    def installPackages(self, packages):
+        """
+        Use the system's package management facilities and install the
+        specified packages.
+
+        Args:
+            packages: list of package names to install
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        raise NotImplementedError()
+    # installPackages()
+
     def logoff(self):
         """
         Close an active connection to the guest system
@@ -88,13 +121,45 @@ class GuestBase(object):
             None
 
         Returns:
-            string 'ok' if succeeded, error message otherwise
+            None
 
         Raises:
             None
         """
         raise NotImplementedError()
     # logoff()
+
+    def openSession(self, extensions=None):
+        """
+        Returns a expect-like object which can be used for sending commands and
+        receiving output from a guest's shell.
+
+        Args:
+            extensions: optional dictionary with params specific to each guest
+                        type
+
+        Returns:
+            instance of GuestSession
+
+        Raises:
+            None
+        """
+        raise NotImplementedError()
+    # openSession()
+
+    def pullFile(self):
+        """
+        TODO
+        """
+        raise NotImplementedError()
+    # pullFile()
+
+    def pushFile(self):
+        """
+        TODO
+        """
+        raise NotImplementedError()
+    # pushFile()
 
     def stop(self):
         """
@@ -104,7 +169,7 @@ class GuestBase(object):
             None
 
         Returns:
-            string 'ok' if succeeded, error message otherwise
+            None
 
         Raises:
             None

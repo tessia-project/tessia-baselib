@@ -21,9 +21,9 @@ from tessia_baselib.guests.linux.linux import GuestLinux
 # CONSTANTS AND DEFINITIONS
 #
 
+# the guest class to expose to the factory
+GUESTCLASS = GuestLinux
+
 #
 # CODE
 #
-
-# the guest class to expose to the factory
-guestClass = GuestLinux

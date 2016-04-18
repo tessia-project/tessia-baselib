@@ -12,18 +12,3 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#
-# IMPORTS
-#
-from tessia_baselib.guests.cms.cms import GuestCms
-
-#
-# CONSTANTS AND DEFINITIONS
-#
-
-# the guest class to expose to the factory
-GUESTCLASS = GuestCms
-
-#
-# CODE
-#
