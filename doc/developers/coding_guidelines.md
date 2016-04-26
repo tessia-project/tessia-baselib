@@ -18,28 +18,31 @@ limitations under the License.
 - [Rationale](#rationale)
 - [File organization](#file-organization)
     - [Use spaces instead of tabulations for indentation](#use-spaces-instead-of-tabulations-for-indentation)
-    - [Ensure each file has the sections: "imports", "constants and definitions" and "code"](#ensure-each-file-has-the-sections-imports-constants-and-definitions-and-code-)
+    - [File sections](#file-sections)
     - [Do not mix classes and functions in the same file](#do-not-mix-classes-and-functions-in-the-same-file)
-    - [Break lines at column 80](#break-lines-at-column-80)
-    - [Break multiline subroutine calls in the standard way](#break-multiline-subroutine-calls-in-the-standard-way)
-    - [Break multiline data structure definitions in the standard way](#break-multiline-data-structure-definitions-in-the-standard-way)
-    - [Split methods that have more than 50 lines](#split-methods-that-have-more-than-50-lines)
+    - [Function and class end markers](#function-and-class-end-markers)
+    - [Break lines at column 79](#break-lines-at-column-79)
+    - [How to break long statements](#how-to-break-long-statements)
+    - [Refactor methods and functions that have more than 200 lines](#refactor-methods-and-functions-that-have-more-than-200-lines)
     - [Sort methods and functions by name](#sort-methods-and-functions-by-name)
     - [Sort imports by name and type](#sort-imports-by-name-and-type)
-    - [Never import *](#never-import-)
+    - [Never import using a wildcard](#never-import-using-a-wildcard)
 - [Naming conventions](#naming-conventions)
     - [Class names](#class-names)
-    - [Callable names (functions, methods)](#callable-names-functions-methods)
-    - [Non-callable names (attributes, values)](#non-callable-names-attributes-values)
-    - [Constants](#constants)
+    - [Other names](#other-names)
+    - [Non-public names](#non-public-names)
+    - [Constants and global variables](#constants-and-global-variables)
 - [Code documentation](#code-documentation)
-    - [Document all classes, methods and functions with docstrings](#document-all-classes-methods-and-functions-with-docstrings)
+    - [Docstrings](#docstrings)
     - [Write a comment for each logical block of code](#write-a-comment-for-each-logical-block-of-code)
     - [Ensure there is a comment at least every 5 lines](#ensure-there-is-a-comment-at-least-every-5-lines)
-    - [Always comment if, elif and else like: # condition: action](#always-comment-if-elif-and-else-like-condition-action)
-- [Branching: if, elif and else](#branching-if-elif-and-else)
+    - [Standardize branching comments](#standardize-branching-comments)
+- [Branching](#branching)
     - [Do not use 'else' after an 'if' that always returns](#do-not-use-else-after-an-if-that-always-returns)
     - [If an 'else' always returns make it be the 'if' by inverting the condition](#if-an-else-always-returns-make-it-be-the-if-by-inverting-the-condition)
+- [Exception handling](#exception-handling)
+- [TODO markers](#todo-markers)
+- [Misc guidelines](#misc-guidelines)
 
 # Rationale
 
@@ -49,18 +52,23 @@ This document defines the project's coding guidelines so that we can spend less 
 
 ## Use spaces instead of tabulations for indentation
 
-- **Rationale I:** mixing up spaces and tabs might confuse other developers and even the python interpreter
-- **Rationale II:** tabs have variable size and are user-configurable, spaces aren't
-- use 4 spaces for each indentation block
-- don't mix indent levels. i.e. always use 4 spaces, regardless of how nested the block is (**Tip** - On Vim use: `:set expandtab`)
+- Use 4 spaces for each indentation block.
+- Don't mix indent levels. i.e. always use 4 spaces, regardless of how nested the block is (**Tip** - On Vim use: `:set expandtab`).
+- **Rationale I:** mixing up spaces and tabs might confuse other developers and even the python interpreter.
+- **Rationale II:** tabs have variable size and are user-configurable, spaces aren't.
 
-## Ensure each file has the sections: "imports", "constants and definitions" and "code"
+## File sections
 
-- **Rationale:** improve code organization
-- separate each section with a blank line
-- put imports only the in the section `IMPORTS`
-- define constants only in the section `CONSTANTS AND DEFINITIONS`
-- define classes or functions only in the section `CODE`
+- Every file must start with a copyright and license header (before the module docstring).
+    - Other secondary information can be placed here. Comments explaining the function of the module should only go in the docstring.
+- After the header comment, include the module docstring.
+- Next, ensure the file has the sections: "imports", "constants and definitions" and "code".
+- Separate each section with a blank line.
+- Put imports only the in the section `IMPORTS`.
+- Define globals and constants only in the section `CONSTANTS AND DEFINITIONS`.
+- Do not define globals and constants in class-only files, use static constants and variables inside the class.
+- Define classes or functions only in the section `CODE`.
+- **Rationale:** improve code organization.
 
 ### Noncompliant example
 
@@ -68,30 +76,33 @@ This document defines the project's coding guidelines so that we can spend less 
     BUFFER_SIZE = 4096
 
     import os
-    from moduleB.submodule import objectB
+    from package_b.module_b import object_b
     import sys
 
-    from moduleA import objectA
+    from module_a import object_a
 
     TEMPLATES_DIR = '/opt/templates'
 
-    class SomeClass(object):
-        ...
-    # SomeClass
+    def do_something():
+    ...
 ```
-
 ### Compliant example
 
 ```python
+    """
+    This module does this and that.
+
+    Some more detailed info about the module here.
+    """
+
     #
     # IMPORTS
     #
-    from moduleA import objectA
-    from moduleB.submodule import objectB
+    from module_a import object_a
+    from package_b.module_b import object_b
 
     import os
     import sys
-
 
     #
     # CONSTANTS AND DEFINITIONS
@@ -99,156 +110,215 @@ This document defines the project's coding guidelines so that we can spend less 
     BUFFER_SIZE = 4096
     TEMPLATES_DIR = '/opt/templates'
 
-
     #
     # CODE
     #
-    class SomeClass(object):
-        ...
-    # SomeClass
+
+
+    def do_something():
+    ...
 ```
 
 ## Do not mix classes and functions in the same file
 
-- **Rationale:** improve code organization and modularization (one file, one module)
-- define a single class or single library of functions in a file
-- Do not define more than one class in the same file. Acceptable exception is if it's an internal class for module's internal use (which must be explicitly stated in the class documentation then).
+- Define a single class or single library of functions in a file.
+- Do not define more than one class in the same file.
+    - Acceptable exceptions include internal classes for private use in the module (this must be documented and the class name must be prefixed with a single underscore), or inner classes.
+- **Rationale:** improve code organization and modularization.
 
-## Break lines at column 80
+## Function and class end markers
 
-- **Rationale I:** the bigger a line is, the harder it is to follow and read it
-- **Rationale II:** ensure the code can be easily read in a terminal
-- **Exception:** do not break string definitions
+- Function and class end markers are not mandatory.
+- Be consistent on each file, either use them throughout a given file or not at all.
+- If you do use them, follow these rules:
+    - Use a single-line comment aligned with the start of the function or class definition.
+    - For functions, write the function name with no def and with a pair of parentheses.
+    - For classes, write the class name.
 
-## Break multiline subroutine calls in the standard way
+```python
+   class MyClass():
+       def foo(self, bar):
+           ...
+       # foo()
+   # MyClass
+```
 
-- **Rationale:** straight alignment makes multiline calls easier to read
-- this only applies to lines that must be broken due to the rule *Break lines at column 80*
+## Break lines at column 79
+
+- **Rationale I:** the bigger a line is, the harder it is to follow and read it.
+- **Rationale II:** ensure the code can be easily read in a terminal.
+- **Rationale III:** allow two files to be read side by side on larger screens.
+
+## How to break long statements
+
+- If you wrap an expression in parentheses, python lets you break it in lines. Use this instead of breaking lines with \\ whenever possible.
+    - Some long statements that are not expressions cannot be broken with parentheses, in this case use \\.
+- Break expressions in a statement using hanging indents or vertically align the broken parts.
+    - Unless you are using hanging indents, don't leave a single closing parenthesis or bracket in a line, as shown in the examples below.
+    - If you leave a single closing parenthesis or bracket in a line, either leave it on the first column or align it with the first
+      non-whitespace character of the previous line.
+- **Rationale I:** Straight alignment makes multiline expressions easier to read.
+- **Rationale II:** Less error prone when adding/removing entries to data structures (lists, dicts, tuples).
 
 ### Noncompliant example
 
 ```python
-result = myLongModuleName.myLongInstanceName(parameterA,
-    parameterB,
-    parameterC)
-```
+result = my_long_module_name.my_long_function_name(parameter_a,
+    parameter_b,
+    parameter_c)
 
-### Compliant examples
-
-```python
-# preferred way
-result = myLongModuleName.myLongInstanceName(parameterA,
-                                             parameterB,
-                                             parameterC)
-
-# alternative when the preferred way does not work
-result = myLongModuleName.myLongInstanceName(
-    parameterA,
-    parameterB,
-    parameterC
-)
-```
-
-## Break multiline data structure definitions in the standard way
-
-- **Rationale I:** straight alignment makes data structures easier to read
-- **Rationale II:** less error prone when adding/removing entries to variable
-- this applies to lines that must be broken due to the rule *Break lines at column 80*
-- it may also be used in other cases, as the developer prefers
-
-### Noncompliant examples
-
-```python
 # list definition
-listA = [
-    elementA,
-    elementB,
-    elementC]
+list_a = [element_a,
+    element_b,
+    element_c]
 
-# tuple definition
-tupleA = (elementA,
-elementB,
-elementC)
-
-# set definition
-setA = set([
-    elementA,
-    elementB,
-    elementC,
-    ])
-
-# dict definition
-dictA = {
-'keyA': 'valueA',
-'keyB': 'valueB',
-'keyC': 'valueC',}
-```
-
-### Compliant examples
-
-```python
-# list definition
-listA = [
-    elementA,
-    elementB,
-    elementC,
+# alignment is correct, but
+# non-hanging indent has a single closing bracket in a line
+list_a = [element_a,
+          element_b,
+          element_c,
 ]
 
 # tuple definition
-tupleA = (
-    elementA,
-    elementB,
-    elementC,
-)
-
-# set definition
-setA = set([
-    elementA,
-    elementB,
-    elementC,
-])
+tuple_a = (element_a,
+element_b,
+element_c)
 
 # dict definition
-dictA = {
-    'keyA': 'valueA',
-    'keyB': 'valueB',
-    'keyC': 'valueC',
+dict_a = {
+'key_a': 'value_a',
+'key_b': 'value_b',
+'key_c': 'value_c',}
+```
+
+### Compliant example
+
+```python
+# vertical alignment
+result = my_long_module_name.my_long_function_name(parameter_a,
+                                                   parameter_b,
+                                                   parameter_c)
+
+# hanging indent
+result = my_long_module_name.my_long_function_name(
+    parameter_a,
+    parameter_b,
+    parameter_c)
+
+big_string = ("This is how you can break long long long long long long long"
+              "string literals")
+
+# list definition
+list_a = [
+    element_a,
+    element_b,
+    element_c]
+
+list_a = [
+    element_a,
+    element_b,
+    element_c,
+]
+
+list_a = [
+    element_a,
+    element_b,
+    element_c,
+    ]
+
+list_a = [elementA,
+          elementB,
+          elementC]
+
+# tuple definition
+tuple_a = (
+    element_a,
+    element_b,
+    element_c,
+)
+
+# dict definition
+dict_a = {
+    'key_a': 'value_a',
+    'key_b': 'value_b',
+    'key_c': 'value_c',
 }
 ```
 
-## Split methods that have more than 50 lines
+## Line break before binary operators
 
-- **Rationale I:** the smaller a method is, the faster it is to understand what it does
-- **Rationale II:** the bigger a method is, more likely it will have a bug
+### Noncompliant example
+```python
+sum = (1 + 2 + 3 +
+       4 + 5 +
+       6 + 7)
+```
+
+### Compliant example
+```python
+sum = (1 + 2 + 3
+       + 4 + 5
+       + 6 + 7)
+```
+
+## Whitespace rules
+
+- Don't leave trailing whitespace.
+- Follow these next examples.
+
+### Noncompliant example
+```python
+one=1
+function_call( a,b,c )
+function_call( karg = 1 )
+list = [a,b,c]
+dict = {'a' : 2, 'b' : 3}
+```
+
+### Compliant example
+```python
+one = 1
+function_call(a, b, c)
+function_call(karg=1)
+list = [a, b, c]
+dict = {'a': 2, 'b': 3}
+```
+
+## Refactor methods and functions that have more than 200 lines
+
+- Design functions with clear separation of responsibilities.
+- Avoid deep nesting inside a single function.
+- **Rationale I:** the smaller a method is, the faster it is to understand what it does.
+- **Rationale II:** the bigger a method is, more likely it will have a bug.
 
 ## Sort methods and functions by name
 
-- **Rationale:** make it easier to find a method in a class or a function in a module
+- **Rationale:** make it easier to find a method in a class or a function in a module.
 
 ### Noncompliant example
 
 ```python
     class SomeClass(object):
 
-        def methodB(self):
+        def method_b(self):
             ...
-        # methodB
+        # method_b
 
-        def __privateB(self):
+        def _private_b(self):
             ...
-        # __privateB
+        # _private_b
 
-        def methodA(self):
+        def method_a(self):
             ...
-        # methodA
+        # method_a
 
-        def methodC(self):
+        def method_c(self):
             ...
-        # methodC
+        # method_c
 
-        def __privateA(self):
+        def _private_a(self):
             ...
-        # __privateA
+        # _private_a
 
     # SomeClass
 ```
@@ -258,120 +328,117 @@ dictA = {
 ```python
     class SomeClass(object):
 
-        def __privateA(self):
+        def _private_a(self):
             ...
-        # __privateA
+        # _private_a
 
-        def __privateB(self):
+        def _private_b(self):
             ...
-        # __privateB
+        # _private_b
 
-        def methodA(self):
+        def method_a(self):
             ...
-        # methodA
+        # method_a
 
-        def methodB(self):
+        def method_b(self):
             ...
-        # methodB
+        # method_b
 
-        def methodC(self):
+        def method_c(self):
             ...
-        # methodC
+        # method_c
 
     # SomeClass
 ```
 
 ## Sort imports by name and type
 
-- **Rationale:** make it easier to find an import in the list
-- do not import more than one object in the same line
-- group imports of the type `from module import something`
-- group imports of the type `import module`
-- sort the imports by module name inside a group
+- Do not import more than one name in the same line, unless importing names from the same module with the `from module import X, Y` syntax
+    - You don't need to sort the names alphabetically within this line, since there might be many of them.
+- Group imports of the type `from module import X`.
+- Group imports of the type `import module`.
+- Sort the imports by module name inside a group.
+- **Rationale:** make it easier to find an import in the list.
 
 ### Noncompliant example
 
 ```python
-    import moduleC
-    from moduleA.submoduleB import objectC
-    from moduleA import objectA
-    import moduleD, moduleE
-    from moduleB import objectD, objectE
-    from moduleA.submoduleA import objectB
+    import module_c
+    from package_a.module_b import object_g
+    from module_a import object_a
+    import module_d, module_e
+    from module_b import object_d, object_e
+    from package_a.module_b import object_f
 ```
 
 ### Compliant example
 
 ```python
-    from moduleA import objectA
-    from moduleA.submoduleA import objectB
-    from moduleA.submoduleB import objectC
-    from moduleB import objectD
-    from moduleB import objectE
+    from module_a import object_a
+    from module_b import object_d, object_e
+    from package_a.module_b import object_f
+    from package_a.module_b import object_g
 
-    import moduleC
-    import moduleD
-    import moduleE
+    import module_c
+    import module_d
+    import module_e
 ```
 
-## Never import *
+## Never import using a wildcard
 
-- **Rationale:** avoid problems to find out where a name referenced in a file has been defined
+- Never use ```*``` in an import statement.
+- **Rationale I:** avoid problems to find out where a name referenced in a file has been defined.
+- **Rationale II:** avoid unwanted namespace clashes.
 
 ### Noncompliant example
 
 ```python
-    from moduleA import *
-    from moduleB import *
+    from module_a import *
+    from module_b import *
 
     # can you tell where someVariable has been defined?
-    print someVariable
+    print(CONSTANT_A)
 
     # can you tell where otherVariable has been defined?
-    print otherVariable
+    print(CONSTANT_B)
 ```
 
 ### Compliant example
 
 ```python
-    from moduleA import someVariable
-    from moduleB import otherVariable
+    from module_a import CONSTANT_A
+    from module_b import CONSTANT_B
 
-    # now you easily know that someVariable is defined in moduleA
-    print someVariable
+    # now you easily know that CONSTANT_A is defined in moduleA
+    print(CONSTANT_A)
 
-    # now you easily know that otherVariable is defined in moduleB
-    print otherVariable
+    # now you easily know that CONSTANT_B is defined in moduleB
+    print(CONSTANT_B)
 ```
 
 # Naming conventions
 
-- in a nutshell:
-    - use lowercase with underscores for non-callables (attributes, values)
-    - camelCase for callables (functions, methods)
-    - SomeClass for classes
-- **Rationale:** make it easy to tell if a variable is some value (has underscores) or some function (no underscores)
-- see detailed explanation below
+- SomeClass for classes.
+- Use lowercase with underscores for any other names.
+- See detailed explanation below.
 
 ## Class names
 
-- capitalize each and every part of the name: `SomeClass`
-- never use underscore to separate the parts of the name
+- Capitalize each word in the name: `SomeClass`.
+- Don't use underscore to separate the parts of the name.
+- Use a leading underscore when defining non-public classes.
 
 ### Noncompliant examples
 
 ```python
     class someClass:
         ...
-    # someClass
 
     class Some_Class:
         ...
-    # Some_Class
 
     class SOME_CLASS:
         ...
-    # SOME_CLASS
 ```
 
 ### Compliant example
@@ -379,55 +446,13 @@ dictA = {
 ```python
     class SomeClass:
         ...
-    # SomeClass
 ```
 
-## Callable names (functions, methods)
+## Other names
 
-- capitalize each part of the name, *except* the first one: `publicMethodName`
-- names of class private methods start with 2 underscores: `__privateMethodName`
-- never use underscore to separate the parts of the name
-
-### Noncompliant examples
-
-```python
-    def PublicMethodName(...):
-        ...
-    # PublicMethodName
-
-    def public_method_name(...):
-        ...
-    # public_method_name
-
-    def PUBLIC_METHOD_NAME(...):
-        ...
-    # PUBLIC_METHOD_NAME
-```
-
-### Compliant examples
-
-```python
-    def __privateMethodName(...):
-        ...
-    # __privateMethodName
-
-    def publicMethodName(...):
-        ...
-    # publicMethodName
-```
-```python
-    def someFunction(...):
-        ...
-    # someFunction
-
-    def someOtherFunction(...):
-        ...
-    # someOtherFunction
-```
-
-## Non-callable names (attributes, values)
-
-- lowercase each part of the name, and separate them by underscore: `local_variable`
+- Applies to any other name (attributes, function definitions, packages, modules, etc).
+- Lowercase each part of the name, and separate them by underscore: `local_variable`.
+- Use 'self' for the first argument of a method and 'cls' for the first argument of a static method.
 
 ### Noncompliant examples
 
@@ -435,6 +460,8 @@ dictA = {
     localVariable = 123
     LocalVariable = 123
     LOCAL_VARIABLE = 123
+
+    def someMethod(myself):
 ```
 
 ### Compliant examples
@@ -442,12 +469,18 @@ dictA = {
 ```python
     local_variable = 123
     some_other_variable = 'Error message'
+
+    def some_method(self):
 ```
 
-## Constants
+## Non-public names
 
-- the names of constants and definitions are always uppercased
-- if non-callable, use underscores to separate the parts of the name
+- Prefix all non-public names with one underscore.
+- **Rationale:** Indicate which names are are implementation details and should not be directly used outside a class or module.
+
+## Constants and global variables
+
+- The names of constants and global variables are always uppercased.
 
 ### Noncompliant examples
 
@@ -455,76 +488,100 @@ dictA = {
 bufferSize = 4096
 buffer_size = 4096
 BufferSize = 4096
-MAIN_PROC = someModule
-mainProc = someModule
-main_proc = someModule
+main_proc = some_module
+mainProc = some_module
 ```
 
 ### Compliant example
 
 ```python
 BUFFER_SIZE = 4096
-MAINPROC = someModule
+MAIN_PROC = some_module
 ```
 
 # Code documentation
 
-## Document all classes, methods and functions with docstrings
+## Docstrings
 
-- **Rationale:** ensure the classes, methods and functions have well-defined and documented roles and interfaces
-- docstrings should be writen following [Google Style](https://google.github.io/styleguide/pyguide.html#Comments)
+- Document all classes, methods, functions, and modules with docstrings.
+- Docstrings should be writen following [Google Style](https://google.github.io/styleguide/pyguide.html#Comments) (for specifics on how to document arguments, return values, etc.)
+    - Exception: you are not required to document public class attributes.
+- You must also document non-public functions, methods and classes.
+- **Rationale:** ensure the classes, methods and functions have well-defined and documented roles and interfaces.
 
 ### Noncompliant example
 
 ```python
-    class Calculator(object):
+class Calculator(object):
+    ...
+
+    def add(self, param_a, param_b)
         ...
 
-        def add(self, paramA, paramB)
-            ...
-        # add()
-
-    # Calculator
 ```
 
 ### Compliant example
 ```python
-    class Calculator(object):
+# 2015
+"""
+Module summary.
+
+More detailed information about the module here.
+"""
+
+#
+# IMPORTS
+#
+
+#
+# CONSTANTS AND DEFINITIONS
+#
+
+#
+# CODE
+#
+
+class Calculator(object):
+    """
+    Class summary.
+
+    This calculator can do addition and multiplication,
+    this is a longer description of this class.
+
+
+    Attributes
+        attribute_one: A cool integer
+    """
+
+    def __init__(self):
+        self.attribute_one = "cool"
+
+    def add(self, param_a, param_b=0.0):
         """
-        This class represents a calculator. It can do addition and
-        multiplication.
+        Add two numbers.
+        Returns the sum of paramA and paramB. If paramB is not
+        passed, assume 0.0 as its value.
+
+        Args:
+            param_a: first float number to be added
+            param_b: second float number to be added
+
+        Returns:
+            sum of param_a and param_b
+
+        Raises:
+            TypeError: if paramA or paramB is not a float
         """
-
-        def add(self, paramA, paramB = 0.0)
-            """
-            Returns the sum of paramA and paramB. If paramB is not
-            passed, assume 0.0 as its value.
-
-            Args:
-                paramA: first float number to be added
-                paramB: second float number to be added
-
-            Returns:
-                sum of paramA and paramB
-
-            Raises:
-                TypeError: if paramA or paramB is not a float
-            """
-            ...
-        # add()
-
-        ...
-
-    # Calculator
+        pass
 ```
 
 ## Write a comment for each logical block of code
 
-- **Rationale:** clearly describe the algorithm implemented by the code, making it easier to understand
-- any algorithm has well-defined steps and each step is implemented by one or more lines of code
-- a logical block is the group of lines that implement a step of the algorithm
-- use a comment to describe what a logical block (algorithm step) does
-- separate each logical block with a blank line
+- Any algorithm has well-defined steps and each step is implemented by one or more lines of code.
+- A logical block is the group of lines that implement a step of the algorithm.
+- Use a comment to describe what a logical block (algorithm step) does.
+- Separate each logical block with a blank line.
+- **Rationale:** clearly describe the algorithm implemented by the code, making it easier to understand.
 
 ### Noncompliant example
 
@@ -563,18 +620,19 @@ MAINPROC = someModule
 
 ## Ensure there is a comment at least every 5 lines
 
-- **Rationale:** more than 5 lines without a comment start to make code harder to understand than it should be
-- every logical block (algorithm step) should have a comment
-- if a logical block has more than 5 lines of code, it can likely be split into smaller ones
+- Every logical block (algorithm step) should have a comment.
+- If a logical block has more than 5 lines of code, it can likely be split into smaller ones.
+- **Rationale:** more than 5 lines without a comment start to make code harder to understand than it should be.
 
-## Always comment if, elif and else like: # condition: action
+## Standardize branching comments
 
-- **Rationale:** make it *immediately clear* what condition is being checked and what action is taken on it
+- Always comment if, elif and else like: # condition: action
+- **Rationale:** make it *immediately clear* the meaning of the condition being checked and what action is taken on it.
 
 ### Noncompliant example
 
 ```python
-    if  not os.stat(dir)[0] & 16384 or os.stat(dir)[6] < MIN:
+    if not os.stat(dir)[0] & 16384 or os.stat(dir)[6] < MIN:
         ... line one ...
         ... line two ...
         ... line tree ...
@@ -598,7 +656,7 @@ MAINPROC = someModule
 
 ```python
     # not a directory or no space enough available: cleanup and abort
-    if  not os.stat(dir)[0] & 16384 or os.stat(dir)[6] < MIN:
+    if not os.stat(dir)[0] & 16384 or os.stat(dir)[6] < MIN:
         ... line one ...
         ... line two ...
         ... line tree ...
@@ -619,17 +677,17 @@ MAINPROC = someModule
         ... line two ...
 ```
 
-# Branching: if, elif and else
+# Branching
 
 ## Do not use 'else' after an 'if' that always returns
 
-- **Rationale:** linear code is easier to follow and understand than nested code
+- **Rationale:** linear code is easier to follow and understand than nested code.
 
 ### Noncompliant example
 
 ```python
     # some condition: do something
-    if condition == True:
+    if condition:
         ... do something ...
         return
 
@@ -654,7 +712,7 @@ MAINPROC = someModule
 
 ```python
     # some condition: do something
-    if condition == True:
+    if condition:
         ... do something ...
         return False
 
@@ -666,7 +724,7 @@ MAINPROC = someModule
     # other condition: run my (no longer) nested if
     if other < 10:
         ... fourth line ...
-        ... fitth line ...
+        ... fitfth line ...
         ... sixth line ...
 
     # run a few more lines
@@ -676,27 +734,27 @@ MAINPROC = someModule
 
 ## If an 'else' always returns make it be the 'if' by inverting the condition
 
-- **Rationale:** linear code is easier to follow and understand than nested code
-- in case the *if* will always return too, then the case is covered in the [in this guideline](#do-not-use-else-after-an-if-that-will-always-return)
+- In case the *if* will always return too, then the case is covered [in this guideline](#do-not-use-else-after-an-if-that-always-returns).
+- **Rationale:** linear code is easier to follow and understand than nested code.
 
 ### Noncompliant example
 
 ```python
     # condition is ok: run many lines
-    if condition == True:
+    if condition:
         ... first line ...
         ... second line ...
 
         # other condition: run my nested if
         if other < 10:
             ... third line ...
-            ... fitth line ...
+            ... fifth line ...
             ... sixth line ...
             ... seventh line ...
             ... eighth line ...
 
         # run a few more lines
-        ... nineth line ...
+        ... ninth line ...
         ... tenth line ...
         ... eleventh line ...
 
@@ -709,7 +767,7 @@ MAINPROC = someModule
 
 ```python
     # error: stop here
-    if condition != True:
+    if not condition:
         return False
 
     # condition is ok: run many lines
@@ -719,13 +777,31 @@ MAINPROC = someModule
     # other condition: run my (no longer) nested if
     if other < 10:
         ... third line ...
-        ... fitth line ...
+        ... fifth line ...
         ... sixth line ...
         ... seventh line ...
         ... eighth line ...
 
     # run a few more lines
-    ... nineth line ...
+    ... ninth line ...
     ... tenth line ...
     ... eleventh line ...
 ```
+
+# Exception handling
+
+- Define exception classes in a separate file in the package where they are used.
+- Derive custom exceptions from Exception, not BaseException.
+- Remember that ```except:``` is the same as ```except BaseException:```. Consider using ```except Exception:``` instead of plain ```except:``` when catching program errors. ```BaseException``` also includes, for instance, ```SystemExit``` and ```KeyboardInterrupt``` that generally should not be supressed.
+   - You might need to do some cleanup (e.g. closing files). In these cases you can also catch ```BaseException```, but remember to re-raise it. However, prefer using context managers (```with``` keyword) or ```try...finally``` instead.
+- If you need to substitute an exception by raising another exception inside of an ```except``` block, use the construct ```raise X from Y```. This way, the ```__cause__``` attribute in X will be set to Y, and the original exception will be known.
+
+# TODO markers
+
+- Only use the marker TODO when marking code sections for improvement.
+- **Rationale**: make sure we can easily search for any TODOs left.
+
+# Misc guidelines
+
+- Compare to None using 'x is None' or 'x is not None', don't use 'x == None'.
+- We require no single choice for using either single or double quotes to delimit string literals, you are free to choose.
