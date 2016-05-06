@@ -110,7 +110,7 @@ class bdist_mkdocs(Command):
 
 # entry point to setup actions
 setup(
-    setup_requires=['setuptools>=17.1.1'],
-    install_requires=open('requirements.txt', 'r').read(),
+    setup_requires=['pbr>=1.8.0', 'setuptools>=17.1.1'],
     cmdclass={'bdist_mkdocs': bdist_mkdocs},
+    pbr=True,
 )
