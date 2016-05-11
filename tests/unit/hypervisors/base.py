@@ -58,6 +58,8 @@ class TestHypervisorBase(TestCase):
                 super().login(*args, **kwargs)
             def logoff(self, *args, **kwargs):
                 super().logoff(*args, **kwargs)
+            def reboot(self, *args, **kwargs):
+                super().reboot(*args, **kwargs)
             def start(self, *args, **kwargs):
                 super().start(*args, **kwargs)
             def stop(self, *args, **kwargs):
@@ -87,7 +89,7 @@ class TestHypervisorBase(TestCase):
             sentinel.host_name,
             sentinel.user,
             sentinel.passwd,
-            sentinel.extensions
+            sentinel.paramters
         )
 
 
@@ -98,7 +100,7 @@ class TestHypervisorBase(TestCase):
             sentinel.host_name,
             sentinel.user,
             sentinel.passwd,
-            sentinel.extensions
+            sentinel.parameters
         )
 
         # validate attributes
@@ -107,7 +109,7 @@ class TestHypervisorBase(TestCase):
         self.assertIs(sentinel.host_name, guest_obj.host_name)
         self.assertIs(sentinel.user, guest_obj.user)
         self.assertIs(sentinel.passwd, guest_obj.passwd)
-        self.assertIs(sentinel.extensions, guest_obj.extensions)
+        self.assertIs(sentinel.parameters, guest_obj.parameters)
 
     # test_attributes()
 
@@ -134,20 +136,20 @@ class TestHypervisorBase(TestCase):
             sentinel.host_name,
             sentinel.user,
             sentinel.passwd,
-            sentinel.extensions
+            sentinel.parameters
         )
 
         # call each method and check if exception was raised
         methods = [
             ('login', ()),
             ('logoff', ()),
+            ('reboot', (None, None,)),
             ('start', (None, None, None, None, None,)),
             ('stop', (None, None)),
         ]
         for method in methods:
             attr = getattr(hyp_obj, method[0])
             self.assertRaises(NotImplementedError, attr, *method[1])
-
     # test_methods()
 
-# TestGuestBase
+# TestHypervisorBase
