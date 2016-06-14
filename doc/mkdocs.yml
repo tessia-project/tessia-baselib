@@ -1,14 +1,14 @@
 # directory where doc files are located
 docs_dir: .
 # where to store output files
-site_dir: doc/html
+site_dir: ../build/html
 site_favicon: favicon.ico
 # enable permalinks for each header
 markdown_extensions:
     - toc:
         permalink: True
 # css/html theme
-theme: united
+theme: cosmo
 site_name: tessia-baselib
 repo_url: https://gitlab.com/tessia-project/tessia_baselib
 #site_favicon: TBD
