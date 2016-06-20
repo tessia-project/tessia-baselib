@@ -24,7 +24,6 @@ The following sections are available:
 **User guide**
 
 - [Building](users/build.md)
-- [Command line client](users/client.md)
 - [Rest-like API](users/api.md)
 
 **Developers**

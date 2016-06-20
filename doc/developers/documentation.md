@@ -15,12 +15,12 @@ limitations under the License.
 -->
 # Working with documentation
 
-The project's documentation uses markdown format and mkdocs to build the html pages. Markdown is an easy-to-learn and well known format (same as used in Github).
+The project's documentation uses the markdown format and mkdocs to build the html pages. Markdown is an easy-to-learn and well known format (same as used in Github).
 
 Mkdocs has a simple usage and does not neeed a complex configuration like sphinx to be used. If you are interested you can find the details [here](http://www.mkdocs.org/).
 
 As Gitlab has built-in support to parse markdown and display html while browsing files, all documentation can either be built in html by mkdocs or visualized directly on gitlab.
-Keep that in mind when editing the files, as there might be slightly differences between the markdown supported by each of them.
+Keep that in mind when editing the files, as there might be slight differences between the markdown supported by each of them.
 
 For explanation on the markdown syntax, see [Gitlab explanation](https://github.com/gitlabhq/gitlabhq/blob/master/doc/markdown/markdown.md).
 
@@ -37,7 +37,7 @@ If you don't want to use tox, you can start the mkdocs server with:
 In this case, make sure you have mkdocs installed on your system.
 
 Regardless of the option you choose (gitlab web interface or mkdocs locally), remember to visualize your changes with both options to make sure the markdown you used works on both.
-For example, If you did your work using gitlab, then start mkdocs server and review the documentation locally with your browser. If you used mkdocs, you can push your branch and browse the files on gitlab before creating the merge request.
+For example, if you did your work using gitlab, then start mkdocs server and review the documentation locally with your browser. If you used mkdocs, you can push your branch and browse the files on gitlab before creating the merge request.
 
 ## Building
 

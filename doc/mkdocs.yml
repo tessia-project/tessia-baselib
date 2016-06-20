@@ -2,7 +2,7 @@
 docs_dir: .
 # where to store output files
 site_dir: ../build/html
-site_favicon: favicon.ico
+site_favicon: img/favicon.ico
 # enable permalinks for each header
 markdown_extensions:
     - toc:
@@ -11,7 +11,6 @@ markdown_extensions:
 theme: cosmo
 site_name: tessia-baselib
 repo_url: https://gitlab.com/tessia-project/tessia_baselib
-#site_favicon: TBD
 #copyright: TBD
 pages:
 - Home: 'index.md'
