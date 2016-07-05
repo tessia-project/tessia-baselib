@@ -18,6 +18,9 @@ shell class.
 
 Run from tessia_baselib base directory to run all the tests.
 """
+# Disable protected access warning since this is a test
+# module and we expect to check the protected attributes.
+# pylint: disable=protected-access
 
 #
 # IMPORTS
@@ -43,8 +46,59 @@ class TestSshShell(unittest.TestCase):
     """
     Test class for SshShell class.
     """
-    ENCODING = 'ascii'
+    ENCODING = 'utf-8'
     STATUS_COMMAND = 'echo $?'
+
+    def _build_regular_run_output(self, cmd, output, status=0):
+        '''
+        Return output for mocked recv function.
+
+        Construct output that the run() function of the shell
+        will expect under normal conditions. The run() function
+        calls _read() three times, one for reading any garbage left,
+        one for reading the real output of the command, and one for
+        reading the output of 'echo $?' to know the exist status of the
+        command.
+
+        The return value can be set as the side_effect of a mocked recv
+        function of the shell's channel so that it's return value iterates
+        through these three outputs every time it is called through _read().
+
+        Args:
+            cmd: command that will be sent to run()
+            output: output to return after the command echo
+            status: status that should be returned by echo $?
+        Returns:
+            list of expected channel outputs after run() is called
+        Raises:
+        '''
+
+        return [self._make_output('', 'garbage'),
+                self._make_output(cmd, output),
+                self._make_output(self.STATUS_COMMAND, str(status))]
+
+    def _create_regular_shell(self):
+        '''
+        Construct a shell object with no errors.
+
+        Args:
+        Returns:
+        Raises:
+        '''
+        # set output of recv so that the first call to _read
+        # and the call to run 'locale charmap' in the SshShell constructor work
+        self._dummy_socket.recv.side_effect = (
+            [self._make_output('', 'output')]
+            + self._build_regular_run_output('locale charmap', 'UTF-8')
+        )
+
+        shell = shell_module.SshShell(self._dummy_socket)
+
+        # Reset the side effect so it won't affect other parts
+        # of the test.
+        self._dummy_socket.recv.side_effect = None
+
+        return shell
 
     def _make_output(self, cmd_echo, output):
         '''
@@ -63,32 +117,6 @@ class TestSshShell(unittest.TestCase):
                 cmd_echo,
                 output,
                 self._prompt)).encode(self.ENCODING)
-
-    def _set_regular_run_output(self, cmd, output):
-        '''
-        Set output of recv function.
-
-        Construct output that the run() function of the shell
-        will expect under normal conditions. The run() function
-        calls _read() three times, one for reading any garbage left,
-        one for reading the real output of the command, and one for
-        reading the output of 'echo $?' to know the exist status of the
-        command.
-
-        The recv function mock will iterate through these three outputs
-        every time it is called through _read().
-
-        Args:
-            cmd: command that will be sent to run()
-            output: output to return after the command echo
-        Returns:
-        Raises:
-        '''
-
-        self._shell.socket.recv.side_effect = [
-            self._make_output('', 'garbage'),
-            self._make_output(cmd, output),
-            self._make_output(self.STATUS_COMMAND, '0')]
 
     def setUp(self):
         """
@@ -112,24 +140,19 @@ class TestSshShell(unittest.TestCase):
 
         self._prompt = uid + ':'
 
-        dummy_socket = mock.MagicMock(spec_set=paramiko.channel.Channel)
+        self._dummy_socket = mock.MagicMock(spec_set=paramiko.channel.Channel)
 
         # Mock the select function used by the shell module to
         # always return the socket as ready to be read from.
         shell_module.select = mock.MagicMock()
 
-        shell_module.select.select.return_value = [dummy_socket], [], []
+        shell_module.select.select.return_value = [self._dummy_socket], [], []
 
         # In most cases, we want the send function to report that
         # it was able to send all of the bytes.
-        dummy_socket.send.side_effect = lambda content: len(
-            content.encode(self.ENCODING))
+        self._dummy_socket.send.side_effect = len
 
-        # set output of recv so that the call to _read in
-        # the SshShell constructor works
-        dummy_socket.recv.return_value = self._make_output('', 'output')
-
-        self._shell = shell_module.SshShell(dummy_socket)
+        self._shell = self._create_regular_shell()
 
     def tearDown(self):
         '''
@@ -140,6 +163,21 @@ class TestSshShell(unittest.TestCase):
         Raises:
         '''
         shell_module.select.select.side_effect = None
+
+        for call in self._dummy_socket.send.call_args_list:
+            # Check that if send was called, it was called with a single
+            # bytes argument.
+            # The call object in call_args_list is a tuple (args, kwargs)
+            # and we expect args to have a single element. We expectd this
+            # element to have been called with a bytes object. Even
+            # though the paramiko channel send function can also
+            # implicitly encode strings into bytes, we should have
+            # encoded any string ourselves so that we correctly
+            # check the number of bytes sent in the _write function.
+            self.assertEqual(len(call[0]), 1)
+            self.assertIsInstance(call[0][0], bytes)
+
+        # pylint: disable=no-member
         shell_module.select.select.reset_mock()
 
     def test_close(self):
@@ -168,9 +206,10 @@ class TestSshShell(unittest.TestCase):
 
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
-        status, output = self._shell.run('dummy_cmd' + '\n')
+        status, output = self._shell.run(cmd + '\n')
 
         self.assertIsInstance(status, int)
         self.assertEqual(output, expected_output + '\n')
@@ -244,7 +283,8 @@ class TestSshShell(unittest.TestCase):
 
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
         # clear side effect so that return value
         # is used isntead
@@ -299,7 +339,8 @@ class TestSshShell(unittest.TestCase):
 
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
         status, output = self._shell.run('dummy_cmd')
 
@@ -318,7 +359,8 @@ class TestSshShell(unittest.TestCase):
         """
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
         # Mock select so that it will report no handles
         # ready to be read from on the first call, and
@@ -330,7 +372,9 @@ class TestSshShell(unittest.TestCase):
             ]
         )
 
+        # pylint: disable=no-member
         shell_module.select.select.reset_mock()
+        # pylint: enable=no-member
 
         # Wrap _read() in a magic mock so we can count how many times it
         # was called.
@@ -343,6 +387,7 @@ class TestSshShell(unittest.TestCase):
 
         # We exepct each read in run to have called select twice.
         expected_select_call_count = self._shell._read.call_count * 2
+        # pylint: disable=no-member
         self.assertEqual(shell_module.select.select.call_count,
                          expected_select_call_count)
 
@@ -366,14 +411,14 @@ class TestSshShell(unittest.TestCase):
 
         # Wrap the logger warning function in a magic mock
         # so we can check if it was called.
-        self._shell._mainLogger.warning = mock.MagicMock(
-            side_effect=self._shell._mainLogger.warning)
+        self._shell._main_logger.warning = mock.MagicMock(
+            side_effect=self._shell._main_logger.warning)
 
         status, output = self._shell.run(cmd)
 
         self.assertIsInstance(status, int)
         self.assertEqual(output, expected_output + '\n')
-        self.assertTrue(self._shell._mainLogger.warning.called)
+        self.assertTrue(self._shell._main_logger.warning.called)
 
     def test_run_read_timeout(self):
         '''
@@ -403,7 +448,8 @@ class TestSshShell(unittest.TestCase):
         """
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
         # Make it so every call to _write() will take two calls
         # to send_ready() before calling send(). The cycle is so
@@ -441,7 +487,8 @@ class TestSshShell(unittest.TestCase):
         """
         cmd = 'dummy_cmd'
         expected_output = 'dummy_output'
-        self._set_regular_run_output(cmd, expected_output)
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
 
         self._shell.socket.send_ready.return_value = False
 
@@ -462,6 +509,75 @@ class TestSshShell(unittest.TestCase):
             with self.assertRaises(TimeoutError):
                 self._shell.run('dummy_cmd\n', timeout=0.1)
 
+    def test_open_bad_charmap(self):
+        '''
+        Test constructing shell object with an unexpected charmap.
+
+        Args:
+        Returns:
+        Raises:
+        '''
+
+        with mock.patch(
+            'tessia_baselib.common.ssh.shell.getLogger') as get_logger_mock:
+
+            bad_charmap = 'UTF-9'
+
+            self._dummy_socket.recv.side_effect = (
+                [self._make_output('', 'output')]
+                + self._build_regular_run_output('locale charmap', bad_charmap)
+            )
+
+            shell_module.SshShell(self._dummy_socket)
+
+            self.assertEqual(get_logger_mock.return_value.warning.call_count,
+                             2)
+
+            # The first warning call is specific to this error,
+            # the second one is the same for both the locale call returning
+            # a bad status and the charmap being unexpected.
+            first_warning_call = (get_logger_mock.return_value.warning
+                                  .call_args_list[0])
+
+            expected_first_warning_call = mock.call(
+                'Charmap file %s is not UTF-8',
+                bad_charmap)
+
+            self.assertEqual(first_warning_call,
+                             expected_first_warning_call)
+
+    def test_open_bad_locale_call(self):
+        '''
+        Test constructing a shell object with a failed 'locale' call.
+
+        Args:
+        Returns:
+        Raises:
+        '''
+        with mock.patch(
+            'tessia_baselib.common.ssh.shell.getLogger') as get_logger_mock:
+
+            self._dummy_socket.recv.side_effect = (
+                [self._make_output('', 'output')]
+                + self._build_regular_run_output('locale charmap', 'UTF-8', 1)
+            )
+
+            shell_module.SshShell(self._dummy_socket)
+
+            self.assertEqual(get_logger_mock.return_value.warning.call_count,
+                             2)
+
+            # The first warning call is specific to this error,
+            # the second one is the same for both the locale call returning
+            # a bad status and the charmap being unexpected.
+            first_warning_call = (get_logger_mock.return_value.warning
+                                  .call_args_list[0])
+
+            expected_first_warning_call = mock.call(
+                'Could not determine charmap')
+
+            self.assertEqual(first_warning_call,
+                             expected_first_warning_call)
 
 if __name__ == '__main__':
     unittest.main()
