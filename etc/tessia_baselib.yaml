@@ -1,0 +1,6 @@
+# tessia_baselib configuration file
+
+#The default json schema validator for the generic
+#parameters used in guest/hypervisor operations
+default_schema_validator: jsonschema
+
