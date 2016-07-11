@@ -15,7 +15,7 @@ limitations under the License.
 -->
 # Build system
 
-The build system is based on python [setuptools]() and [pbr](http://docs.openstack.org/developer/pbr/). In order to build and install, one would simply do: `python3 setup.py`
+The build system is based on python [setuptools]() and [pbr](http://docs.openstack.org/developer/pbr/). In order to build and install, one would simply do: `./setup.py install`
 
 The build files are organized as follows:
 

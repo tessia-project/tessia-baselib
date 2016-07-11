@@ -1,17 +1,16 @@
 # directory where doc files are located
 docs_dir: .
 # where to store output files
-site_dir: doc/html
-site_favicon: favicon.ico
+site_dir: ../build/html
+site_favicon: img/favicon.ico
 # enable permalinks for each header
 markdown_extensions:
     - toc:
         permalink: True
 # css/html theme
-theme: united
+theme: cosmo
 site_name: tessia-baselib
 repo_url: https://gitlab.com/tessia-project/tessia_baselib
-#site_favicon: TBD
 #copyright: TBD
 pages:
 - Home: 'index.md'
@@ -19,8 +18,7 @@ pages:
     - Build and install: 'users/build.md'
     - REST-API: 'users/api.md'
 - Developers:
-    #- Architecture: 'developers/architecture.md'
     - Coding guidelines: 'developers/coding_guidelines.md'
-    #- Creating unit tests: 'developers/unit_tests.md'
-    #- How to send a patch: 'developers/development_process.md'
-    #- Repository structure: 'developers/repo_structure.md'
+    - Development process: 'developers/dev_process.md'
+    - Unit tests: 'developers/unit_tests.md'
+    - Working with documentation: 'developers/documentation.md'
