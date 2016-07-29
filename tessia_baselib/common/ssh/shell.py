@@ -26,15 +26,16 @@ import time
 #
 # CONSTANTS AND DEFINITONS
 #
+ENCODING = 'utf-8'
 
 #
 # CODE
 #
 class SshShell(object):
     """
-    This class encapsulates the reading from and writing to a file object/socket
-    and perform expect work to provide a shell object which represents an
-    interactive shell session.
+    This class encapsulates the reading from and writing to a file
+    object/socket and performing expect work to provide a shell object
+    which represents an interactive shell session.
     """
     def __init__(self, socketObj):
         """
@@ -51,29 +52,26 @@ class SshShell(object):
             None
         """
         # main logger to report issues
-        self._mainLogger = getLogger(__name__)
+        self._main_logger = getLogger(__name__)
 
         # logger to report all communication content. By default we don't want
         # it to dump a lot of messages if user didn't choose explicity to get
         # it, so we set propagate as false to assure that.
-        self._consoleLogger = getLogger(__name__ + '.console', False)
+        self._console_logger = getLogger(__name__ + '.console', False)
 
         # store socket object
         self.socket = socketObj
 
-        # the main problem with doing 'expect work' is to detect when the output
-        # is really over. Usually this is done by waiting the prompt but this
-        # can generate false positives. In order to avoid that and simplify
-        # output parsing we set the prompt to a unique identifier so that we
-        # make sure that once it is found it means the output has finished.
+        # the main problem with doing 'expect work' is to detect when the
+        # output is really over. Usually this is done by waiting the prompt but
+        # this can generate false positives. In order to avoid that and
+        # simplify output parsing we set the prompt to a unique identifier so
+        # that we make sure that once it is found it means the output has
+        # finished.
         self.prompt = str(uuid4())
 
         # commands to prepare the shell environment
         initial_cmds = [
-            # to avoid problems with converting the output from the type bytes
-            # to string (and unicode) we force the use of ascii output by
-            # setting the locale to C
-            'export LC_ALL=C',
             # use variable expansion to prevent the first _read() from matching
             # the command line instead of the prompt
             'prompt_end=":"; export PS1="{}$prompt_end"; unset prompt_end'
@@ -85,6 +83,28 @@ class SshShell(object):
 
         # perform a first read to consume the expect setup above
         self._read()
+
+        status, output = self.run('locale charmap')
+
+        # locale command worked: check its output
+        if status == 0:
+            charmap = output.strip()
+            # charmap is utf-8 like expected: return
+            if charmap == 'UTF-8':
+                return
+
+            self._main_logger.warning('Charmap file %s is not UTF-8',
+                                      charmap)
+        # locale command failed: log warning
+        else:
+            self._main_logger.warning('Could not determine charmap')
+
+        self._main_logger.warning('Data sent and received through this'
+                                  ' ssh  channel is encoded and decoded in'
+                                  ' utf-8, but locale of this shell does'
+                                  ' not seem to have been configured'
+                                  ' to use utf-8.')
+
     # __init__()
 
     def _read(self, timeout=120, cmd_echo=None):
@@ -115,13 +135,11 @@ class SshShell(object):
             # socket ready for reading: read 1024 bytes to buffer
             if len(r_list) > 0:
                 try:
-                    # we assured output is ascii by setting LC_ALL=C before so
-                    # it's safe to convert the type bytes returned here to
-                    # string using ascii decoding.
-                    output += str(self.socket.recv(1024), 'ascii')
+                    # assume data we receive is in utf-8 and decode it as such
+                    output += str(self.socket.recv(1024), ENCODING)
                 # ignore timeout and keep trying until our timeout is reached
                 except socket.timeout:
-                    self._mainLogger.warning(
+                    self._main_logger.warning(
                         'Timeout while performing socket.recv'
                     )
 
@@ -144,7 +162,7 @@ class SshShell(object):
             output = output[len(cmd_echo):]
 
         # remove trailing newline as it is added by logger later
-        self._consoleLogger.info(output.rstrip('\n'))
+        self._console_logger.info(output.rstrip('\n'))
 
         return output
     # _read()
@@ -156,6 +174,8 @@ class SshShell(object):
 
         Args:
             timeout: how many seconds to wait for operation to complete
+            content: string, it will be encoded in utf-8
+                     prior to writing
 
         Returns:
             None
@@ -164,10 +184,13 @@ class SshShell(object):
             TimeoutError: if timeout is reached and write did not complete
         """
         # remove trailing newline as it is added by logger later
-        self._consoleLogger.info('prompt: %s', content.rstrip('\n'))
+        self._console_logger.info('prompt: %s', content.rstrip('\n'))
 
         # define the timeout limit
         timeout = time.time() + timeout
+
+        # ensure content is in bytes so we use the correct length
+        content = content.encode(ENCODING)
 
         # size of buffer we need to write
         size = len(content)
