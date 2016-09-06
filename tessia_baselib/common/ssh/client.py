@@ -15,10 +15,11 @@
 """
 Module for a ssh client class.
 """
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.ssh.exceptions import SshClientError
 from tessia_baselib.common.ssh.shell import SshShell
 
@@ -63,7 +64,7 @@ class SshClient(object):
             None
         """
         # intialize logger object
-        self._logger_obj = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self._private_key_path = None
         self._timeout = None
@@ -98,10 +99,10 @@ class SshClient(object):
         empty, and if not return it with unquoted %xx escapes.
 
         Args:
-            quoted_path: a url-quoted path
+            quoted_path (str): a url-quoted path
 
         Returns:
-            The unquoted path, if the path is not empty
+            str: The unquoted path, if the path is not empty
 
         Raises:
             ValueError: if the path is empty
@@ -119,15 +120,16 @@ class SshClient(object):
         Copy bytes from one file descriptor to another in fixed-size chunks.
 
         Args:
-            source_fd: open file descriptor to read from, must be a byte stream
-            target_fd: open file descriptor to write to, either a
-                       BufferedWriter or paramiko.sftp_file, must be a byte
-                       stream in blocking mode
-            chunk_size: maximum number of bytes to read from source_fd before
-                        copying them to target_fd
+            source_fd (stream): open file descriptor to read from, must be a
+                                byte stream
+            target_fd (stream): open file descriptor to write to, either a
+                                BufferedWriter or paramiko.sftp_file, must be
+                                a byte stream in blocking mode
+            chunk_size (int): maximum number of bytes to read from source_fd
+                              before copying them to target_fd
 
         Returns:
-            number of bytes copied from the source to the target
+            int: number of bytes copied from the source to the target
 
         Raises:
             AssertionError on unexpected conditions
@@ -180,12 +182,12 @@ class SshClient(object):
         used are the same as the ones set for the 'self' object.
 
         Args:
-            parsed_url: The tuple returned by urllib.parse.urlsplit
-                        parsed from an ssh url. The hostname
-                        must be non-empty.
+            parsed_url (tuple): returned by urllib.parse.urlsplit parsed from
+                                an ssh url. The hostname must be non-empty.
+
         Returns:
-            Instance of SshClient connected to the host defined in
-            the url parameter
+            SshClient: Instance connected to the host defined in
+                       the url parameter
 
         Raises:
             ValueError: if there is no hostname in the url
@@ -237,9 +239,9 @@ class SshClient(object):
         module runs).
 
         Args:
-            source_file_path: A file path on the ssh host.
-            target_file_path: A file on this local host.
-            write_mode: 'wb' or 'ab' for truncating or appending.
+            source_file_path (str): A file path on the ssh host.
+            target_file_path (str): A file on this local host.
+            write_mode (str): 'wb' or 'ab' for truncating or appending.
 
         Returns:
             None
@@ -261,11 +263,11 @@ class SshClient(object):
         this host and the other one, and then the other one is closed.
 
         Args:
-            source_file_path: A path to the file on this ssh host.
-            parsed_url: The tuple returned by urllib.parse.urlsplit
-                        parsed from an ssh url, indicating the target
-                        file.
-            write_mode: Either 'wb' or 'ab' for truncating or appending.
+            source_file_path (str): A path to the file on this ssh host.
+            parsed_target_url (tuple): returned by urllib.parse.urlsplit
+                                       parsed from an ssh url, indicating the
+                                       target file.
+            write_mode (str): Either 'wb' or 'ab' for truncating or appending.
 
         Returns:
             None
@@ -296,10 +298,11 @@ class SshClient(object):
         this host and the other one, and then the other one is closed.
 
         Args:
-            parsed_url: The tuple returned by urllib.parse.urlsplit
-                        parsed from an ssh url, indicating the source file.
-            target_file_path: A path to the file on this ssh host.
-            write_mode: Either 'wb' or 'ab' for truncating or appending.
+            parsed_source_url (tuple): tuple returned by urllib.parse.urlsplit
+                                       parsed from an ssh url, indicating the
+                                       source file.
+            target_file_path (str): A path to the file on this ssh host.
+            write_mode (str): Either 'wb' or 'ab' for truncating or appending.
 
         Returns:
             None
@@ -327,11 +330,11 @@ class SshClient(object):
         ssh host.
 
         Args:
-            parsed_source_url: The tuple returned by urllib.parse.urlsplit
-                               from parsing the source url
-            source_url: The unparsed full source url.
-            target_file_path: A path to the file on this ssh host.
-            write_mode: Either 'wb' or 'ab' for truncating or appending.
+            parsed_source_url (tuple): returned by urllib.parse.urlsplit
+                                       from parsing the source url
+            source_url (str): The unparsed full source url.
+            target_file_path (str): A path to the file on this ssh host.
+            write_mode (str): Either 'wb' or 'ab' for truncating or appending.
 
         Returns:
             None
@@ -375,9 +378,9 @@ class SshClient(object):
         Copy a file from the local host to this ssh host.
 
         Args:
-            source_file_path: A file on this local host.
-            target_file_path: A file on this ssh host.
-            write_mode: 'wb' or 'ab' for truncating or appending.
+            source_file_path (str): A file on this local host.
+            target_file_path (str): A file on this ssh host.
+            write_mode (str): 'wb' or 'ab' for truncating or appending.
 
         Returns:
             None
@@ -395,9 +398,9 @@ class SshClient(object):
         Change permissions of a file in the target system.
 
         Args:
-            file_path: file path on target system
-            file_perms: integer containing the permission bits (as defined by
-                        os.chmod)
+            file_path (str): file path on target system
+            file_perms (int): integer containing the permission bits
+                              (as defined by os.chmod)
         Returns:
             None
 
@@ -428,14 +431,15 @@ class SshClient(object):
         Establishes a connection to the target system
 
         Args:
-            host_name: target hostname
-            port: optional ssh port to use
-            user: username for connection, disregarded if private_key_path is
-                  specified
-            passwd: password for connection, disregarded if private_key_path is
-                    specified
-            private_key_path: directory path containing private keys to use
-            timeout: how many seconds to wait for connection to complete
+            host_name (str): target hostname
+            port (int): optional ssh port to use
+            user (str): username for connection, disregarded if
+                        private_key_path is specified
+            passwd (str): password for connection, disregarded if
+                          private_key_path is specified
+            private_key_path (str): directory path containing private keys to
+                                    use
+            timeout (int): how many seconds to wait for connection to complete
 
         Returns:
             None
@@ -446,11 +450,11 @@ class SshClient(object):
         """
         # existing connection: warn in log
         if self._ssh_client is not None:
-            self._logger_obj.warning('login called with connection active: '
-                                     'dropping previous connection object')
+            self._logger.warning('login called with connection active: '
+                                 'dropping previous connection object')
 
         # debugging information on connection
-        self._logger_obj.debug(
+        self._logger.debug(
             "login: hostname='%s' port='%s' user='%s' priv_key='%s' "
             "timeout='%s'", host_name, port, user,
             private_key_path, timeout
@@ -481,7 +485,7 @@ class SshClient(object):
         # credentials invalid
         except paramiko.AuthenticationException as exc:
             # log the traceback for possible debugging
-            self._logger_obj.exception('login exception:')
+            self._logger.exception('login exception:')
 
             # report our custom exception so that upper layers do not tie to
             # the underlying implementation
@@ -490,7 +494,7 @@ class SshClient(object):
         # other errors (i.e. protocol or connection errors)
         except Exception as exc:
             # log the traceback for possible debugging
-            self._logger_obj.exception('login exception:')
+            self._logger.exception('login exception:')
 
             # report our custom exception so that upper layers do not tie to
             # the underlying implementation
@@ -527,13 +531,13 @@ class SshClient(object):
         """
         # no connection active: nothing to do
         if self._ssh_client is None:
-            self._logger_obj.warning('logoff called but no connection active: '
-                                     'ignoring')
+            self._logger.warning('logoff called but no connection active: '
+                                 'ignoring')
             return
 
         # according to paramiko no exception can be raised while closing a
         # connection
-        self._logger_obj.debug('closing connection')
+        self._logger.debug('closing connection')
 
         self._sftp_conn.close()
         self._sftp_conn = None
@@ -547,11 +551,11 @@ class SshClient(object):
         Open a file on the target system.
 
         Args:
-            file_path: path of the file on the target system
-            mode: open mode
+            file_path (str): path of the file on the target system
+            mode (str): open mode
 
         Returns:
-            A file-like object handle
+            object: A file-like object handle
 
         Raises:
             None
@@ -562,20 +566,21 @@ class SshClient(object):
         return self._sftp_conn.open(file_path, mode)
     # open_file()
 
-    def openShell(self, chroot_dir=None, shell_path=None):
+    def open_shell(self, chroot_dir=None, shell_path=None):
         """
         Open an interactive shell and return an expect-like object. Optionally
         accepts a directory to perform chroot.
 
         Args:
-            chroot_dir: directory to perform chroot
-            shell_path: path where shell is located (defaults to /bin/sh)
+            chroot_dir (str): directory to perform chroot
+            shell_path (str): path where shell is located (defaults to /bin/sh)
 
         Returns:
-            SshShell object
+            SshShell: object
 
         Raises:
             IOError: if session cannot be opened
+            FileNotFoundError: if chroot dir does not exist
             SshClientError: if shell cannot be started
         """
         self._assert_connected()
@@ -599,7 +604,7 @@ class SshClient(object):
         try:
             channel = self._ssh_client.get_transport().open_session()
         except paramiko.SSHException as exc:
-            self._logger_obj.exception('openShell open_session exception:')
+            self._logger.exception('open_shell open_session exception:')
             raise IOError(
                 'Failed to open shell: {}'.format(str(exc))) from exc
 
@@ -620,22 +625,22 @@ class SshClient(object):
         except paramiko.SSHException as exc:
             # log the exception for debugging and raise our own to decouple
             # user from implementation detail
-            self._logger_obj.exception('login exception:')
+            self._logger.exception('login exception:')
             raise SshClientError(
                 'Failed to start shell: {}'.format(str(exc))) from exc
 
         return SshShell(channel)
-    # openShell()
+    # open_shell()
 
     def path_exists(self, check_path):
         """
         Verifies if a given path exists on system
 
         Args:
-            check_path: string path
+            check_path (str): filesystem path
 
         Returns:
-            True if path exists, False otherwise
+            bool: True if path exists, False otherwise
 
         Raises:
             None
@@ -661,22 +666,21 @@ class SshClient(object):
         target url.
 
         Args:
-            source_file_path: Path of the file in this ssh host
-
-            target_url: Url to which the source file should be copied.
-                        The following schemes are accepted:
-                        ssh://[user[:pass]]@ssh_host[:port]/target/path
-                        file:///target/path
-                        A ssh url refers to a file on another ssh host.
-                        A file url refers to a file on the local host,
-                        and any host portion of the url is ignored.
-                        The url has to be properly quoted.
-                        See urllib.parse.quote. Don't forget to call it with
-                        safe='/' when quoting paths and safe='' when quoting
-                        other components (e.g. the password, which could
-                        contain a '/' and must be quoted).
-            write_mode: Either 'wb' or 'ab', for truncating and appending to
-                        the target file, respectively.
+            source_file_path (str): Path of the file in this ssh host
+            target_url (str): Url to which the source file should be copied.
+                              The following schemes are accepted:
+                              ssh://[user[:pass]]@ssh_host[:port]/target/path
+                              file:///target/path
+                              A ssh url refers to a file on another ssh host.
+                              A file url refers to a file on the local host,
+                              and any host portion of the url is ignored.
+                              The url has to be properly quoted.
+                              See urllib.parse.quote. Don't forget to call it
+                              with safe='/' when quoting paths and safe='' when
+                              quoting other components (e.g. the password,
+                              which could contain a '/' and must be quoted).
+            write_mode (str): Either 'wb' or 'ab', for truncating and appending
+                              to the target file, respectively.
         Returns:
             None
 
@@ -712,26 +716,26 @@ class SshClient(object):
         ssh host.
 
         Args:
-            source_url: Url to which the source file should be copied.
-                        The following schemes are accepted:
-                        ssh://[user[:pass]]@ssh_host[:port]/target/path
-                        file:///target/path
-                        http, https or ftp urls
+            source_url (str): Url to which the source file should be copied.
+                              The following schemes are accepted:
+                              ssh://[user[:pass]]@ssh_host[:port]/target/path
+                              file:///target/path
+                              http, https or ftp urls
 
-                        A ssh url refers to a file on another ssh host.
-                        A file url refers to a file on the local host,
-                        and any host portion of the url is ignored.
+                              A ssh url refers to a file on another ssh host.
+                              A file url refers to a file on the local host,
+                              and any host portion of the url is ignored.
 
-                        The url has to be properly quoted.
-                        See urllib.parse.quote. Don't forget to call it with
-                        safe='/' when quoting paths and safe='' when quoting
-                        other components (e.g. the password, which could
-                        contain a '/' which must be quoted).
+                              The url has to be properly quoted.
+                              See urllib.parse.quote. Don't forget to call it
+                              with safe='/' when quoting paths and safe=''
+                              when quoting other components (e.g. the password,
+                              which could contain a '/' which must be quoted).
 
-            target_file_path: Path of the file in this ssh host to which
-                              the source will be copied.
-            write_mode: Either 'wb' or 'ab', for truncating and appending to
-                        the target file, respectively.
+            target_file_path (str): Path of the file in this ssh host to which
+                                    the source will be copied.
+            write_mode (str): Either 'wb' or 'ab', for truncating and appending
+                              to the target file, respectively.
 
         Returns:
             None

@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Implementation of hypervisor interface for KVM
+"""
+
 #
 # IMPORTS
 #
@@ -25,12 +29,13 @@ from tessia_baselib.hypervisors.base import HypervisorBase
 # CODE
 #
 
+# pylint:disable=abstract-method
 class HypervisorKvm(HypervisorBase):
     """
     This class implements the driver to support the KVM hypervisor type
     """
 
     # the identifier for this hypervisor class
-    hyp_id = 'kvm'
+    HYP_ID = 'kvm'
 
 # HypervisorKvm

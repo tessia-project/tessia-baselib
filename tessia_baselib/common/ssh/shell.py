@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Implementation of a shell object wrapping a ssh connection
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.ssh.exceptions import SshShellError
 from uuid import uuid4
 
@@ -37,13 +41,13 @@ class SshShell(object):
     object/socket and performing expect work to provide a shell object
     which represents an interactive shell session.
     """
-    def __init__(self, socketObj):
+    def __init__(self, socket_obj):
         """
         Receives a socket to use for communication with the shell and prepares
         the expect configuration.
 
         Args:
-            socket: socket object for reading and writing
+            socket_obj (socket): socket object for reading and writing
 
         Returns:
             None
@@ -52,15 +56,15 @@ class SshShell(object):
             None
         """
         # main logger to report issues
-        self._main_logger = getLogger(__name__)
+        self._main_logger = get_logger(__name__)
 
         # logger to report all communication content. By default we don't want
         # it to dump a lot of messages if user didn't choose explicity to get
         # it, so we set propagate as false to assure that.
-        self._console_logger = getLogger(__name__ + '.console', False)
+        self._console_logger = get_logger(__name__ + '.console', False)
 
         # store socket object
-        self.socket = socketObj
+        self.socket = socket_obj
 
         # the main problem with doing 'expect work' is to detect when the
         # output is really over. Usually this is done by waiting the prompt but
@@ -113,11 +117,11 @@ class SshShell(object):
         internally only.
 
         Args:
-            timeout: how many seconds to wait for input
-            cmd_echo: initial command string to remove its echo from output
+            timeout (int): how many seconds to wait for input
+            cmd_echo (str): initial command to remove its echo from output
 
         Returns:
-            string with content read from socket
+            str: with content read from socket
 
         Raises:
             TimeoutError: if timeout is reached and no content read
@@ -173,9 +177,8 @@ class SshShell(object):
         internally only.
 
         Args:
-            timeout: how many seconds to wait for operation to complete
-            content: string, it will be encoded in utf-8
-                     prior to writing
+            timeout (int): how many seconds to wait for operation to complete
+            content (str): it will be encoded in utf-8 prior to writing
 
         Returns:
             None
@@ -236,11 +239,11 @@ class SshShell(object):
         is the entry point to be consumed by users.
 
         Args:
-            cmd: string command
-            timeout: how many seconds to wait for output to complete
+            cmd (str): command
+            timeout (int): how many seconds to wait for output to complete
 
         Returns:
-            tuple (exit_code, output)
+            tuple: (exit_code, output)
 
         Raises:
             SshShellError: if it fails to parse the command exit code
@@ -266,7 +269,7 @@ class SshShell(object):
         self._write(status_cmd)
         status = self._read(timeout, status_cmd)
         try:
-            status = int(status)
+            exit_code = int(status)
         # in case of error raise our own exception to not expose internal
         # implementation
         except (TypeError, ValueError) as exc:
@@ -274,7 +277,7 @@ class SshShell(object):
                 'Failed to parse command return status: {}'.format(str(exc))
             )
 
-        return status, output
+        return exit_code, output
     # run()
 
 # SshShell

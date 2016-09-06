@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Defines the interface for hypervisor classes
+"""
+
 #
 # IMPORTS
 #
+import abc
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -24,28 +29,25 @@
 # CODE
 #
 
-class HypervisorBase(object):
+class HypervisorBase(metaclass=abc.ABCMeta):
     """
     This is the abstract Hypervisor class which defines the interface to be
     implemented by each hypervisor driver
     """
 
     # the identifier for this hypervisor class, should be a lowercase string
-    hyp_id = 'base'
+    HYP_ID = 'base'
 
-    def __init__(self, logger, system_name, host_name, user,
-                 passwd, extensions):
+    def __init__(self, system_name, host_name, user, passwd, extensions):
         """
         Constructor
 
         Args:
-            logger: logging object
-            system_name: string containing the hypervisor name
-            host_name: hostname or ip address of system
-            user: user to login to system
-            passwd: password to login to system
-            extensions: a dictionary containing values specific to each
-                        hypervisor type
+            system_name (str): hypervisor name
+            host_name (str): hostname or ip address of system
+            user (str): user to login to system
+            passwd (str): password to login to system
+            extensions (dict): contains values specific to each hypervisor type
 
         Returns:
             None
@@ -54,7 +56,6 @@ class HypervisorBase(object):
             None
         """
         # store instance values
-        self.logger = logger
         self.name = system_name
         self.host_name = host_name
         self.user = user
@@ -63,23 +64,25 @@ class HypervisorBase(object):
 
     # __init__()
 
+    @abc.abstractmethod
     def login(self, timeout=60):
         """
         Execute the login to the hypervisor system using the credentials
         provided.
 
         Args:
-            timeout: how many seconds to wait for connection
+            timeout (int): how many seconds to wait for connection
 
         Returns:
             string 'ok' if succeded, error message otherwise
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # login()
 
+    @abc.abstractmethod
     def logoff(self):
         """
         Close an active connection to the hypervisor system
@@ -91,47 +94,50 @@ class HypervisorBase(object):
             string 'ok' if succeded, error message otherwise
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # logoff()
 
+    @abc.abstractmethod
     def start(self, guest_name, resources, boot_method, boot_device,
               extensions):
         """
         Attach the given resources and start the guest using the method
-        and devices specified.
+        and devices specified. Returns 'ok' if succeded, error message
+        otherwise
 
         Args:
-            guest_name: name of the guest as known by hypervisor
-            resources: dictionary containing the resources to attach
-            boot_method: one of 'disk' or 'network'
-            boot_device: the disk name (for disk method) or uri (for network
-                         method)
-            extensions: dictionary with content specific to hypervisor type
+            guest_name (str): name of the guest as known by hypervisor
+            resources (dict): resources to attach
+            boot_method (str): one of 'disk' or 'network'
+            boot_device (str): the disk name (for disk method) or uri
+                               (for network method)
+            extensions (dict): content specific to hypervisor type
 
         Returns:
-            string 'ok' if succeded, error message otherwise
+            None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # start()
 
+    @abc.abstractmethod
     def stop(self, guest_name, extensions):
         """
-        Stop a given guest
+        Stop a given guest. Returns 'ok' if succeded, error message otherwise
 
         Args:
-            guest_name: name of the guest as known by hypervisor
-            extensions: dictionary with content specific to hypervisor type
+            guest_name (str): name of the guest as known by hypervisor
+            extensions (dict): content specific to hypervisor type
 
         Returns:
-            string 'ok' if succeded, error message otherwise
+            None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # stop()

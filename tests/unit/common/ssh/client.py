@@ -16,11 +16,11 @@
 Defines two TestCase classes for unit tests for the ssh
 client class.
 """
-# Since this is a test class, we need to access some
-# protected members and we access some members in mocks
+
+# Since this is a test class we access some members in mocks
 # that would cause 'no-member' warnings to be issued.
-# pylint: disable=protected-access
 # pylint: disable=no-member
+
 #
 # IMPORTS
 #
@@ -28,13 +28,14 @@ client class.
 from tessia_baselib.common.ssh import client
 from tessia_baselib.common.ssh import shell as shell_module
 from tessia_baselib.common.ssh.exceptions import SshClientError
+from unittest import main as unittest_main
 from unittest import mock
+from unittest import TestCase
 
 import io
 import paramiko
 import logging
 import stat
-import unittest
 import urllib
 
 #
@@ -50,7 +51,7 @@ USERNAME = 'some_user'
 # CODE
 #
 
-class TestSshClientConnected(unittest.TestCase):
+class TestSshClientConnected(TestCase):
     """
     Test class for the SshClient class.
 
@@ -90,7 +91,7 @@ class TestSshClientConnected(unittest.TestCase):
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
         log_patcher = mock.patch(
-            'tessia_baselib.common.ssh.client.getLogger', autospec=True)
+            'tessia_baselib.common.ssh.client.get_logger', autospec=True)
         log_patcher.start()
         # ensure patch is reverted even if setUp throws an exception
         self.addCleanup(log_patcher.stop)
@@ -161,9 +162,11 @@ class TestSshClientConnected(unittest.TestCase):
         by other test functions.
 
         Args:
-            scheme: The scheme to be tested, either http[s] or ftp
-            length: A boolean indicating wether the url should report
-                    a content-length for checking.
+            scheme (str): The scheme to be tested, either http[s] or ftp
+            length (bool): A boolean indicating wether the url should report
+                           a content-length for checking.
+            request_mock (Mock): provided by patch decorator
+
         Returns:
             None
 
@@ -227,28 +230,24 @@ class TestSshClientConnected(unittest.TestCase):
     def _test_transfer_ssh_ssh(self, method, source, target,
                                source_path, target_path):
         """
-        Test pushing or pulling from/to self._client to/from
-        another ssh host. Used by other test functions.
+        Test pushing or pulling from/to self._client to/from another ssh host.
+        Used by other test functions.
 
-        For pushing the source should be a ssh url and the target
-        a path (which refers to a path on self._client), for
-        pulling the source should be a path and the target
-        a ssh url.
+        For pushing the source should be a ssh url and the target a path (which
+        refers to a path on self._client), for pulling the source should be a
+        path and the target a ssh url.
 
         Args:
-            method: The method object to be tested.
-                    Either self._client.push_file or
-                    self._client.pull_file.
-            source: The ssh url for another host, when pushing,
-                    or the path to a file on self._client when
-                    pulling.
-            target: The ssh url for another host, when pulling,
-                    or the path to a file on self._client when
-                    pushing.
-            source_path: The file path on the source. Same as source
-                         when pulling.
-            target_path The file path on the target. Same as target
-                        when pushing.
+            method (callable): The method object to be tested. Either
+                               self._client.push_file or self._client.pull_file
+            source (str): The ssh url for another host, when pushing, or the
+                          path to a file on self._client when pulling.
+            target (str): The ssh url for another host, when pulling, or the
+                          path to a file on self._client when pushing
+            source_path (str): The file path on the source. Same as source
+                               when pulling.
+            target_path (str): The file path on the target. Same as target
+                               when pushing.
         Returns:
         Raises:
         """
@@ -346,7 +345,7 @@ class TestSshClientConnected(unittest.TestCase):
         with mock.patch('tessia_baselib.common.ssh.client.SshShell',
                         autospec=True):
 
-            shell = self._client.openShell(None, None)
+            shell = self._client.open_shell(None, None)
 
             self.assertIsInstance(shell, shell_module.SshShell)
 
@@ -362,7 +361,7 @@ class TestSshClientConnected(unittest.TestCase):
         self._client.path_exists = mock.MagicMock(return_value=False)
 
         with self.assertRaises(FileNotFoundError):
-            self._client.openShell(chroot_dir='not-a-dir')
+            self._client.open_shell(chroot_dir='not-a-dir')
 
     def test_open_shell_bad_cmd(self):
         """
@@ -388,7 +387,7 @@ class TestSshClientConnected(unittest.TestCase):
          .exec_command.side_effect) = paramiko.SSHException(exception_text)
 
         with self.assertRaises(SshClientError) as assert_raises_context:
-            self._client.openShell(None, None)
+            self._client.open_shell(None, None)
 
         self.assertIsInstance(assert_raises_context.exception.__cause__,
                               paramiko.SSHException)
@@ -407,7 +406,7 @@ class TestSshClientConnected(unittest.TestCase):
         self._client.path_exists = mock.MagicMock(return_value=False)
 
         with self.assertRaises(FileNotFoundError):
-            self._client.openShell(shell_path='not-a-dir')
+            self._client.open_shell(shell_path='not-a-dir')
 
     def test_open_shell_bad_session(self):
         """
@@ -423,7 +422,7 @@ class TestSshClientConnected(unittest.TestCase):
             paramiko.SSHException(exception_text))
 
         with self.assertRaises(IOError) as assert_raises_context:
-            self._client.openShell(None, None)
+            self._client.open_shell(None, None)
 
         self.assertIsInstance(assert_raises_context.exception.__cause__,
                               paramiko.SSHException)
@@ -447,7 +446,7 @@ class TestSshClientConnected(unittest.TestCase):
             self._client.path_exists = mock.MagicMock(return_value=True)
 
             chroot_dir = 'some_dir'
-            self._client.openShell(chroot_dir=chroot_dir)
+            self._client.open_shell(chroot_dir=chroot_dir)
 
             exec_command_mock = (self._client._ssh_client
                                  .get_transport.return_value
@@ -478,7 +477,7 @@ class TestSshClientConnected(unittest.TestCase):
 
             self._client.path_exists = mock.MagicMock(return_value=True)
 
-            self._client.openShell(shell_path='/bin/cool-shell')
+            self._client.open_shell(shell_path='/bin/cool-shell')
 
     def test_path_exists_false(self):
         """
@@ -530,7 +529,7 @@ class TestSshClientConnected(unittest.TestCase):
         Test pulling a file from the ssh host to a local file.
 
         Args:
-            open_mock: the patched builtin open function
+            open_mock (Mock): the patched builtin open function
         Returns:
         Raises:
         """
@@ -717,7 +716,7 @@ class TestSshClientConnected(unittest.TestCase):
         Test pushing a local file to the ssh host.
 
         Args:
-            open_mock: the patched builtin open function
+            open_mock (Mock): the patched builtin open function
         Returns:
         Raises:
         """
@@ -870,7 +869,7 @@ class TestSshClientConnected(unittest.TestCase):
         self._test_push_web('http', False)
 
 
-class TestSshClientNotConnected(unittest.TestCase):
+class TestSshClientNotConnected(TestCase):
     """
     Test class for the SshClient class.
 
@@ -903,7 +902,7 @@ class TestSshClientNotConnected(unittest.TestCase):
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
         log_patcher = mock.patch(
-            'tessia_baselib.common.ssh.client.getLogger', autospec=True)
+            'tessia_baselib.common.ssh.client.get_logger', autospec=True)
         self._mock_getlogger = log_patcher.start()
         self.addCleanup(log_patcher.stop)
 
@@ -1032,13 +1031,13 @@ class TestSshClientNotConnected(unittest.TestCase):
                            user=USERNAME, passwd=PASSWORD)
 
         # The first login should issue no warnings.
-        self.assertFalse(self._client._logger_obj.warning.called)
+        self.assertFalse(self._client._logger.warning.called)
 
         self._client.login(host_name=HOST_NAME, port=PORT,
                            user=USERNAME, passwd=PASSWORD)
 
         # Double logging-in will cause a warning to be issued.
-        self.assertTrue(self._client._logger_obj.warning.called)
+        self.assertTrue(self._client._logger.warning.called)
 
     def test_logoff(self):
         """
@@ -1076,8 +1075,8 @@ class TestSshClientNotConnected(unittest.TestCase):
         self._client.logoff()
 
         # Check if the logger issued a warning.
-        self.assertTrue(self._client._logger_obj.warning.called)
+        self.assertTrue(self._client._logger.warning.called)
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

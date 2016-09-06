@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Misc utilities to be used by other modules
+"""
+
 #
 # IMPORTS
 #
@@ -27,17 +31,17 @@ import os
 #
 # CODE
 #
-def importModules(modules_path, skip_list=None):
+def import_modules(modules_path, skip_list=None):
     """
     Dynamically imports python modules found in the provided directory and
     returns a list of the module objects found.
 
     Args:
-        modules_path: filesystem path containing modules to import
-        skip_list: list of module names to skip, usually the caller module
+        modules_path (str): filesystem path containing modules to import
+        skip_list (list): module names to skip, usually the caller module
 
     Returns:
-        list of module objects imported
+        list: module objects imported
 
     Raises:
         SyntaxError: if some module cannot be imported
@@ -69,4 +73,4 @@ def importModules(modules_path, skip_list=None):
         loaded_list.append(module)
 
     return loaded_list
-# importModules()
+# import_modules()

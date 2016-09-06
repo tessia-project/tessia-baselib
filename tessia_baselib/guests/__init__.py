@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Factory to expose the guest interface to library consumers
+"""
 #
 # IMPORTS
 #
@@ -44,9 +47,10 @@ class Guest(object):
         Constructor
 
         Args:
-            guest_type: one of the types specified in GUEST_TYPES
-            args: positional arguments to forward to driver's constructor
-            kwargs: keyword arguments to forward to driver's constructor
+            guest_type (str): one of the types specified in GUEST_TYPES
+            args (tuple): positional arguments to forward to driver's
+                          constructor
+            kwargs (dict): keyword arguments to forward to driver's constructor
 
         Returns:
             None
@@ -55,14 +59,14 @@ class Guest(object):
             RuntimeError: in case guest_type is not supported
         """
         # fetch the correct factory based on provided type
-        guestClass = GUEST_TYPES.get(guest_type)
-        if guestClass is None:
+        guest_cls = GUEST_TYPES.get(guest_type)
+        if guest_cls is None:
             raise RuntimeError(
                 'Guest type {} is not supported'.format(guest_type)
             )
 
         # instantiate the driver and forward arguments from user
-        self.__driver = guestClass(*args, **kwargs)
+        self.__driver = guest_cls(*args, **kwargs)
 
     # __init__()
 
@@ -72,10 +76,10 @@ class Guest(object):
         call to the driver object.
 
         Args:
-            attr: string with attribute name
+            attr (str): attribute name
 
         Returns:
-            the attribute from the driver object
+            any: the attribute from the driver object
 
         Raises:
             AttributeError: in case attribute is not present in driver's object

@@ -60,7 +60,7 @@ confidence=
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=wrong-import-order
+disable=wrong-import-order,protected-access
 
 
 [REPORTS]
@@ -349,7 +349,7 @@ max-attributes=7
 min-public-methods=0
 
 # Maximum number of public methods for a class (see R0904).
-max-public-methods=20
+max-public-methods=100
 
 # Maximum number of boolean expressions in a if statement
 max-bool-expr=5

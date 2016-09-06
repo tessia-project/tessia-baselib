@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Unit test for HypervisorBase
+"""
+
 #
 # IMPORTS
 #
+from tessia_baselib.hypervisors import base
 from unittest import TestCase
-from unittest.mock import Mock
 from unittest.mock import sentinel
 
 #
@@ -44,12 +48,21 @@ class TestHypervisorBase(TestCase):
         Raises:
             None
         """
-
-        # for tests it is preferrable to import the module and class here
-        # because we might need to patch something first
-        from tessia_baselib.hypervisors import base
-        self.hypModule = base
-
+        # since the class is abstract we need to define a child class to be
+        # able to instantiate it
+        class Child(base.HypervisorBase):
+            """
+            Concrete class of HypervisorBase
+            """
+            def login(self, *args, **kwargs):
+                super().login(*args, **kwargs)
+            def logoff(self, *args, **kwargs):
+                super().logoff(*args, **kwargs)
+            def start(self, *args, **kwargs):
+                super().start(*args, **kwargs)
+            def stop(self, *args, **kwargs):
+                super().stop(*args, **kwargs)
+        self._child_cls = Child
     # setUp()
 
     def test_attributes(self):
@@ -66,10 +79,21 @@ class TestHypervisorBase(TestCase):
         Raises:
             AssertionError: if an attribute does not match passed argument
         """
+        # pylint:disable=abstract-class-instantiated
+        self.assertRaises(
+            TypeError,
+            base.HypervisorBase,
+            sentinel.system_name,
+            sentinel.host_name,
+            sentinel.user,
+            sentinel.passwd,
+            sentinel.extensions
+        )
+
+
         # use sentinels for arguments to make sure we have the same value when
         # validating the object's attributes
-        guestObj = self.hypModule.HypervisorBase(
-            sentinel.logger,
+        guest_obj = self._child_cls(
             sentinel.system_name,
             sentinel.host_name,
             sentinel.user,
@@ -78,13 +102,12 @@ class TestHypervisorBase(TestCase):
         )
 
         # validate attributes
-        self.assertEqual('base', guestObj.hyp_id)
-        self.assertIs(sentinel.logger, guestObj.logger)
-        self.assertIs(sentinel.system_name, guestObj.name)
-        self.assertIs(sentinel.host_name, guestObj.host_name)
-        self.assertIs(sentinel.user, guestObj.user)
-        self.assertIs(sentinel.passwd, guestObj.passwd)
-        self.assertIs(sentinel.extensions, guestObj.extensions)
+        self.assertEqual('base', guest_obj.HYP_ID)
+        self.assertIs(sentinel.system_name, guest_obj.name)
+        self.assertIs(sentinel.host_name, guest_obj.host_name)
+        self.assertIs(sentinel.user, guest_obj.user)
+        self.assertIs(sentinel.passwd, guest_obj.passwd)
+        self.assertIs(sentinel.extensions, guest_obj.extensions)
 
     # test_attributes()
 
@@ -106,8 +129,7 @@ class TestHypervisorBase(TestCase):
         """
         # use sentinels for arguments to make sure we have the same value when
         # validating the object's attributes
-        hypervisorObj = self.hypModule.HypervisorBase(
-            sentinel.logger,
+        hyp_obj = self._child_cls(
             sentinel.system_name,
             sentinel.host_name,
             sentinel.user,
@@ -116,16 +138,15 @@ class TestHypervisorBase(TestCase):
         )
 
         # call each method and check if exception was raised
-        # login method
-        self.assertRaises(NotImplementedError, hypervisorObj.login)
-        # logoff method
-        self.assertRaises(NotImplementedError, hypervisorObj.logoff)
-        # start method
-        with self.assertRaises(NotImplementedError):
-            hypervisorObj.start('guestfoo', {}, 'methodfoo', 'devicefoo', {})
-        # stop method
-        with self.assertRaises(NotImplementedError):
-            hypervisorObj.stop('guestfoo', {})
+        methods = [
+            ('login', ()),
+            ('logoff', ()),
+            ('start', (None, None, None, None, None,)),
+            ('stop', (None, None)),
+        ]
+        for method in methods:
+            attr = getattr(hyp_obj, method[0])
+            self.assertRaises(NotImplementedError, attr, *method[1])
 
     # test_methods()
 

@@ -12,17 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Expose the distro modules from this package
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.tools import importModules
+from tessia_baselib.common.tools import import_modules
 
 import os
 
 #
 # CONSTANTS AND DEFINITIONS
 #
-DISTRO_MODULES = importModules(
+DISTRO_MODULES = import_modules(
     os.path.dirname(os.path.abspath(__file__))
 )
 

@@ -12,20 +12,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Factory to expose the hypervisor interface to library consumers
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.hmc import hypClass as hypervisorHmc
-from tessia_baselib.hypervisors.kvm import hypClass as hypervisorKvm
-from tessia_baselib.hypervisors.zvm import hypClass as hypervisorZvm
+from tessia_baselib.hypervisors.hmc import Hypervisor as hypervisorHmc
+from tessia_baselib.hypervisors.kvm import Hypervisor as hypervisorKvm
+from tessia_baselib.hypervisors.zvm import Hypervisor as hypervisorZvm
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 SUPPORTED_DRIVERS = {
-    hypervisorHmc.hyp_id: hypervisorHmc,
-    hypervisorKvm.hyp_id: hypervisorKvm,
-    hypervisorZvm.hyp_id: hypervisorZvm,
+    hypervisorHmc.HYP_ID: hypervisorHmc,
+    hypervisorKvm.HYP_ID: hypervisorKvm,
+    hypervisorZvm.HYP_ID: hypervisorZvm,
 }
 
 
@@ -46,9 +50,10 @@ class Hypervisor(object):
         Constructor
 
         Args:
-            hyp_type: one of the types specified in SUPPORTED_DRIVERS
-            args: positional arguments to forward to driver's constructor
-            kwargs: keyword arguments to forward to driver's constructor
+            hyp_type (str): one of the types specified in SUPPORTED_DRIVERS
+            args (tuple): positional arguments to forward to driver's
+                          constructor
+            kwargs (dict): keyword arguments to forward to driver's constructor
 
         Returns:
             None
@@ -57,14 +62,14 @@ class Hypervisor(object):
             RuntimeError: in case hyp_type is not supported
         """
         # fetch the correct class based on provided type
-        driverClass = SUPPORTED_DRIVERS.get(hyp_type)
-        if driverClass is None:
+        driver_cls = SUPPORTED_DRIVERS.get(hyp_type)
+        if driver_cls is None:
             raise RuntimeError(
                 'Hypervisor type {} is not supported'.format(hyp_type)
             )
 
         # instantiate the driver and forward arguments from user
-        self.__driver = driverClass(*args, **kwargs)
+        self.__driver = driver_cls(*args, **kwargs)
     # __init__()
 
     def __getattr__(self, attr):
@@ -73,10 +78,10 @@ class Hypervisor(object):
         call to the driver object.
 
         Args:
-            attr: string with attribute name
+            attr (str): string with attribute name
 
         Returns:
-            the attribute from the driver object
+            any: the attribute from the driver object
 
         Raises:
             AttributeError: in case attribute is not present in driver's object
@@ -85,4 +90,3 @@ class Hypervisor(object):
     # __getattr__()
 
 # Hypervisor
-

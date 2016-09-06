@@ -15,12 +15,7 @@
 """
 Defines a TestCase class for unit tests for the ssh
 shell class.
-
-Run from tessia_baselib base directory to run all the tests.
 """
-# Disable protected access warning since this is a test
-# module and we expect to check the protected attributes.
-# pylint: disable=protected-access
 
 #
 # IMPORTS
@@ -28,12 +23,14 @@ Run from tessia_baselib base directory to run all the tests.
 
 from tessia_baselib.common.ssh import shell as shell_module
 from tessia_baselib.common.ssh.exceptions import SshShellError
+from unittest import main as unittest_main
 from unittest import mock
+from unittest import TestCase
 
 import itertools
 import paramiko
 import socket
-import unittest
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -42,7 +39,7 @@ import unittest
 #
 # CODE
 #
-class TestSshShell(unittest.TestCase):
+class TestSshShell(TestCase):
     """
     Test class for SshShell class.
     """
@@ -65,11 +62,13 @@ class TestSshShell(unittest.TestCase):
         through these three outputs every time it is called through _read().
 
         Args:
-            cmd: command that will be sent to run()
-            output: output to return after the command echo
-            status: status that should be returned by echo $?
+            cmd (str): command that will be sent to run()
+            output (str): output to return after the command echo
+            status (int): status that should be returned by echo $?
+
         Returns:
-            list of expected channel outputs after run() is called
+            list: expected channel outputs after run() is called
+
         Raises:
         '''
 
@@ -82,8 +81,13 @@ class TestSshShell(unittest.TestCase):
         Construct a shell object with no errors.
 
         Args:
+            None
+
         Returns:
+            SshShell: object
+
         Raises:
+            None
         '''
         # set output of recv so that the first call to _read
         # and the call to run 'locale charmap' in the SshShell constructor work
@@ -105,11 +109,13 @@ class TestSshShell(unittest.TestCase):
         Construct output for mocked recv function.
 
         Args:
-            cmd_echo: command echo to prepend to the output
-            output: output to return after the command echo
+            cmd_echo (str): command echo to prepend to the output
+            output (str): output to return after the command echo
+
         Returns:
-            Output string formed by appending the command echo, CRLF,
-            the specified output, CRLF and the prompt
+            str: Output formed by appending the command echo, CRLF, the
+                 specified output, CRLF and the prompt
+
         Raises:
         '''
         return (
@@ -519,7 +525,7 @@ class TestSshShell(unittest.TestCase):
         '''
 
         with mock.patch(
-            'tessia_baselib.common.ssh.shell.getLogger') as get_logger_mock:
+            'tessia_baselib.common.ssh.shell.get_logger') as get_logger_mock:
 
             bad_charmap = 'UTF-9'
 
@@ -555,7 +561,7 @@ class TestSshShell(unittest.TestCase):
         Raises:
         '''
         with mock.patch(
-            'tessia_baselib.common.ssh.shell.getLogger') as get_logger_mock:
+            'tessia_baselib.common.ssh.shell.get_logger') as get_logger_mock:
 
             self._dummy_socket.recv.side_effect = (
                 [self._make_output('', 'output')]
@@ -580,4 +586,4 @@ class TestSshShell(unittest.TestCase):
                              expected_first_warning_call)
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest_main()

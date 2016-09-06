@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Interface for sessions objects established on guests
+"""
+
 #
 # IMPORTS
 #
+import abc
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -24,20 +29,14 @@
 # CODE
 #
 
-class GuestSessionBase(object):
+class GuestSessionBase(metaclass=abc.ABCMeta):
     """
     This is the abstract class which defines the interface to be implemented
-    by each guest driver when returning a session object from openSession
+    by each guest driver when returning a session object from open_session
     method.
     """
 
-    def __init__(self):
-        """
-        This constructor should be overriden by concrete classes
-        """
-        raise NotImplementedError()
-    # __init__()
-
+    @abc.abstractmethod
     def close(self):
         """
         Close the session, no more communication is possible.
@@ -49,25 +48,28 @@ class GuestSessionBase(object):
             None
 
         Raises:
-            None
+            NotImplementedError: this method should be implemented by children
         """
         raise NotImplementedError()
     # close()
 
+    @abc.abstractmethod
     def run(self, cmd, timeout=120):
         """
         Execute a command and wait timeout seconds for the completion.
+        It should raise the following exceptions:
+            RuntimeError: if any unexpected problem occurs
+            TimeoutError: if timeout is reached and execution did not complete
 
         Args:
-            cmd: command to execute
-            timeout: seconds to wait for response
+            cmd (str): command to execute
+            timeout (int): seconds to wait for response
 
         Returns:
             tuple (integer_exit_code, string_output)
 
         Raises:
-            RuntimeError: if any unexpected problem occurs
-            TimeoutError: if timeout is reached and execution did not complete
+            NotImplementedError: this method should be implemented by children
         """
         raise NotImplementedError()
     # run()
