@@ -506,7 +506,9 @@ MAIN_PROC = some_module
 - Document all classes, methods, functions, and modules with docstrings.
 - Docstrings should be writen following [Google Style](https://google.github.io/styleguide/pyguide.html#Comments) (for specifics on how to document arguments, return values, etc.)
     - Exception: you are not required to document public class attributes.
+    - Remember to specify the types for arguments/return value/exceptions (see example below)
 - You must also document non-public functions, methods and classes.
+- It's ok to skip arguments/returns/raises/ sections if none applies (function without arguments, returns nothing or raises nothing).
 - **Rationale:** ensure the classes, methods and functions have well-defined and documented roles and interfaces.
 
 ### Noncompliant example
@@ -563,11 +565,11 @@ class Calculator(object):
         passed, assume 0.0 as its value.
 
         Args:
-            param_a: first float number to be added
-            param_b: second float number to be added
+            param_a (float): first float number to be added
+            param_b (float): second float number to be added
 
         Returns:
-            sum of param_a and param_b
+            int: sum of param_a and param_b
 
         Raises:
             TypeError: if paramA or paramB is not a float
