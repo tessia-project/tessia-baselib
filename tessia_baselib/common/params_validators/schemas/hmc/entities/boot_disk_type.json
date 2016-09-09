@@ -1,0 +1,26 @@
+{
+  "definitions": {
+    "scsi_disk_type": {
+      "properties": {
+	"devicenr": {"$ref": "../../common/entities/devicenr_type.json"},
+	"lun": {"type": "string"},
+	"wwpn": {"type": "string"}
+      },
+      "required": ["devicenr", "lun", "wwpn"]
+    },
+    "dasd_disk_type": {
+      "properties": {
+	"devicenr": {"$ref": "../../common/entities/devicenr_type.json"}
+      },
+      "required": ["devicenr"]
+    }
+  },
+  "properties": {
+    "disk_type": {
+      "type": "string",
+      "enum": ["scsi", "dasd"]
+    }
+  },
+  "oneOf": [{"$ref": "#/definitions/dasd_disk_type"},
+            {"$ref": "#/definitions/scsi_disk_type"}]
+}

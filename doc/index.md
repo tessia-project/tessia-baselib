@@ -32,3 +32,4 @@ The following sections are available:
 - [Development process](developers/dev_process.md)
 - [Unit tests](developers/unit_tests.md)
 - [Working with documentation](developers/documentation.md)
+- [Validation of parameters with json schemas](developers/params_validation.md)

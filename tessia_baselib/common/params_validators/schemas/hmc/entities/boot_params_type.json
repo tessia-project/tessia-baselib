@@ -1,0 +1,6 @@
+{
+  "type": "object",
+  "allOf": [
+    {"$ref": "../entities/boot_disk_type.json"}
+  ]
+}

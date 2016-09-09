@@ -1,0 +1,7 @@
+{
+  "type": "object",
+  "properties": {
+    "cpc_name": {"type": "string"}
+  }
+  "required": ["cpc_name"]
+}
