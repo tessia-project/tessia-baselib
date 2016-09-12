@@ -1,0 +1,6 @@
+{
+  "properties": {
+    "volume_id": {"$ref": "../../common/entities/devicenr_type.json"}
+  },
+  "required": ["volume_id"]
+}

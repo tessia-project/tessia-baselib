@@ -1,0 +1,13 @@
+{
+  "type": "object",
+  "properties": {
+    "storage_volumes": {
+      "type": "array",
+      "items": {"$ref": "../../common/entities/disk_type.json"}
+    },
+    "ifaces": {
+      "type": "array",
+      "items": {"$ref": "../entities/iface_type.json"}
+    }
+  }
+}

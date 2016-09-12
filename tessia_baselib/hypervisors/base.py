@@ -107,14 +107,14 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     def start(self, guest_name, cpu, memory, parameters):
         """
         Attach the given resources and start the guest using the method
-        and devices specified. Returns 'ok' if succeded, error message
-        otherwise
+        and devices specified.
 
         Args:
-            guest_name (str): name of the guest as known by hypervisor
-            cpu (int): number of CPU's to assign
-            memory (int): amount of memory to assign in megabytes
-            parameters (dict): content specfic to each hypervisor type
+            guest_name (str):  Name of the guest as known by hypervisor
+            cpu (int):         Number of CPU's to assign.
+            memory (int):      Amount of memory to assin in megabytes.
+            parameters (dict): A dictionary containing values specific to each
+                               hypervisor type.
 
         Returns:
             None
@@ -128,11 +128,11 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def stop(self, guest_name, parameters):
         """
-        Stop a given guest. Returns 'ok' if succeded, error message otherwise
+        Stop a given guest.
 
         Args:
             guest_name (str): name of the guest as known by hypervisor
-            parameters (dict):  content specific to hypervisor type
+            parameters (dict): content specific to hypervisor type
 
         Returns:
             None

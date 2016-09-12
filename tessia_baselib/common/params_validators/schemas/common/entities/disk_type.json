@@ -1,0 +1,19 @@
+{
+  "type": "object",
+  "properties": {
+    "disk_type": {
+      "type": "string",
+      "enum": ["SCSI", "DASD"]
+    },
+    "system_attributes": {
+      "type": "object",
+      "properties": {
+	"libvirt": {"type": "string"}
+      },
+      "required": ["libvirt"]
+    }
+  },
+  "required": ["disk_type"],
+  "oneOf": [{"$ref": "../../common/entities/dasd_disk_type.json"},
+	    {"$ref": "../../common/entities/scsi_disk_type.json"}]
+}

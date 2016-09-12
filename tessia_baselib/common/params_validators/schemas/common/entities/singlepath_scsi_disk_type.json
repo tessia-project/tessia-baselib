@@ -1,0 +1,7 @@
+{
+  "properties": {
+    "devno": {"$ref": "../../common/entities/devicenr_type.json"},
+    "wwpn": {"type": "string"}
+  },
+  "required": ["devicenr", "wwpn"]
+}

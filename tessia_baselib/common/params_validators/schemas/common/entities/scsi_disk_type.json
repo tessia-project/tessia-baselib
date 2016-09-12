@@ -1,0 +1,14 @@
+{
+  "properties": {
+    "volume_id": {"type": "string"},
+    "specs": {
+      "type": "object",
+      "properties": {
+	"multipath": {"type": "boolean"}
+      },
+      "oneOf": [{"$ref": "../../common/entities/multipath_scsi_disk_type.json"},
+		{"$ref": "../../common/entities/singlepath_scsi_disk_type.json"}]
+    }
+  },
+  "required": ["volume_id", "specs"]
+}
