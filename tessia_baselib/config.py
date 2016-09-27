@@ -53,7 +53,7 @@ class Config(object):
             None
 
         Raises:
-            NotImplementedError as the class should not be instantiated
+            NotImplementedError: as the class should not be instantiated
         """
         raise NotImplementedError('Class should not be instantiated')
     # __new__()
@@ -69,20 +69,18 @@ class Config(object):
             None
 
         Returns:
-            None
+            dict: The configuration read from the config file.
 
         Raises:
-            IOError if config file cannot be read
+            IOError: if config file cannot be read
         """
-        cfg_file = os.environ.get('TESSIA_BASELIB_CFG')
+        cls._config_file = os.environ.get('TESSIA_BASELIB_CFG', cls.DEFAULT_CFG)
 
-        # env variable set by user: use it
-        if cfg_file is not None:
-            cls._config_file = cfg_file
-        # otherwise use default path
-        else:
-            cls._config_file = cls.DEFAULT_CFG
-
+        # for development environments
+        virtual_env = os.environ.get('VIRTUAL_ENV')
+        if (virtual_env is not None and len(cls._config_file) > 0 and
+                cls._config_file.startswith('/')):
+            cls._config_file = '{}{}'.format(virtual_env, cls._config_file)
         try:
             config_fd = open(cls._config_file, 'r')
             config_content = config_fd.read()
@@ -113,7 +111,7 @@ class Config(object):
             None
 
         Returns:
-            dict containing conf parameters
+            dict: containing conf parameters
 
         Raises:
             None
