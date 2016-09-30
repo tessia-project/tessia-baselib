@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Unit test for linux.distros.generic module
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.ssh.exceptions import SshShellError
 from tessia_baselib.guests.linux.distros.generic import DistroGeneric
 from unittest import TestCase
 from unittest.mock import Mock
@@ -67,7 +70,7 @@ class TestDistroGeneric(TestCase):
         self._install_cmd = None
     # __init__()
 
-    def _checkInstallPkg(self):
+    def _check_install_pkg(self):
         """
         Auxiliary function to validate the installPackages() method by using
         object variables previously set by the caller function depending on the
@@ -86,55 +89,68 @@ class TestDistroGeneric(TestCase):
         # method. This mock run() will return package manager output depending
         # on the type set by some variables set in the object like
         # self._pkg_manager
-        mockSshShell = Mock(name='SshShell', spec_set=['close', 'run'])
-        mockSshShell.run.side_effect = self._mockRun
+        mock_ssh_shell = Mock(name='SshShell', spec_set=['close', 'run'])
+        mock_ssh_shell.run.side_effect = self._mock_run
 
         # create a SshClient mock object to return the SshShell mock on
-        # openShell() call
-        mockSshClient = Mock(name='SshClient', spec_set=['openShell'])
-        mockSshClient.openShell.return_value = mockSshShell
+        # open_shell() call
+        mock_ssh_client = Mock(name='SshClient', spec_set=['open_shell'])
+        mock_ssh_client.open_shell.return_value = mock_ssh_shell
 
         # create our distro object for testing
-        distroObj = DistroGeneric(mockSshClient)
+        distro_obj = DistroGeneric(mock_ssh_client)
 
         # check behavior when asking to install valid package
-        self.assertIs(None, distroObj.installPackages(['python3']))
-        mockSshShell.run.assert_any_call(self._which_cmd)
-        mockSshShell.run.assert_called_with(
+        self.assertIs(None, distro_obj.install_packages(['python3']))
+        mock_ssh_shell.run.assert_any_call(self._which_cmd)
+        mock_ssh_shell.run.assert_called_with(
             '{} python3'.format(self._install_cmd)
         )
 
         # check behavior when asking to install an already installed package
-        mockSshShell.reset_mock()
-        self.assertIs(None, distroObj.installPackages(['already_installed_pkg']))
+        mock_ssh_shell.reset_mock()
+        self.assertIs(
+            None, distro_obj.install_packages(['already_installed_pkg']))
         # check if caching worked and no further 'which' commands were
         # performed
-        mockSshShell.run.assert_not_called(self._which_cmd)
+        try:
+            mock_ssh_shell.run.assert_any_call(self._which_cmd)
+        # raise exception means it was not called, which is what we want
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("'which' was called by install_packages")
         # check if correct install command was issued
-        mockSshShell.run.assert_called_with(
+        mock_ssh_shell.run.assert_called_with(
             '{} already_installed_pkg'.format(self._install_cmd)
         )
 
         # check if it fails when asking to install an invalid package and if
         # it properly concatenates multiple packages
-        mockSshShell.reset_mock()
+        mock_ssh_shell.reset_mock()
         self.assertRaisesRegex(
             RuntimeError,
-            '^Failed to install package\(s\): .*',
-            distroObj.installPackages,
+            r'^Failed to install package\(s\): .*',
+            distro_obj.install_packages,
             ['invalid_pkg', 'another_invalid_pkg']
         )
         # check if caching worked and no further 'which' commands were
         # performed
-        mockSshShell.run.assert_not_called(self._which_cmd)
+        try:
+            mock_ssh_shell.run.assert_any_call(self._which_cmd)
+        # raise exception means it was not called, which is what we want
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("'which' was called by install_packages")
         # check correct install command line with package names concatenated
-        mockSshShell.run.assert_called_with(
+        mock_ssh_shell.run.assert_called_with(
             '{} invalid_pkg another_invalid_pkg'.format(self._install_cmd)
         )
 
-    # _checkInstallPkg()
+    # _check_install_pkg()
 
-    def _mockRun(self, cmd):
+    def _mock_run(self, cmd):
         """
         A mock function to replace SshShell.run during the tests related to
         installPackages() method. Since the package manager type being tested
@@ -143,10 +159,10 @@ class TestDistroGeneric(TestCase):
         package manager type to generate output.
 
         Args:
-            cmd: the command to execute received from the distro class
+            cmd (str): command to execute received from the distro class
 
         Returns:
-            tuple (exit_code, output) depending on the scenario being tested
+            tuple: (exit_code, output) depending on the scenario being tested
 
         Raises:
             IOError: if output txt file cannot be read
@@ -179,20 +195,20 @@ class TestDistroGeneric(TestCase):
             # read the content from txt file under folder named after package
             # manager type in directory where this file is located
             my_dir = os.path.dirname(os.path.abspath(__file__))
-            fileObj = open(
+            file_obj = open(
                 '{}/{}/{}'.format(my_dir, self._pkg_manager, file_name),
                 'r'
             )
-            resp_output = fileObj.read()
-            fileObj.close()
+            resp_output = file_obj.read()
+            file_obj.close()
 
             return (exit_code, resp_output)
 
         # if none of the above, return an error condition output
         return (1, 'invalid command')
-    # _mockRun()
+    # _mock_run()
 
-    def testInstallPkgAptget(self):
+    def test_install_pkg_aptget(self):
         """
         Verify if installPackages correctly works for an apt-get based system
 
@@ -215,10 +231,10 @@ class TestDistroGeneric(TestCase):
         self._install_cmd = 'apt-get install -yq --no-install-recommends'
 
         # call auxiliary function to perform verification
-        self._checkInstallPkg()
-    # testInstallPkgAptget()
+        self._check_install_pkg()
+    # test_install_pkg_aptget()
 
-    def testInstallPkgYum(self):
+    def test_install_pkg_yum(self):
         """
         Verify if installPackages correctly works for a yum based system
 
@@ -241,10 +257,10 @@ class TestDistroGeneric(TestCase):
         self._install_cmd = 'yum -q -y install'
 
         # call auxiliary function to perform verification
-        self._checkInstallPkg()
-    # testInstallPkgYum()
+        self._check_install_pkg()
+    # test_install_pkg_yum()
 
-    def testInstallPkgZypper(self):
+    def test_install_pkg_zypper(self):
         """
         Verify if installPackages correctly works for a zypper based system
 
@@ -267,10 +283,10 @@ class TestDistroGeneric(TestCase):
         self._install_cmd = 'zypper -q -n install'
 
         # call auxiliary function to perform verification
-        self._checkInstallPkg()
-    # testInstallPkgZypper()
+        self._check_install_pkg()
+    # test_install_pkg_zypper()
 
-    def testDetectSystem(self):
+    def test_detect_system(self):
         """
         Verify if the detection routine works correctly
 
@@ -284,46 +300,47 @@ class TestDistroGeneric(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         # make the mock for SshShell to return a valid response to uname -a
-        mockSshShell = Mock(name='SshShell', spec_set=['run'])
-        mockSshShell.run.return_value = (
+        mock_ssh_shell = Mock(name='SshShell', spec_set=['run'])
+        mock_ssh_shell.run.return_value = (
             0,
             'Linux dummy 4.4.6-200.x86_64 #1 SMP Wed Mar 16 22:13:40 UTC 2016 '
             'x86_64 x86_64 x86_64 GNU/Linux'
         )
         # validate detect for a valid system
-        self.assertIs(True, DistroGeneric.detect(mockSshShell))
-        mockSshShell.run.assert_called_with('uname -a')
+        self.assertIs(True, DistroGeneric.detect(mock_ssh_shell))
+        mock_ssh_shell.run.assert_called_with('uname -a')
 
         # make shell return a successful output but for a non linux kernel
-        mockSshShell.reset_mock()
-        mockSshShell.run.return_value = (
+        mock_ssh_shell.reset_mock()
+        mock_ssh_shell.run.return_value = (
             0,
-            'OtherOS dummy 4.4.6-200.x86_64 #1 SMP Wed Mar 16 22:13:40 UTC 2016 '
-            'x86_64 x86_64 x86_64 Other/OS'
+            'OtherOS dummy 4.4.6-200.x86_64 #1 SMP Wed Mar 16 22:13:40 '
+            'UTC 2016 x86_64 x86_64 x86_64 Other/OS'
         )
         # validate detect does not accept a non linux kernel
-        self.assertIs(False, DistroGeneric.detect(mockSshShell))
-        mockSshShell.run.assert_called_with('uname -a')
+        self.assertIs(False, DistroGeneric.detect(mock_ssh_shell))
+        mock_ssh_shell.run.assert_called_with('uname -a')
 
         # make shell return that command failed
-        mockSshShell.reset_mock()
-        mockSshShell.run.return_value = (1, 'command not found')
+        mock_ssh_shell.reset_mock()
+        mock_ssh_shell.run.return_value = (1, 'command not found')
         # validate detect fails when command failed
-        self.assertIs(False, DistroGeneric.detect(mockSshShell))
-        mockSshShell.run.assert_called_with('uname -a')
+        self.assertIs(False, DistroGeneric.detect(mock_ssh_shell))
+        mock_ssh_shell.run.assert_called_with('uname -a')
 
         # make shell return an unexpected output
-        mockSshShell.reset_mock()
-        mockSshShell.run.return_value = (0, 'unexpected')
+        mock_ssh_shell.reset_mock()
+        mock_ssh_shell.run.return_value = (0, 'unexpected')
         # validate detect
-        self.assertIs(False, DistroGeneric.detect(mockSshShell))
-        mockSshShell.run.assert_called_with('uname -a')
+        self.assertIs(False, DistroGeneric.detect(mock_ssh_shell))
+        mock_ssh_shell.run.assert_called_with('uname -a')
 
         # make shell return an empty output
-        mockSshShell.reset_mock()
-        mockSshShell.run.return_value = (0, '')
+        mock_ssh_shell.reset_mock()
+        mock_ssh_shell.run.return_value = (0, '')
         # validate detect
-        self.assertIs(False, DistroGeneric.detect(mockSshShell))
-        mockSshShell.run.assert_called_with('uname -a')
+        self.assertIs(False, DistroGeneric.detect(mock_ssh_shell))
+        mock_ssh_shell.run.assert_called_with('uname -a')
+    # test_detect_system()
 
 # TestDistroGeneric

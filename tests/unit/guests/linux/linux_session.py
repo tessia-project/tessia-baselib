@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Unit test for module linux_session
+"""
+
 #
 # IMPORTS
 #
@@ -47,42 +51,42 @@ class TestGuestLinux(TestCase):
         """
         # define the mock for SshShell with the close and run methods which
         # returns a successful response
-        mockSshShell = Mock(name='SshShell', spec_set=['close', 'run'])
-        mockSshShell.run.return_value = (0, 'dummy output')
+        mock_ssh_shell = Mock(name='SshShell', spec_set=['close', 'run'])
+        mock_ssh_shell.run.return_value = (0, 'dummy output')
 
         # instantiate the session class we want to test
-        sessionObj = GuestSessionLinux(mockSshShell)
+        session_obj = GuestSessionLinux(mock_ssh_shell)
 
         # simple command execution
-        ret, output = sessionObj.run('ls /etc')
+        ret, output = session_obj.run('ls /etc')
         self.assertEqual(0, ret)
         self.assertEqual('dummy output', output)
 
         # validate it
-        mockSshShell.run.assert_called_with('ls /etc', 120)
+        mock_ssh_shell.run.assert_called_with('ls /etc', 120)
 
         # command with timeout specified
-        mockSshShell.run.return_value = (0, 'another dummy output')
-        ret, output = sessionObj.run('cat /etc/passwd', timeout=10)
+        mock_ssh_shell.run.return_value = (0, 'another dummy output')
+        ret, output = session_obj.run('cat /etc/passwd', timeout=10)
 
         # validate it
         self.assertEqual(0, ret)
         self.assertEqual('another dummy output', output)
-        mockSshShell.run.assert_called_with('cat /etc/passwd', 10)
+        mock_ssh_shell.run.assert_called_with('cat /etc/passwd', 10)
 
         # test a failed command
-        mockSshShell.run.return_value = (1, 'error dummy output')
-        ret, output = sessionObj.run('errorcmd')
+        mock_ssh_shell.run.return_value = (1, 'error dummy output')
+        ret, output = session_obj.run('errorcmd')
 
         # validate it
         self.assertEqual(1, ret)
         self.assertEqual('error dummy output', output)
-        mockSshShell.run.assert_called_with('errorcmd', 120)
+        mock_ssh_shell.run.assert_called_with('errorcmd', 120)
 
         # make sure clean up is correct upon closing session
-        sessionObj.close()
-        mockSshShell.close.assert_called_with()
-        self.assertIs(None, sessionObj._sshShell)
+        session_obj.close()
+        mock_ssh_shell.close.assert_called_with()
+        self.assertIs(None, session_obj._ssh_shell)
     # test_normal_cmds()
 
     def test_error_cmds(self):
@@ -100,26 +104,28 @@ class TestGuestLinux(TestCase):
         """
         # define the mock for SshShell with only the run method which fails to
         # execute commands
-        mockSshShell = Mock(name='SshShell', spec_set=['close', 'run'])
-        mockSshShell.run.side_effect = SshShellError('dummy unexpected error')
+        mock_ssh_shell = Mock(name='SshShell', spec_set=['close', 'run'])
+        mock_ssh_shell.run.side_effect = SshShellError(
+            'dummy unexpected error')
 
         # create session object
-        sessionObj = GuestSessionLinux(mockSshShell)
+        session_obj = GuestSessionLinux(mock_ssh_shell)
 
         # validate behavior when internal error occurs
         self.assertRaisesRegex(
             RuntimeError,
             '^dummy unexpected error$',
-            sessionObj.run,
+            session_obj.run,
             'dummycmd'
         )
 
         # validate behavior when timeout occurs
-        mockSshShell.run.side_effect = TimeoutError('dummy timeout error')
+        # pylint: disable=redefined-variable-type
+        mock_ssh_shell.run.side_effect = TimeoutError('dummy timeout error')
         self.assertRaisesRegex(
             TimeoutError,
             '^dummy timeout error$',
-            sessionObj.run,
+            session_obj.run,
             'dummycmd'
         )
     # test_error_cmds()

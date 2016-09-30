@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Expose the class which implements the hypervisor interface for ZVM
+"""
+
 #
 # IMPORTS
 #
@@ -26,4 +30,4 @@ from tessia_baselib.hypervisors.zvm.zvm import HypervisorZvm
 #
 
 # the hypervisor class to expose to the factory
-hypClass = HypervisorZvm
+Hypervisor = HypervisorZvm

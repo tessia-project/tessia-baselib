@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Unit test from the common.tools module
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.tools import importModules
+from tessia_baselib.common.tools import import_modules
 from importlib.machinery import SourceFileLoader
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -32,34 +36,36 @@ import os
 
 class TestImportModules(TestCase):
     """
-    Unit test for the importModules function.
+    Unit test for the import_modules function.
     To best exercise the function let the function really import modules
     instead of creating mocks that will fake some answers (since the involved
     libraries won't be tested anywhere else).
     """
-    def _createModule(self, file_path, file_content):
+    @staticmethod
+    def _create_module(file_path, file_content):
         """
         Helper function to create a dummy module with content provided.
 
         Args:
-            content: module file content
+            file_path (str): filesystem location to create the module
+            file_content (str): module file content
 
         Returns:
-            module object
+            object: module object
 
         Raises:
             None
         """
         # create dummy module import os
-        modFile = open(file_path, 'w')
-        modFile.write(file_content)
-        modFile.close()
+        mod_file = open(file_path, 'w')
+        mod_file.write(file_content)
+        mod_file.close()
 
-        moduleObj = SourceFileLoader(
+        module_obj = SourceFileLoader(
             os.path.basename(file_path[:-3]), file_path).load_module()
 
-        return moduleObj
-    # _createModule()
+        return module_obj
+    # _create_module()
 
     def setUp(self):
         """
@@ -75,31 +81,31 @@ class TestImportModules(TestCase):
             None
         """
         # create temp directory
-        self.tempDir = TemporaryDirectory(prefix='unit_test-')
+        self.temp_dir = TemporaryDirectory(prefix='unit_test-')
 
         # create dummy module list_dir
         dummy_content = "import os\n"
         dummy_content += "def list_dir(user_dir):\n"
         dummy_content += "    print(os.listdir(user_dir))\n"
         # create module object
-        module_path = os.path.join(self.tempDir.name, 'list_dir.py')
-        self.modListdir = self._createModule(module_path, dummy_content)
+        module_path = os.path.join(self.temp_dir.name, 'list_dir.py')
+        self.mod_list_dir = self._create_module(module_path, dummy_content)
 
         # create dummy module match_re
         dummy_content = "import re\n"
         dummy_content += "def match_re(regex, content):\n"
         dummy_content += "    return re.search(regex,content)\n"
         # create module object
-        module_path = os.path.join(self.tempDir.name, 'match_re.py')
-        self.modMatchre = self._createModule(module_path, dummy_content)
+        module_path = os.path.join(self.temp_dir.name, 'match_re.py')
+        self.mod_match_re = self._create_module(module_path, dummy_content)
 
         # create __init__ file
-        module_path = os.path.join(self.tempDir.name, '__init__.py')
-        self.modInit = self._createModule(module_path, '')
+        module_path = os.path.join(self.temp_dir.name, '__init__.py')
+        self.mod_init = self._create_module(module_path, '')
 
         # create two non .py files
-        open(os.path.join(self.tempDir.name, 'dummy.txt'), 'w').close()
-        open(os.path.join(self.tempDir.name, 'dummy'), 'w').close()
+        open(os.path.join(self.temp_dir.name, 'dummy.txt'), 'w').close()
+        open(os.path.join(self.temp_dir.name, 'dummy'), 'w').close()
     # setUp()
 
     def tearDown(self):
@@ -116,7 +122,7 @@ class TestImportModules(TestCase):
         Raises:
             None
         """
-        self.tempDir.cleanup()
+        self.temp_dir.cleanup()
     # tearDown()
 
     def test_normal_flow_empty_skip(self):
@@ -133,12 +139,12 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = importModules(self.tempDir.name)
+        loaded_list = import_modules(self.temp_dir.name)
 
         # assemble the list we expect it to have created
         expected_list = [
-            self.modListdir,
-            self.modMatchre
+            self.mod_list_dir,
+            self.mod_match_re
         ]
 
         # here we exercise the module importing and the excluding of the
@@ -161,10 +167,11 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = importModules(self.tempDir.name, skip_list=['list_dir'])
+        loaded_list = import_modules(
+            self.temp_dir.name, skip_list=['list_dir'])
 
         # assemble the list we expect it to have created
-        expected_list = [self.modMatchre]
+        expected_list = [self.mod_match_re]
 
         # here we exercise the module importing and the excluding of the
         # __init__ (but not in skip list) and non .py files from the directory
@@ -187,12 +194,13 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = importModules(self.tempDir.name, skip_list=['__init__'])
+        loaded_list = import_modules(
+            self.temp_dir.name, skip_list=['__init__'])
 
         # assemble the list we expect it to have created
         expected_list = [
-            self.modListdir,
-            self.modMatchre
+            self.mod_list_dir,
+            self.mod_match_re
         ]
 
         # here we exercise the module importing and the excluding of the
@@ -214,13 +222,14 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # create an invalid module
-        invalidFile = open(os.path.join(self.tempDir.name, 'invalid.py'), 'w')
-        invalidFile.write('invalid content')
-        invalidFile.close()
+        invalid_file = open(
+            os.path.join(self.temp_dir.name, 'invalid.py'), 'w')
+        invalid_file.write('invalid content')
+        invalid_file.close()
 
         # exercise the function raising exception due to an invalid module
         # found
-        self.assertRaises(SyntaxError, importModules, self.tempDir.name)
+        self.assertRaises(SyntaxError, import_modules, self.temp_dir.name)
 
     # test_invalid_module()
 

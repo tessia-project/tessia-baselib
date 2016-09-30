@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Expose the class which implements the hypervisor interface for HMC
+"""
+
 #
 # IMPORTS
 #
@@ -26,4 +30,4 @@ from tessia_baselib.hypervisors.hmc.hmc import HypervisorHmc
 #
 
 # the hypervisor class to expose to the factory
-hypClass = HypervisorHmc
+Hypervisor = HypervisorHmc

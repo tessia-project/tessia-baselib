@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Implementation of guest interface for Linux
+"""
+
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.ssh.client import SshClient
 from tessia_baselib.guests.base import GuestBase
 from tessia_baselib.guests.linux.distros import generic as genericModule
@@ -46,12 +50,11 @@ class GuestLinux(GuestBase):
         Constructor, store instance values via base class and initialize logger
 
         Args:
-            system_name: string containing the guest name
-            host_name: hostname or ip address of system
-            user: user to login to system
-            passwd: password to login to system
-            extensions: a dictionary containing values specific to each
-                        guest type
+            system_name (str): guest name
+            host_name (str): hostname or ip address of system
+            user (str): user to login to system
+            passwd (str): password to login to system
+            extensions (dict): values specific to each guest type
 
         Returns:
             None
@@ -69,16 +72,16 @@ class GuestLinux(GuestBase):
         )
 
         # initialize logger object
-        self._loggerObj = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         # ssh connection to be initialized by login()
-        self._sshConn = None
+        self.ssh_conn = None
 
         # distro class to use, will be determined by login()
-        self._distroObj = None
+        self._distro_obj = None
 
         # log object creation for debugging
-        self._loggerObj.debug(
+        self._logger.debug(
             "create GuestLinux: name='%s' host_name='%s' user='%s' "
             "extensions='%s'",
             self.name,
@@ -93,27 +96,27 @@ class GuestLinux(GuestBase):
         Hotplug/unplug a given dictionary of resources to/from the guest.
 
         Args:
-            method: attach (hotplug) or detach (hotunplug)
-            resources: dict in the form:
+            method (str): attach (hotplug) or detach (hotunplug)
+            resources (dict): in the form:
                        {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
-            extensions: dict with specific attributes depending on guest type
+            extensions (dict): specific attributes depending on guest type
 
         Returns:
             None
 
         Raises:
-            None
+            NotImplementedError: TODO
         """
         raise NotImplementedError()
     # hotplug()
 
-    def installPackages(self, packages):
+    def install_packages(self, packages):
         """
         Use the system's package management facilities and install the
         specified packages.
 
         Args:
-            packages: list of package names to install
+            packages (list): package names to install
 
         Returns:
             None
@@ -123,8 +126,8 @@ class GuestLinux(GuestBase):
         """
         # delegate to the distro specific object which knows better how to
         # handle package management
-        self._distroObj.installPackages(self._sshConn, packages)
-    # installPackages()
+        self._distro_obj.install_packages(self.ssh_conn, packages)
+    # install_packages()
 
     def login(self, timeout=60):
         """
@@ -132,7 +135,7 @@ class GuestLinux(GuestBase):
         provided.
 
         Args:
-            timeout: how many seconds to wait for connection
+            timeout (int): how many seconds to wait for connection
 
         Returns:
             None
@@ -142,13 +145,13 @@ class GuestLinux(GuestBase):
             PermissionError: if login failed because credentials are invalid
         """
         # create a ssh connection using our ssh module
-        sshConn = SshClient()
-        sshConn.login(self.host_name, user=self.user, passwd=self.passwd,
-                      timeout=timeout)
-        self._sshConn = sshConn
+        ssh_conn = SshClient()
+        ssh_conn.login(self.host_name, user=self.user, passwd=self.passwd,
+                       timeout=timeout)
+        self.ssh_conn = ssh_conn
 
         # find a suitable distro class for this environment
-        shellObj = self._sshConn.openShell()
+        shell_obj = self.ssh_conn.open_shell()
         found = None
         for module in DISTRO_MODULES:
             # generic class: use it as last option
@@ -156,24 +159,24 @@ class GuestLinux(GuestBase):
                 continue
 
             # dristro class match environment: use it
-            if module.distroClass.detect(shellObj):
-                found = module.distroClass
+            if module.Distro.detect(shell_obj):
+                found = module.Distro
                 break
 
         # no distro class matches this environment: fallback to generic class
         if not found:
             # not a linux kernel: cannot continue
-            if not genericModule.distroClass.detect(shellObj):
+            if not genericModule.Distro.detect(shell_obj):
                 raise ConnectionError('Target system is not Linux')
-            found = genericModule.distroClass
+            found = genericModule.Distro
 
         # instantiate the distro object
-        self._loggerObj.debug(
-            "create distro system_name='%s' distro_obj='%s'",
+        self._logger.debug(
+            "create distro system_name='%s' _distro_obj='%s'",
             self.name,
             found.__name__
         )
-        self._distroObj = found(self._sshConn)
+        self._distro_obj = found(self.ssh_conn)
     # login()
 
     def logoff(self):
@@ -189,44 +192,44 @@ class GuestLinux(GuestBase):
         Raises:
             None
         """
-        self._loggerObj.debug("logoff system_name='%s'", self.name)
+        self._logger.debug("logoff system_name='%s'", self.name)
 
         # remove reference to distro object so that its destructor is called
-        self._distroObj = None
+        self._distro_obj = None
         # close ssh connection
-        self._sshConn.logoff()
+        self.ssh_conn.logoff()
     # logoff()
 
-    def openSession(self, extensions=None):
+    def open_session(self, extensions=None):
         """
         Returns a expect-like object which can be used for sending commands and
         receiving output from a guest's shell.
 
         Args:
-            extensions: dictionary with parameters, not used currently
+            extensions (dict): parameters, not used currently
 
         Returns:
-            instance of GuestSessionLinux
+            GuestSessionLinux: object
 
         Raises:
             None
         """
-        return GuestSessionLinux(self._sshConn.openShell())
-    # openSession()
+        return GuestSessionLinux(self.ssh_conn.open_shell())
+    # open_session()
 
-    def pullFile(self):
+    def pull_file(self):
         """
         TODO
         """
         raise NotImplementedError()
-    # pullFile()
+    # pull_file()
 
-    def pushFile(self):
+    def push_file(self):
         """
         TODO
         """
         raise NotImplementedError()
-    # pushFile()
+    # push_file()
 
     def stop(self):
         """
@@ -241,8 +244,8 @@ class GuestLinux(GuestBase):
         Raises:
             None
         """
-        shellObj = self._sshConn.openShell()
-        shellObj.run('nohup halt &')
+        shell_obj = self.ssh_conn.open_shell()
+        shell_obj.run('nohup halt &')
     # stop()
 
 # GuestLinux

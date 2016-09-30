@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Provides logging utilites for other modules
+"""
+
 #
 # IMPORTS
 #
@@ -24,7 +28,7 @@ import logging
 #
 # CODE
 #
-def getLogger(logger_name, propagate=True):
+def get_logger(logger_name, propagate=True):
     """
     This function provides a simple wrapper to add a null handler to the logger
     requested so that we make sure not to dump stuff to terminal as defined by
@@ -32,11 +36,13 @@ def getLogger(logger_name, propagate=True):
     (or didn't care about configuring it).
 
     Args:
-        logger_name: the logger instance (usually the module name with __name__)
-        propagate: bool whether to propagate the messages up to ancestor loggers
+        logger_name (str): the logger instance name (usually the module name
+                           with __name__)
+        propagate (bool): whether to propagate the messages up to ancestor
+                          loggers
 
     Returns:
-        Logger instance
+        logging.Logger: Logger instance
 
     Raises:
         None
@@ -50,4 +56,4 @@ def getLogger(logger_name, propagate=True):
     logger.addHandler(logging.NullHandler())
 
     return logger
-# getLogger()
+# get_logger()

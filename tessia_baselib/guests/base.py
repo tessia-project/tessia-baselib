@@ -12,9 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Defines the interface for guest classes
+"""
+
 #
 # IMPORTS
 #
+import abc
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -24,7 +29,7 @@
 # CODE
 #
 
-class GuestBase(object):
+class GuestBase(metaclass=abc.ABCMeta):
     """
     This is the abstract Guest class which defines the interface to be
     implemented by each guest driver
@@ -38,12 +43,12 @@ class GuestBase(object):
         Constructor.
 
         Args:
-            system_name: string containing the guest name
-            host_name: hostname or ip address of system
-            user: user to login to system
-            passwd: password to login to system
-            extensions: a dictionary containing values specific to each
-                        guest type
+            system_name (str): the guest name
+            host_name (str): hostname or ip address of system
+            user (str): user to login to system
+            passwd (str): password to login to system
+            extensions (dict): a dictionary containing values specific to each
+                               guest type
 
         Returns:
             None
@@ -60,59 +65,46 @@ class GuestBase(object):
 
     # __init__()
 
+    @abc.abstractmethod
     def hotplug(self, method, resources, extensions):
         """
         Hotplug/unplug a given dictionary of resources to/from the guest.
 
         Args:
-            method: attach (hotplug) or detach (hotunplug)
-            resources: dict in the form:
+            method (str): attach (hotplug) or detach (hotunplug)
+            resources (dict): in the form:
                        {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
-            extensions: dict with specific attributes depending on guest type
+            extensions (dict): dict with specific attributes depending on
+                               guest type
 
         Returns:
             None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # hotplug()
 
+    @abc.abstractmethod
     def login(self, timeout=60):
         """
         Execute the login to the guest system using the credentials
-        provided.
+        provided. Should return 'ok' if succeeded, error message otherwise.
 
         Args:
-            timeout: how many seconds to wait for connection
+            timeout (int): how many seconds to wait for connection
 
         Returns:
-            string 'ok' if succeeded, error message otherwise
+            None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # login()
 
-    def installPackages(self, packages):
-        """
-        Use the system's package management facilities and install the
-        specified packages.
-
-        Args:
-            packages: list of package names to install
-
-        Returns:
-            None
-
-        Raises:
-            None
-        """
-        raise NotImplementedError()
-    # installPackages()
-
+    @abc.abstractmethod
     def logoff(self):
         """
         Close an active connection to the guest system
@@ -124,43 +116,64 @@ class GuestBase(object):
             None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # logoff()
 
-    def openSession(self, extensions=None):
+    @abc.abstractmethod
+    def install_packages(self, packages):
+        """
+        Use the system's package management facilities and install the
+        specified packages.
+
+        Args:
+            packages (list): package names to install
+
+        Returns:
+            None
+
+        Raises:
+            NotImplementedError: as it has to be implemented by child class
+        """
+        raise NotImplementedError()
+    # install_packages()
+
+    @abc.abstractmethod
+    def open_session(self, extensions=None):
         """
         Returns a expect-like object which can be used for sending commands and
         receiving output from a guest's shell.
 
         Args:
-            extensions: optional dictionary with params specific to each guest
-                        type
+            extensions (dict): params specific to each guest type
 
         Returns:
             instance of GuestSession
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
-    # openSession()
+    # open_session()
 
-    def pullFile(self):
+    @abc.abstractmethod
+    def pull_file(self):
         """
         TODO
         """
         raise NotImplementedError()
-    # pullFile()
+    # pull_file()
 
-    def pushFile(self):
+    @abc.abstractmethod
+    def push_file(self):
         """
         TODO
         """
         raise NotImplementedError()
-    # pushFile()
+    # push_file()
 
+    @abc.abstractmethod
     def stop(self):
         """
         Stop a given guest by executing a shutdown command
@@ -172,7 +185,7 @@ class GuestBase(object):
             None
 
         Raises:
-            None
+            NotImplementedError: as it has to be implemented by child class
         """
         raise NotImplementedError()
     # stop()

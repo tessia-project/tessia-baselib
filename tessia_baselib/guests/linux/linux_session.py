@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Session implementation under Linux
+"""
+
 #
 # IMPORTS
 #
@@ -28,11 +32,11 @@ from tessia_baselib.guests.base_session import GuestSessionBase
 
 class GuestSessionLinux(GuestSessionBase):
     """
-    Linux implementation of the session object returned when openSession is
+    Linux implementation of the session object returned when open_session is
     called from a Guest object.
     """
 
-    def __init__(self, sshShell):
+    def __init__(self, ssh_shell):
         """
         Store the ssh shell object
 
@@ -45,7 +49,7 @@ class GuestSessionLinux(GuestSessionBase):
         Raises:
             None
         """
-        self._sshShell = sshShell
+        self._ssh_shell = ssh_shell
     # __init__()
 
     def close(self):
@@ -61,8 +65,8 @@ class GuestSessionLinux(GuestSessionBase):
         Raises:
             None
         """
-        self._sshShell.close()
-        self._sshShell = None
+        self._ssh_shell.close()
+        self._ssh_shell = None
     # close()
 
     def run(self, cmd, timeout=120):
@@ -70,11 +74,11 @@ class GuestSessionLinux(GuestSessionBase):
         Execute a command and wait timeout seconds for the completion.
 
         Args:
-            cmd: command to execute
-            timeout: seconds to wait for response
+            cmd (str): command to execute
+            timeout (int): seconds to wait for response
 
         Returns:
-            tuple (integer_exit_code, string_output)
+            tuple: (integer_exit_code, string_output)
 
         Raises:
             RuntimeError: if any unexpected problem occurs
@@ -83,7 +87,7 @@ class GuestSessionLinux(GuestSessionBase):
         # since the ssh shell interface is the same we can just call it
         # directly
         try:
-            ret, output = self._sshShell.run(cmd, timeout)
+            ret, output = self._ssh_shell.run(cmd, timeout)
         # catch specific ssh exception and re-raise with appropriate type to
         # keep the interface consistent
         except SshShellError as exc:

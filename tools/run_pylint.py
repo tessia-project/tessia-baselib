@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # Copyright 2016, 2017 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,11 +50,11 @@ def main():
     lib_dir = os.path.abspath('{}/..'.format(my_dir))
 
     # use our configuration file
-    cmd = '{} --rcfile {}/tools/pylint/pylintrc'.format(LINT_CMD, lib_dir)
+    cmd = '{} --rcfile {}/.pylintrc'.format(LINT_CMD, lib_dir)
 
     # no arguments provided: check all the files
     if len(sys.argv) < 2:
-        cmd += ' {}/tessia_baselib'.format(lib_dir)
+        cmd += ' {0}/tessia_baselib {0}/tests/unit'.format(lib_dir)
     # process arguments and add them to the command
     else:
         # flag to control whether a module path was provided
@@ -66,7 +66,7 @@ def main():
                 path_set = True
         # no module path provided: check all files
         if not path_set:
-            cmd += ' {}/tessia_baselib'.format(lib_dir)
+            cmd += ' {0}/tessia_baselib {0}/tests/unit'.format(lib_dir)
 
     # execute command and return exit code
     return subprocess.call(cmd, shell=True)

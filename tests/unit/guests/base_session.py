@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Unit test for module guests.base_session
+"""
+
 #
 # IMPORTS
 #
@@ -30,7 +34,33 @@ class TestGuestSessionBase(TestCase):
     """
     Unit test for the GuestSessionBase class
     """
-    def testAbstractClass(self):
+    def setUp(self):
+        """
+        Prepare necessary objects before executing each testcase
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        # since the class is abstract we need to define a child class to be
+        # able to instantiate it
+        class Child(GuestSessionBase):
+            """
+            Concrete class of GuestSessionBase
+            """
+            def close(self, *args, **kwargs):
+                super().close(*args, **kwargs)
+            def run(self, *args, **kwargs):
+                super().run(*args, **kwargs)
+        self._child_cls = Child
+    # setUp()
+
+    def test_abstract_usage(self):
         """
         This is a very simple testcase which only validates if the class cannot
         be instantiated since it is abstract.
@@ -45,8 +75,33 @@ class TestGuestSessionBase(TestCase):
             AssertionError: if object instantiation does raise expected
                             exception
         """
-        self.assertRaises(NotImplementedError, GuestSessionBase)
+        # pylint:disable=abstract-class-instantiated
+        self.assertRaises(TypeError, GuestSessionBase)
+    # test_abstract_usage()
 
-    # testAbstractClass()
+    def test_methods(self):
+        """
+        Exercise all methods in the target class.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if any assert call fails
+        """
+        session_obj = self._child_cls()
+
+        # call each method and check if exception was raised
+        methods = [
+            ('close', ()),
+            ('run', (None, None)),
+        ]
+        for method in methods:
+            attr = getattr(session_obj, method[0])
+            self.assertRaises(NotImplementedError, attr, *method[1])
+    # test_methods()
 
 # TestGuestSessionBase

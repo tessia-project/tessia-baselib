@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+Implementation of the guest interface for CMS
+"""
+
 #
 # IMPORTS
 #
@@ -25,6 +29,7 @@ from tessia_baselib.guests.base import GuestBase
 # CODE
 #
 
+# pylint:disable=abstract-method
 class GuestCms(GuestBase):
     """
     This class implements the driver to support the CMS guest type
