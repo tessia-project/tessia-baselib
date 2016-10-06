@@ -24,6 +24,3 @@ pylint:
   stage: pylint
   script:
     - docker run tessia_baselib-testenv:latest tools/run_pylint.py
-  # For now allow failed pylints, remove this in the future to
-  # enforce perfect linting.
-  allow_failure: true
