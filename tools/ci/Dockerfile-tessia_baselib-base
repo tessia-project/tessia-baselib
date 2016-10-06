@@ -1,0 +1,8 @@
+FROM python:3.5
+COPY requirements.txt /tmp
+RUN ["pip", "install", "-r", "/tmp/requirements.txt"]
+RUN ["pip", "install", "pylint"]
+# Our setup.py requires pbr. Think of a better way to use it
+# without polluting this image.
+RUN ["pip", "install", "pbr>=1.8.0"]
+RUN ["rm", "/tmp/requirements.txt"]

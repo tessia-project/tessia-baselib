@@ -1,10 +1,26 @@
 variables:
-    GIT_STRATEGY: clone
-#The following job performs the unit tests.
-unit_tests:
+  GIT_STRATEGY: clone
+
+stages:
+  - prepare
+  - unit_tests
+  - pylint
+
+# First build a docker image with the checked-out sources from a previously built
+# base image with all the requirements installed. Having these two images is a
+# temporary solution until the dev server has access to pip and the requirements
+# can be installed every time.
+prepare:
+  stage: prepare
   script:
-#we use the --sitepackages option so that tox use the packages available
-#globally. We copy the mounted volume to /tmp in order to avoid the creation
-#of files with different permissions that could not be deleted by the
-#gitlab-ci-runner in the next run.
-    - "docker run -v $(pwd):/data -w /data devenv-tessia_baselib:1.0 sh -c 'cp -r /data /tmp; cd /tmp/data; tox -v --sitepackages -e test'"
+    - docker build -f tools/ci/Dockerfile-tessia_baselib-testenv -t tessia_baselib-testenv:latest --no-cache .
+
+unit_tests:
+  stage: unit_tests
+  script:
+    - docker run tessia_baselib-testenv:latest tools/run_tests.py
+
+pylint:
+  stage: pylint
+  script:
+    - docker run tessia_baselib-testenv:latest tools/run_pylint.py
