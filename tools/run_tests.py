@@ -14,7 +14,7 @@
 # limitations under the License.
 
 """
-Wrapper script to execute unit tests with unittest lib
+Wrapper script to execute coverage3 on unit tests
 """
 
 #
@@ -27,22 +27,25 @@ import sys
 #
 # CONSTANTS AND DEFINITIONS
 #
-CMD_UNITTEST_DISCOVER = "python3 -m unittest discover -v {} -p '*.py'"
-CMD_UNITTEST_MODULE = "python3 -m unittest -v {}"
+CMD_COVERAGE = "python3 -m coverage run -a --source={} {}"
+CMD_COVERAGE_ERASE = "python3 -m coverage erase"
+CMD_COVERAGE_REPORT = "python3 -m coverage report -m"
+SUBCMD_UNITTEST_DISCOVER = "-m unittest discover -v {} -p '*.py'"
+SUBCMD_UNITTEST_MODULE = "-m unittest -v {}"
 
 #
 # CODE
 #
 def main():
     """
-    Process the command line arguments and create the appropriate unittest
+    Process the command line arguments and create the appropriate coverage3
     command
 
     Args:
         None
 
     Returns:
-        None
+        int: exit code from coverage shell command
 
     Raises:
         None
@@ -51,20 +54,38 @@ def main():
     my_dir = os.path.dirname(os.path.abspath(__file__))
     lib_dir = os.path.abspath('{}/..'.format(my_dir))
 
+    # switch to root dir to make sure paths are found
+    cmds = ['cd {}'.format(lib_dir)]
+
+    # erase previously collected coverage data
+    cmds.append(CMD_COVERAGE_ERASE)
+
     # no arguments provided: execute all tests
     if len(sys.argv) < 2:
-        cmd = CMD_UNITTEST_DISCOVER.format('tests/unit')
+        subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format('tests/unit')
+        cmds.append(CMD_COVERAGE.format('tessia_baselib', subcmd_unittest))
+
     # module path provided: use module's command version
     elif sys.argv[1].endswith('.py'):
-        cmd = CMD_UNITTEST_MODULE.format(sys.argv[1])
+        subcmd_unittest = SUBCMD_UNITTEST_MODULE.format(sys.argv[1])
+        cmds.append(CMD_COVERAGE.format(
+            sys.argv[1].replace("tests/unit", "tessia_baselib"),
+            subcmd_unittest
+        ))
+
     # package path provided: use discover option
     else:
-        cmd = CMD_UNITTEST_DISCOVER.format(sys.argv[1])
+        subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format(sys.argv[1])
+        cmds.append(CMD_COVERAGE.format(
+            sys.argv[1].replace("tests/unit", "tessia_baselib"),
+            subcmd_unittest
+        ))
 
-    # switch to root dir to make sure paths are found
-    cmd = 'cd {} && {}'.format(lib_dir, cmd)
+    # display report
+    cmds.append(CMD_COVERAGE_REPORT)
 
-    # show command line to user
+    # show to user cmd to be executed
+    cmd = ' && '.join(cmds)
     print(cmd)
 
     # execute and return exit code
