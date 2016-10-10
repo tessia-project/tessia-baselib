@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
+"""
+Unit test for the activation_profile module
+"""
 
 #
 # IMPORTS
@@ -20,7 +22,6 @@
 
 from unittest import mock
 from unittest import TestCase
-from unittest.mock import patch
 from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
     ActivationProfile
 )
@@ -35,6 +36,9 @@ from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
 
 
 class TestActivationProfile(TestCase):
+    """
+    Unit test for the ActivationProfile class
+    """
     def setUp(self):
         """
         Setup a Activation Profile object.
@@ -46,25 +50,33 @@ class TestActivationProfile(TestCase):
             None
 
         Raises:
-            AssertionError: if validation fails
+            None
         """
-        hmc_object = mock.Mock()
-        profile_name = 'dummy_name'
-        profile_uri = 'dummy.domain.com'
-        profile_type = 'dummy_type'
+        self.hmc_object = mock.Mock()
+        self.profile_name = 'dummy_name'
+        self.profile_uri = 'dummy.domain.com'
+        self.profile_type = 'dummy_type'
         self.activation_profile = ActivationProfile(
-            hmc_object,
-            profile_name,
-            profile_uri,
-            profile_type
+            self.hmc_object,
+            self.profile_name,
+            self.profile_uri,
+            self.profile_type
         )
 
-        # validate if attributes were correctly assigned to object
-        self.assertEqual(hmc_object, self.activation_profile._hmc)
-        self.assertEqual(profile_name, self.activation_profile.name)
-        self.assertEqual(profile_uri, self.activation_profile.uri)
-        self.assertEqual(profile_type, self.activation_profile.type)
     # setUp()
+
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        self.assertEqual(self.hmc_object, self.activation_profile._hmc)
+        self.assertEqual(self.profile_name, self.activation_profile.name)
+        self.assertEqual(self.profile_uri, self.activation_profile.uri)
+        self.assertEqual(self.profile_type, self.activation_profile.type)
+    # test_attributes()
 
     def test_get_properties(self):
         """
@@ -110,7 +122,7 @@ class TestActivationProfile(TestCase):
         # set fake dictionario
         fake_dict = {'status': 'dummy_status'}
 
-        prop = self.activation_profile.update(fake_dict)
+        self.activation_profile.update(fake_dict)
 
         # asserts
         session = self.activation_profile._hmc.session

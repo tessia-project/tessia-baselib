@@ -13,9 +13,7 @@
 # limitations under the License.
 
 '''
-Exceptions module
-@author Felipe
-@date 18/07/2016
+Module for exceptions used in zhmc package
 '''
 #
 # IMPORTS
@@ -32,21 +30,26 @@ Exceptions module
 
 
 class ZHmcError(Exception):
-    "Base class for exceptions raised by this module."
+    """
+    Base class for exceptions raised by this module.
+    """
     pass
 
 class ZHmcRequestError(ZHmcError):
     """
     Raised when an API request ends in error or not as expected.
-
-    Args:
-        status: HTTP status code from the request
-        reason: API reason code from the request
-        message: API diagnostic message from the request
-        stack: Internal HMC diagnostic info for selected Status 500 errors
     """
 
     def __init__(self, status, reason=0, message=None, stack=None):
+        """
+        Constructor.
+
+        Args:
+            status (int): HTTP status code from the request
+            reason (int): API reason code from the request
+            message (str): API diagnostic message from the request
+            stack (str): Internal HMC diagnostic info for Status 500 errors
+        """
         super().__init__()
         self.args = status, reason, message
         self.status = status

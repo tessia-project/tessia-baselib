@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
+"""
+Unit test for the zhmc module
+"""
 
 #
 # IMPORTS
 #
-
-from unittest import mock
-from unittest import TestCase
-from unittest.mock import patch
 from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
 from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
 from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-
+from unittest import TestCase
+from unittest.mock import patch
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -34,8 +33,10 @@ from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 #
 # CODE
 #
-
 class TestZHmc(TestCase):
+    """
+    Unit test for the ZHmc class
+    """
     def setUp(self):
         """
         Setup a ZHmc object.
@@ -72,10 +73,18 @@ class TestZHmc(TestCase):
             timeout
         )
 
-        # validate if attributes were correctly assigned to object
+    # setUp()
+
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
+
+        Raises:
+            AssertionError: if validation fails
+        """
         self.assertEqual(None, self.zhmc.cpcs)
         self.assertIsInstance(self.zhmc.session, HmcApiSession)
-    # setUp()
+    # test_attributes()
 
     def test_get_cpc(self):
         """
@@ -116,4 +125,4 @@ class TestZHmc(TestCase):
         with self.assertRaises(ZHmcError):
             self.zhmc.get_cpc('dummy_cpc')
     # test_get_cpc()
-
+# TestZHmc

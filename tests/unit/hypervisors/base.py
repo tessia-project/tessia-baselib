@@ -89,7 +89,7 @@ class TestHypervisorBase(TestCase):
             sentinel.host_name,
             sentinel.user,
             sentinel.passwd,
-            sentinel.paramters
+            sentinel.parameters
         )
 
 
@@ -111,6 +111,15 @@ class TestHypervisorBase(TestCase):
         self.assertIs(sentinel.passwd, guest_obj.passwd)
         self.assertIs(sentinel.parameters, guest_obj.parameters)
 
+        # test when parameters is None
+        guest_obj = self._child_cls(
+            sentinel.system_name,
+            sentinel.host_name,
+            sentinel.user,
+            sentinel.passwd,
+            None,
+        )
+        self.assertEqual({}, guest_obj.parameters)
     # test_attributes()
 
     def test_methods(self):
@@ -144,7 +153,7 @@ class TestHypervisorBase(TestCase):
             ('login', ()),
             ('logoff', ()),
             ('reboot', (None, None,)),
-            ('start', (None, None, None, None, None,)),
+            ('start', (None, None, None, None,)),
             ('stop', (None, None)),
         ]
         for method in methods:

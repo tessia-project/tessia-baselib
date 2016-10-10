@@ -14,15 +14,13 @@
 
 """
 CPC Abstraction
-@author: Felipe
-@date 18/07/2016
 """
 
 #
 # IMPORTS
 #
 
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from tessia_baselib.hypervisors.hmc.zhmc.logical_partition import LogicalPartition
 from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
@@ -63,7 +61,7 @@ class CPC(object):
             None
         """
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self.name = cpc_name
         self.uri = cpc_uri
@@ -79,7 +77,6 @@ class CPC(object):
     # __init__()
 
     def get_properties(self):
-
         """
         This method returns the CPC's properties dictionary.
 
@@ -87,7 +84,7 @@ class CPC(object):
             None
 
         Returns:
-            The CPC properties dictionary
+            dict: CPC properties
 
         Raises:
             None
@@ -109,7 +106,7 @@ class CPC(object):
             lpar_name (str): LPAR name
 
         Returns:
-            The LPAR class instance
+            LogicalPartition: the LPAR class instance
 
         Raises:
             ZHmcError: if LPAR was not found
@@ -145,7 +142,7 @@ class CPC(object):
             load_profile_name (str): load profile name
 
         Returns:
-            The Load Activation Profile class instance
+            ActivationProfile: the Load Activation Profile instance
 
         Raises:
             ZHmcError: if load profile was not found
@@ -174,14 +171,14 @@ class CPC(object):
 
     def get_image_profile(self, image_profile_name):
         """
-        This method returns a Image Activation Profile class instance for a
+        This method returns an Image Activation Profile class instance for a
         given image profile name
 
         Args:
             image_profile_name (str):  image profile name
 
         Returns:
-            The Image Activation Profile class instance
+            ActivationProfile: the Image Activation Profile instance
 
         Raises:
             ZHmcError: if image profile was not found
@@ -211,17 +208,18 @@ class CPC(object):
     def get_reset_profile(self, reset_profile_name):
         """
         This method returns a Reset Activation Profile class instance for a
-        give reset profile name
+        give reset profile name.
 
         Args:
             reset_profile_name (str): reset profile name
 
         Returns:
-            The Reset Activation Profile class instance
+            None
 
         Raises:
-            None
+            NotImplementedError: as it needs implementation
         """
+        # TODO: implement feature
         self._logger.debug(
             "Method not implemented: args='%s'", reset_profile_name
         )
@@ -238,11 +236,12 @@ class CPC(object):
             group_profile_name (str):  group profile name
 
         Returns:
-            The Group Activation Profile class instance
+            None
 
         Raises:
-            None
+            NotImplementedError: as it needs implementation
         """
+        # TODO: implement feature
         self._logger.debug(
             "Method not implemented: args='%s'", group_profile_name
         )

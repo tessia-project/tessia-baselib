@@ -19,13 +19,11 @@ Implementation of hypervisor interface for HMC
 #
 # IMPORTS
 #
-
-from tessia_baselib.common.logger import getLogger
-from tessia_baselib.common.params_validators.utils  import validate_params
+from tessia_baselib.common.logger import get_logger
+from tessia_baselib.common.params_validators.utils import validate_params
 from tessia_baselib.hypervisors.base import HypervisorBase
-from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-
+from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -35,7 +33,6 @@ from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 # CODE
 #
 
-# pylint:disable=abstract-method
 class HypervisorHmc(HypervisorBase):
     """
     This class implements the driver to support the HMC hypervisor type
@@ -44,7 +41,7 @@ class HypervisorHmc(HypervisorBase):
     # the identifier for this hypervisor class
     HYP_ID = 'hmc'
 
-    def __init__(self, system_name, host_name, user, passwd, parameters):
+    def __init__(self, system_name, host_name, user, passwd, parameters=None):
         """
         Constructor, store instance values via base class and initialize logger
 
@@ -53,8 +50,7 @@ class HypervisorHmc(HypervisorBase):
             host_name (str): hostname or ip address of system
             user (str): user to login to HMC
             passwd (str): password to login to HMC
-            parameters (dict): A dictionary containing values specific to each
-            hypervisor type
+            parameters (dict): values specific to each hypervisor type
 
         Returns:
             None
@@ -75,7 +71,7 @@ class HypervisorHmc(HypervisorBase):
         self._session = None
 
         # initialize logger object
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self._logger.debug(
             "create HypervisorHMC: name='%s' host_name='%s' user='%s' "
@@ -137,7 +133,7 @@ class HypervisorHmc(HypervisorBase):
             None
 
         Raises:
-            ZHmcError if the operation is performed without previous login
+            ZHmcError: if the operation is performed without previous login
         """
         self._logger.debug(
             "performing LOGOFF HypervisorHMC: name='%s' host_name='%s' "
@@ -156,24 +152,21 @@ class HypervisorHmc(HypervisorBase):
 
     @validate_params
     def start(self, guest_name, cpu, memory, parameters):
-
         """
         Activate (If necessary) and IPL a target LPAR
 
         Args:
             guest_name (str): LPAR name.
             cpu (int): number of CPU's to assign.
-            memory (int): amount of memory to assin in megabytes.
-            parameters (dict): content specific to each hypervisor type. In
-            this case, it contains the CPC name and boot type configuration
+            memory (int): amount of memory to assign in megabytes.
+            parameters (dict): contains the CPC name and boot type config
 
         Returns:
             None
 
         Raises:
-            ZHmcError if the operation is performed without previous login
+            ZHmcError: if the operation is performed without previous login
         """
-
         self._logger.debug(
             "performing START HypervisorHMC: name='%s' host_name='%s' "
             "user='%s' parameters='%s'",
@@ -199,14 +192,13 @@ class HypervisorHmc(HypervisorBase):
         try:
             update = self._update_resources(args, image_profile)
 
-            if update:
-            # If we update the resouces, we need to activate the LPAR again so
+            # image profile updated: we need to activate the LPAR again so
             # changes can take effect, no matter LPAR current state
+            if update:
                 lpar.activate(force=True)
-            else:
-                # If lpar is already activated, we skip the activation step
-                if lpar.status == 'not-activated':
-                    lpar.activate()
+            # lpar not active: activate it
+            elif lpar.status == 'not-activated':
+                lpar.activate()
 
             # SCSI Load
             if parameters.get('boot_params').get('boot_method') == 'scsi':
@@ -218,14 +210,10 @@ class HypervisorHmc(HypervisorBase):
             else:
             # DASD Load
                 lpar.load(parameters.get('boot_params').get('devicenr'))
-        except:
-            if update:
-                # At this point I believe it is safer to leave the image
-                # status as a user responsability
-                self._logger.debug(
-                    "An error ocurred, should we roll back?"
-                )
-            raise
+        except Exception as exc:
+            self._logger.debug(
+                'An error ocurred during start, info:', exc_info=True)
+            raise ZHmcError('Operation failed with: {}'.format(str(exc)))
     # start()
 
     def _calculate_number_cpus(self, total_cpus, ifl_cpus):
@@ -239,7 +227,7 @@ class HypervisorHmc(HypervisorBase):
             ifl_cpus (int): number of IFL cpus
 
         Returns:
-            args (dict): number of cpu/ifl.
+            dict: number of cp's and ifl's
 
         Raises:
             None
@@ -252,7 +240,7 @@ class HypervisorHmc(HypervisorBase):
         args['cp'] = cp_cpus
         args['ifl'] = ifl_cpus
 
-        self._logger.debug("Number of cpus calculted: args='%s'", args)
+        self._logger.debug("Number of cpus calculated: args='%s'", args)
 
         return args
     # _calculate_number_cpus()
@@ -264,11 +252,12 @@ class HypervisorHmc(HypervisorBase):
         or cpus will not change.
 
         Args:
+            args (dict): values to be applied to profile
             image_profile (ActivationProfile): ActivationProfile object that
-            represents an image profile
+                                               represents an image profile
 
         Returns:
-            Boolean: true if resources were updated, else otherwise
+            bool: true if resources were updated, false otherwise
 
         Raises:
             None
@@ -359,8 +348,10 @@ class HypervisorHmc(HypervisorBase):
             None
 
         Raises:
-            NotImplementedError
+            NotImplementedError: as it needs implementation
         """
+        # TODO: implement feature when new fw enabling empty load-addr is
+        # available
         self._logger.debug(
             "Method not implemented: args='%s','%s'", guest_name, parameters
         )

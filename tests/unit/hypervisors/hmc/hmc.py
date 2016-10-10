@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
 """
 Testing class for the HMC hypervisor
 """
@@ -20,15 +19,11 @@ Testing class for the HMC hypervisor
 #
 # IMPORTS
 #
-
+from tessia_baselib.hypervisors.hmc import hmc
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch
-from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
-from tessia_baselib.hypervisors.hmc.hmc import HypervisorHmc
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
-
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -37,45 +32,66 @@ from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
 #
 # CODE
 #
-
 class TestHypervisorHmc(TestCase):
+    """
+    Unit test for the HypervisorHmc class
+    """
     def setUp(self):
         """
-        Setup a HypervisorHmc object.
+        Setup a HypervisorHmc object and related mocks.
+        """
+        self.system_name = 'dummy_system'
+        self.host_name = 'dummy.domain.com'
+        self.user = 'root'
+        self.passwd = 'somepwd'
+        self.parameters = {}
 
-        Args:
-            None
+        # mock the ZHmc class
+        self._patcher_zhmc = patch.object(hmc, 'ZHmc')
+        self._mock_zhmc = self._patcher_zhmc.start()
 
-        Returns:
-            None
+        # mock the logger returned by get_logger
+        self._patcher_logger = patch.object(hmc, 'get_logger')
+        self._mock_get_logger = self._patcher_logger.start()
+        self._mock_logger = mock.Mock(
+            spec=['info', 'warning', 'error', 'debug'])
+        self._mock_get_logger.return_value = self._mock_logger
+
+        # instantiate the object to be used in the testcases
+        self.hmc_object = hmc.HypervisorHmc(
+            self.system_name,
+            self.host_name,
+            self.user,
+            self.passwd,
+            self.parameters
+        )
+    # setUp()
+
+    def tearDown(self):
+        """
+        Stop patching the mocks. Before each test setUp will be executed and
+        the patch created again.
+        """
+        self._patcher_logger.stop()
+        self._patcher_zhmc.stop()
+    # tearDown()
+
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
 
         Raises:
             AssertionError: if validation fails
         """
-        system_name = 'dummy_system'
-        host_name = 'dummy.domain.com'
-        user = 'root'
-        passwd = 'somepwd'
-        parameters = {}
-        self.hmc_object = HypervisorHmc(
-            system_name,
-            host_name,
-            user,
-            passwd,
-            parameters
-        )
+        self.assertEqual('hmc', self.hmc_object.HYP_ID)
+        self.assertEqual(self.system_name, self.hmc_object.name)
+        self.assertEqual(self.host_name, self.hmc_object.host_name)
+        self.assertEqual(self.user, self.hmc_object.user)
+        self.assertEqual(self.passwd, self.hmc_object.passwd)
+        self.assertEqual(self.parameters, self.hmc_object.parameters)
+    # test_attributes()
 
-        # validate if attributes were correctly assigned to object
-        self.assertEqual('hmc', self.hmc_object.hyp_id)
-        self.assertEqual(system_name, self.hmc_object.name)
-        self.assertEqual(host_name, self.hmc_object.host_name)
-        self.assertEqual(user, self.hmc_object.user)
-        self.assertEqual(passwd, self.hmc_object.passwd)
-        self.assertEqual(parameters, self.hmc_object.parameters)
-    # setUp()
-
-    @patch('tessia_baselib.hypervisors.hmc.hmc.ZHmc', spec_set=True)
-    def test_login(self, mock_zhmc):
+    def test_login(self):
         """
         Check if the login() method works as expected
 
@@ -89,20 +105,18 @@ class TestHypervisorHmc(TestCase):
             AssertionError: if validation fails
         """
         # regular scenario
-        self.hmc_object._logger = mock.create_autospec(self.hmc_object._logger)
         self.hmc_object.login()
-        self.assertIsInstance(self.hmc_object._session, ZHmc)
+        self.assertIs(self.hmc_object._session, self._mock_zhmc.return_value)
 
         # test login on already active connection
         self.hmc_object.login()
-        self.hmc_object._logger.warn.assert_called_with(
+        self._mock_logger.warning.assert_called_with(
             "Login called with connection already active:"
             " dropping previous connection object"
         )
     # test_login()
 
-    @patch('tessia_baselib.hypervisors.hmc.hmc.ZHmc', spec=True)
-    def test_logoff(self, mock_zhmc):
+    def test_logoff(self):
         """
         Check if the logoff() method works as expected
 
@@ -121,8 +135,8 @@ class TestHypervisorHmc(TestCase):
             self.hmc_object.logoff()
 
         # set the return value so the logoff can properly work
-        s = mock_zhmc.return_value.session = mock.Mock()
-        s.close_session.return_value = "foo"
+        session = self._mock_zhmc.return_value.session = mock.Mock()
+        session.close_session.return_value = "foo"
 
         # regular scenario
         self.hmc_object.login()
@@ -132,8 +146,7 @@ class TestHypervisorHmc(TestCase):
         self.assertIs(self.hmc_object._session, None)
     # test_logoff()
 
-    @patch('tessia_baselib.hypervisors.hmc.hmc.ZHmc', spec_set=True)
-    def test_start(self, mock_zhmc):
+    def test_start(self):
         """
         Check if the logoff() method works as expected
 
@@ -148,10 +161,13 @@ class TestHypervisorHmc(TestCase):
         """
         # setting up the mock objects
         mock_lpar = (
-            mock_zhmc.return_value.get_cpc.return_value.get_lpar.return_value
+            # pylint: disable=no-member
+            self._mock_zhmc.return_value.get_cpc.return_value.
+            get_lpar.return_value
         )
         mock_image_profile = (
-            mock_zhmc.return_value.get_cpc.return_value.
+            # pylint: disable=no-member
+            self._mock_zhmc.return_value.get_cpc.return_value.
             get_image_profile.return_value
         )
         mock_image_profile.get_properties.return_value = {
@@ -200,7 +216,7 @@ class TestHypervisorHmc(TestCase):
                 self.hmc_object._logger
             )
             self.hmc_object.start(lpar_name, cpu, memory, parameters)
-            self.hmc_object._logger.debug.assert_called_with(
+            self._mock_logger.debug.assert_called_with(
                 "An error ocurred, should we roll back?"
             )
 
@@ -225,11 +241,10 @@ class TestHypervisorHmc(TestCase):
         mock_lpar.status = 'not-activated'
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         mock_lpar.activate.assert_called_with()
-        mock_lpar.scsi_load.assert_called_with('1234', '4321','1324')
+        mock_lpar.scsi_load.assert_called_with('1234', '4321', '1324')
     # test_start()
 
-    @patch('tessia_baselib.hypervisors.hmc.hmc.ZHmc', spec_set=True)
-    def test_stop(self, mock_zhmc):
+    def test_stop(self):
         """
         Check if the stop() method works as expected
 
@@ -243,7 +258,9 @@ class TestHypervisorHmc(TestCase):
             AssertionError: if validation fails
         """
         mock_lpar = (
-            mock_zhmc.return_value.get_cpc.return_value.get_lpar.return_value
+            # pylint: disable=no-member
+            self._mock_zhmc.return_value.get_cpc.return_value.
+            get_lpar.return_value
         )
         mock_lpar.status = 'operating'
 
@@ -280,3 +297,4 @@ class TestHypervisorHmc(TestCase):
         with self.assertRaises(NotImplementedError):
             self.hmc_object.reboot('dummy', {})
     # test_reboot()
+# TestHypervisorHmc

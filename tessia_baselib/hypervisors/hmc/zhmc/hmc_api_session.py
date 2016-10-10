@@ -14,19 +14,18 @@
 
 '''
 HMC Api Session Handler
-@author: Felipe
-@date: 18/07/2016
 '''
+
 #
 # IMPORTS
 #
+from datetime import timedelta
+from contextlib import suppress
+from tessia_baselib.common.logger import get_logger
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 
 import time
 import requests
-from datetime import timedelta
-from contextlib import suppress
-from tessia_baselib.common.logger import getLogger
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -47,13 +46,11 @@ REQUESTS = {
 
 
 class HmcApiSession(object):
-
     """
     This class is responsible for creating the session with the HMC and
     providing the necessary methods to make (post and get) requests to
     the HMC.
     """
-
     def __init__(self, host_name, user, passwd, timeout, port):
         """
         Constructor
@@ -72,7 +69,7 @@ class HmcApiSession(object):
             None
         """
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self.host_name = host_name
         self.timeout = timeout
@@ -136,7 +133,7 @@ class HmcApiSession(object):
         This is an auxiliary method to validade the HTTP response from the HMC.
 
         Args:
-            response: http response
+            response (requests.Response): http response from requests lib
 
         Returns:
             None
@@ -187,17 +184,16 @@ class HmcApiSession(object):
         Args:
             method (str): the HTTP method to issue (eg. GET, PUT, POST, DELETE)
             uri (uri): URI path and query parameter string for the request.
-            bodyi (dict): the request body in the form of a Python Dict or
-            List object. This object is automatically converted to
-            corresponding JSON by this function.
-            headers (dict): request headers for this request, in the form of
-            a Python Dict. Optional.
+            body (dict): the request body in the form of a dict or list
+                         object. This object is automatically converted to
+                         corresponding JSON by this function.
+            headers (dict): request headers for this request, optional
 
         Returns:
-            Response body as dict
+            dict: response body
 
         Raises:
-            ZHmcError: Raised if response body was not JSON
+            ZHmcRequestError: Raised if response body was not JSON
         """
         start_time = time.time()
 
@@ -236,16 +232,15 @@ class HmcApiSession(object):
         )
 
         return_body = dict()
+        # 204 means no body: return empty response
+        if response.status_code == 204:
+            return return_body
+
         try:
-            # we only retrieve the json is there is content available in
-            # the response
-            if response.status_code != 204:
-                return_body = response.json()
+            return_body = response.json()
         except ValueError:
-            raise ZHmcRequestError(
-                "Response body expected to be JSON."
-            )
+            raise ZHmcRequestError("Response body expected to be JSON.")
 
         return return_body
     # json_request()
-# hmc_api_session
+# HmcApiSession

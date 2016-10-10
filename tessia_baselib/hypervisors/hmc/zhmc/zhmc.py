@@ -14,14 +14,13 @@
 
 """
 ZHmc module
-@author: Felipe
-@date: 18/07/2016
 """
+
 #
 # IMPORTS
 #
 
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
 from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
@@ -37,14 +36,12 @@ from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 
 class ZHmc(object):
-
     """
-    This class is responsible for creating a object abstracting for the HMC,
+    This class is responsible for creating an object to represent the HMC,
     according to the information passed as argument in the constructor.
     Additionally, it gets and stores in a dictionary the list of CPCs available
     to the user in the specific machine along with the corresponding URIs.
     """
-
     def __init__(self, host_name, user, passwd, port, timeout):
         """
         Constructor
@@ -53,6 +50,7 @@ class ZHmc(object):
             host_name (str): hostname or ip address of system
             user (str): user to login to HMC
             passwd (str): password to login to HMC
+            port (int): network port
             timeout (int): connection timeout
 
         Returns:
@@ -64,7 +62,7 @@ class ZHmc(object):
 
         self.cpcs = None
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self.session = HmcApiSession(host_name, user, passwd, timeout, port)
         self.session.open_session()
@@ -76,10 +74,10 @@ class ZHmc(object):
 
         Args:
             cpc_name (str): name of the cpc whose class instance we want to
-            retrieve.
+                            retrieve.
 
         Returns:
-            The cpc class instance
+            CPC: cpc class instance
 
         Raises:
             ZHmcError:  if no CPC was found

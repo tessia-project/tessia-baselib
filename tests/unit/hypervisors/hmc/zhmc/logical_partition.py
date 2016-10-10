@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
+"""
+Unit test for the logical_partition module
+"""
 
 #
 # IMPORTS
 #
-import itertools
 from unittest import mock
 from unittest import TestCase
-from unittest.mock import patch
 from tessia_baselib.hypervisors.hmc.zhmc import logical_partition
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
+import itertools
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -34,6 +35,9 @@ from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 
 class TestLogicalPartition(TestCase):
+    """
+    Unit test for the LogicalPartition class
+    """
     def setUp(self):
         """
         Setup a Activation lpar object.
@@ -47,23 +51,31 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        hmc_object = mock.Mock()
-        lpar_name = 'dummy_name'
-        lpar_uri = 'dummy.domain.com'
-        lpar_status = 'dummy_status'
+        self.hmc_object = mock.Mock()
+        self.lpar_name = 'dummy_name'
+        self.lpar_uri = 'dummy.domain.com'
+        self.lpar_status = 'dummy_status'
         self.lpar = logical_partition.LogicalPartition(
-            hmc_object,
-            lpar_name,
-            lpar_uri,
-            lpar_status
+            self.hmc_object,
+            self.lpar_name,
+            self.lpar_uri,
+            self.lpar_status
         )
 
-        # validate if attributes were correctly assigned to object
-        self.assertEqual(hmc_object, self.lpar._hmc)
-        self.assertEqual(lpar_name, self.lpar.name)
-        self.assertEqual(lpar_uri, self.lpar.uri)
-        self.assertEqual(lpar_status, self.lpar.status)
     # setUp()
+
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        self.assertEqual(self.hmc_object, self.lpar._hmc)
+        self.assertEqual(self.lpar_name, self.lpar.name)
+        self.assertEqual(self.lpar_uri, self.lpar.uri)
+        self.assertEqual(self.lpar_status, self.lpar.status)
+    # test_attributes()
 
     def test_get_properties(self):
         """
@@ -271,7 +283,7 @@ class TestLogicalPartition(TestCase):
         # test with no force flag set
         job = self.lpar.reset_clear()
         self.assertEqual(job['status-end'], 'not-operating')
-    # test_reset_clear
+    # test_reset_clear()
 
     def test_operation_on_timeout(self):
         """

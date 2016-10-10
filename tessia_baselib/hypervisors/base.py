@@ -39,7 +39,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     HYP_ID = 'base'
 
     def __init__(self, system_name, host_name, user,
-                 passwd, parameters):
+                 passwd, parameters=None):
         """
         Constructor
 
@@ -61,7 +61,10 @@ class HypervisorBase(metaclass=abc.ABCMeta):
         self.host_name = host_name
         self.user = user
         self.passwd = passwd
-        self.parameters = parameters
+        if parameters is None:
+            self.parameters = {}
+        else:
+            self.parameters = parameters
 
     # __init__()
 
@@ -110,7 +113,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
         Args:
             guest_name (str): name of the guest as known by hypervisor
             cpu (int): number of CPU's to assign
-            memory (int): amount of memory to assin in megabytes
+            memory (int): amount of memory to assign in megabytes
             parameters (dict): content specfic to each hypervisor type
 
         Returns:

@@ -12,21 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
+"""
+Unit test for the cpc module
+"""
 
 #
 # IMPORTS
 #
-
-from unittest import mock
-from unittest import TestCase
-from unittest.mock import patch
 from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from tessia_baselib.hypervisors.hmc.zhmc.logical_partition import LogicalPartition
 from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
     ActivationProfile
 )
+from unittest import mock
+from unittest import TestCase
 
 
 #
@@ -39,6 +39,9 @@ from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
 
 
 class TestCPC(TestCase):
+    """
+    Unit test for the CPC class
+    """
     def setUp(self):
         """
         Setup a CPC object.
@@ -50,29 +53,37 @@ class TestCPC(TestCase):
             None
 
         Raises:
-            AssertionError: if validation fails
+            None
         """
-        hmc_object = mock.Mock()
-        cpc_name = 'dummy_name'
-        cpc_uri = 'dummy.domain.com'
-        cpc_status = 'dummy_status'
+        self.hmc_object = mock.Mock()
+        self.cpc_name = 'dummy_name'
+        self.cpc_uri = 'dummy.domain.com'
+        self.cpc_status = 'dummy_status'
         self.cpc = CPC(
-            hmc_object,
-            cpc_name,
-            cpc_uri,
-            cpc_status
+            self.hmc_object,
+            self.cpc_name,
+            self.cpc_uri,
+            self.cpc_status
         )
 
-        # validate if attributes were correctly assigned to object
-        self.assertEqual(hmc_object, self.cpc._hmc)
-        self.assertEqual(cpc_name, self.cpc.name)
-        self.assertEqual(cpc_uri, self.cpc.uri)
-        self.assertEqual(cpc_status, self.cpc.status)
+    # setUp()
+
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        self.assertEqual(self.hmc_object, self.cpc._hmc)
+        self.assertEqual(self.cpc_name, self.cpc.name)
+        self.assertEqual(self.cpc_uri, self.cpc.uri)
+        self.assertEqual(self.cpc_status, self.cpc.status)
         self.assertIs(None, self.cpc._lpars)
         self.assertIs(None, self.cpc._image_profiles)
         self.assertIs(None, self.cpc._load_profiles)
         self.assertIs(None, self.cpc._group_profiles)
-    # setUp()
+    # test_attributes()
 
     def test_get_properties(self):
         """

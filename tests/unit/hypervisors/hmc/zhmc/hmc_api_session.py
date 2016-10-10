@@ -12,19 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: disable=all
+"""
+Unit test for the hmc_api_session module
+"""
 
 #
 # IMPORTS
 #
-import json
-import requests
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
+from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
-from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -35,6 +34,9 @@ from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
 #
 
 class TestHmcApiSession(TestCase):
+    """
+    Unit test for the HmcApiSession class
+    """
     def setUp(self):
         """
         Setup a HMC Api Session object.
@@ -56,26 +58,35 @@ class TestHmcApiSession(TestCase):
         self._mock_requests = requests_patcher.start()
         self.addCleanup(requests_patcher.stop)
 
-        host = 'dummy.com'
-        user = 'dummy_user'
-        passwd = 'dummy_passwd'
-        port = 5555
-        timeout = 60
+        self.host = 'dummy.com'
+        self.user = 'dummy_user'
+        self.passwd = 'dummy_passwd'
+        self.port = 5555
+        self.timeout = 60
 
-        # regular scenario
-        self.session = HmcApiSession(host, user, passwd, timeout, port)
+        self.session = HmcApiSession(
+            self.host, self.user, self.passwd, self.timeout, self.port)
+    # setUp()
 
-        self.assertEqual(host, self.session.host_name)
-        self.assertEqual(user, self.session._user)
-        self.assertEqual(passwd, self.session._passwd)
-        self.assertEqual(port, self.session.port)
-        self.assertEqual(timeout, self.session.timeout)
+    def test_attributes(self):
+        """
+        Validate if attributes were correctly assigned to object
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        self.assertEqual(self.host, self.session.host_name)
+        self.assertEqual(self.user, self.session._user)
+        self.assertEqual(self.passwd, self.session._passwd)
+        self.assertEqual(self.port, self.session.port)
+        self.assertEqual(self.timeout, self.session.timeout)
         self.assertIs(None, self.session.session_id)
 
         # test when the port is set to None
-        self.session = HmcApiSession(host, user, passwd, timeout, None)
+        self.session = HmcApiSession(
+            self.host, self.user, self.passwd, self.timeout, None)
         self.assertEqual(6794, self.session.port)
-    # setUp()
+    # test_attributes()
 
     def test_open_session(self):
         """
@@ -91,12 +102,12 @@ class TestHmcApiSession(TestCase):
             AssertionError: if validation fails
         """
         # setup a fake response
-        r = mock.MagicMock()
-        r.status_code = 200
-        r.json.return_value = {"api-session": 999}
-        self._mock_requests["POST"].return_value = r
+        resp = mock.MagicMock()
+        resp.status_code = 200
+        resp.json.return_value = {"api-session": 999}
+        self._mock_requests["POST"].return_value = resp
 
-        url = "https://dummy.com:6794/api/session"
+        url = "https://{}:{}/api/session".format(self.host, self.port)
         body = {
             'userid': self.session._user,
             'password': self.session._passwd
@@ -130,13 +141,14 @@ class TestHmcApiSession(TestCase):
             AssertionError: if validation fails
         """
         # setup a fake response
-        r = mock.MagicMock()
-        r.status_code = 204
-        self._mock_requests["DELETE"].return_value = r
+        resp = mock.MagicMock()
+        resp.status_code = 204
+        self._mock_requests["DELETE"].return_value = resp
         # since we will close the session, set a valid id
         self.session.session_id = 999
 
-        url = "https://dummy.com:6794/api/session/this-session"
+        url = "https://{}:{}/api/session/this-session".format(
+            self.host, self.port)
         headers = dict()
         headers["X-API-Session"] = self.session.session_id
 
@@ -167,13 +179,13 @@ class TestHmcApiSession(TestCase):
             AssertionError: if validation fails
         """
         # setup a fake response
-        r = mock.MagicMock()
-        r.status_code = 200
-        self._mock_requests["GET"].return_value = r
+        resp = mock.MagicMock()
+        resp.status_code = 200
+        self._mock_requests["GET"].return_value = resp
         # since we are testing a regular request, set a valid id
         self.session.session_id = 999
 
-        url = "https://dummy.com:6794/api/session"
+        url = "https://{}:{}/api/session".format(self.host, self.port)
         headers = dict()
         headers["X-API-Session"] = self.session.session_id
 
@@ -208,8 +220,8 @@ class TestHmcApiSession(TestCase):
         )
 
         # test when the requests fails
-        r.status_code = 404
-        r.json.return_value = {
+        resp.status_code = 404
+        resp.json.return_value = {
             "reason": "foo", "message": "bar", "stack":"bar"
         }
         with self.assertRaises(ZHmcRequestError):
@@ -219,11 +231,12 @@ class TestHmcApiSession(TestCase):
             )
 
         # test if there is an error in the json conversion
-        r.status_code = 200
-        r.json.side_effect = ValueError
+        resp.status_code = 200
+        resp.json.side_effect = ValueError
         with self.assertRaises(ZHmcRequestError):
             self.session.json_request(
                 'GET',
                 '/api/session'
             )
     # test_json_request()
+# TestHmcApiSession

@@ -26,87 +26,87 @@ The definition of the parameters format is available in the jsonschema folder:
 ## Start a Guest
 
 ```python
-    from tessia_baselib.hypervisors.hmc import hmc
+from tessia_baselib.hypervisors.hmc import hmc
 
-    hypervisor_name = "hmcserver"
-    hypervisor_hostname = "hmcserver.domain.com"
-    hypervisor_user = "some_user"
-    hypervisor_pwd = "some_password"
-    # Currently there is not parameters for instantiating a hmc hypervisor
-    hypervisor_params = None
-    hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                        hypervisor_user, hypervisor_pwd, hypervisor_params)
+hypervisor_name = "hmcserver"
+hypervisor_hostname = "hmcserver.domain.com"
+hypervisor_user = "some_user"
+hypervisor_pwd = "some_password"
+# Currently there are no parameters for instantiating a hmc hypervisor
+hypervisor_params = None
+hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
+                    hypervisor_user, hypervisor_pwd, hypervisor_params)
 
-    # We must be logged in before submitting any command.
-    hmc.login()
+# We must be logged in before submitting any command.
+hmc.login()
 
-    # Here we define the parameters of the guest to be started.
-    guest_name = "CP23LP12"
-    guest_cpu = 2
-    guest_memory = 4096
-	# The format of the parameters are defined in the jsonschema.
-    parameters = {
-        "cpc_name": "CP23",
-		"boot_params": {
-			"boot_method": "dasd",
-			"devicenr": "some_address"
-		}
+# Here we define the parameters of the guest to be started.
+guest_name = "CP23LP12"
+guest_cpu = 2
+guest_memory = 4096
+# The format of the parameters are defined in the jsonschema.
+parameters = {
+    "cpc_name": "CP23",
+    "boot_params": {
+        "boot_method": "dasd",
+        "devicenr": "some_address"
     }
+}
 
-    hmc.start(guest_name, guest_cpu, guest_memory, guest_parameters)
-	hmc.logoff()
+hmc.start(guest_name, guest_cpu, guest_memory, parameters)
+hmc.logoff()
 ```
 
 ## Stop a Guest
 ```python
-    from tessia_baselib.hypervisors.hmc import hmc
+from tessia_baselib.hypervisors.hmc import hmc
 
-    hypervisor_name = "hmcserver"
-    hypervisor_hostname = "hmcserver.domain.com"
-    hypervisor_user = "some_user"
-    hypervisor_pwd = "some_password"
-    # Currently there is not parameters for instantiating a hmc hypervisor
-    hypervisor_params = None
-    hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                        hypervisor_user, hypervisor_pwd, hypervisor_params)
+hypervisor_name = "hmcserver"
+hypervisor_hostname = "hmcserver.domain.com"
+hypervisor_user = "some_user"
+hypervisor_pwd = "some_password"
+# Currently there are no parameters for instantiating a hmc hypervisor
+hypervisor_params = None
+hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
+                    hypervisor_user, hypervisor_pwd, hypervisor_params)
 
-    # We must be logged in before submitting any command.
-    hmc.login()
+# We must be logged in before submitting any command.
+hmc.login()
 
-    # Here we define the parameters of the guest to be started.
-    guest_name = "CP23LP12"
-	parameters = {
-		"cpc_name": "CP23"
-	}
+# Here we define the parameters of the guest to be started.
+guest_name = "CP23LP12"
+parameters = {
+    "cpc_name": "CP23"
+}
 
-    hmc.login()
-	hmc.stop(guest_name, parameters)
-	hmc.logoff()
+hmc.login()
+hmc.stop(guest_name, parameters)
+hmc.logoff()
 ```
 ## Reboot a Guest
 ```python
-	from tessia_baselib.hypervisors.hmc import hmc
+from tessia_baselib.hypervisors.hmc import hmc
 
-    hypervisor_name = "hmcserver"
-    hypervisor_hostname = "hmcserver.domain.com"
-    hypervisor_user = "some_user"
-    hypervisor_pwd = "some_password"
-    # Currently there is not parameters for instantiating a hmc hypervisor
-    hypervisor_params = None
-    hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                        hypervisor_user, hypervisor_pwd, hypervisor_params)
+hypervisor_name = "hmcserver"
+hypervisor_hostname = "hmcserver.domain.com"
+hypervisor_user = "some_user"
+hypervisor_pwd = "some_password"
+# Currently there are no parameters for instantiating a hmc hypervisor
+hypervisor_params = None
+hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
+                    hypervisor_user, hypervisor_pwd, hypervisor_params)
 
-    # We must be logged in before submitting any command.
-    hmc.login()
+# We must be logged in before submitting any command.
+hmc.login()
 
-    # Here we define the parameters of the guest to be started.
-    guest_name = "CP23LP12"
-	parameters = {
-		"cpc_name": "CP23"
-	}
+# Here we define the parameters of the guest to be started.
+guest_name = "CP23LP12"
+parameters = {
+    "cpc_name": "CP23"
+}
 
-    hmc.login()
-	hmc.reboot(guest_name, parameters)
-	hmc.logoff()
+hmc.login()
+hmc.reboot(guest_name, parameters)
+hmc.logoff()
 ```
 

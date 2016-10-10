@@ -14,15 +14,13 @@
 
 """
 Activation Profile Abstraction
-@author: Felipe
-@date: 18/07/2016
 """
 
 #
 # IMPORTS
 #
 
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -48,10 +46,10 @@ class ActivationProfile(object):
 
         Args:
             hmc (HmcApiSession): contains all the session information
-            profile_name (str): it corresponds to the profile name
-            profile_uri (str): it corresponds to the profile URI on the HMC
-            profile_type (str): it corresponds the profile type we are
-            referencing: 'image', 'load', 'reset' or 'group'
+            profile_name (str): profile name
+            profile_uri (str): the profile URI on the HMC
+            profile_type (str): the profile type we are referencing:
+                                'image', 'load', 'reset' or 'group'
 
         Returns:
             None
@@ -60,7 +58,7 @@ class ActivationProfile(object):
             None
         """
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self.name = profile_name
         self.uri = profile_uri
@@ -76,7 +74,7 @@ class ActivationProfile(object):
             None
 
         Returns:
-            The image profile properties dictionary
+            dict: image profile properties
 
         Raises:
             None
@@ -94,16 +92,16 @@ class ActivationProfile(object):
         This method updates the current ActivationProfile. Please refer to
         HMC API Documentation version 2.13.1 or later in order to set the right
         parameters. The basic parameters for this module are:
-            Image Activation Profile:
-                'central-storage' - Total memory of the LPAR
-                'number-shared-general-purpose-processors' - Number of CP's
-                'number-shared-ifl-processors' - Number of IFL's
-            Load Activation Profile:
-                TODO
-            Reset Activation Profile:
-                TODO
-            Group Activation Profile:
-                TODO
+        Image Activation Profile:
+            'central-storage' - Total memory of the LPAR
+            'number-shared-general-purpose-processors' - Number of CP's
+            'number-shared-ifl-processors' - Number of IFL's
+        Load Activation Profile:
+            TODO
+        Reset Activation Profile:
+            TODO
+        Group Activation Profile:
+            TODO
 
         Args:
             None

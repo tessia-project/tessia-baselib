@@ -14,30 +14,27 @@
 
 """
 Logical Partition Abstraction
-@authour: Felipe
-@date: 18/07/2016
 """
 
 #
 # IMPORTS
 #
+from datetime import timedelta
+from tessia_baselib.common.logger import get_logger
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 import time
-from datetime import timedelta
-from tessia_baselib.common.logger import getLogger
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 
-DEFAULT_JSON_REQUEST_TIMEOUT = 60  #  Default json request timeout (seconds)
+# default json request timeout (seconds)
+DEFAULT_JSON_REQUEST_TIMEOUT = 60
 
 #
 # CODE
 #
-
-
 class LogicalPartition(object):
 
     """
@@ -45,7 +42,6 @@ class LogicalPartition(object):
     """
 
     def __init__(self, hmc, lpar_name, lpar_uri, lpar_status):
-
         """
         Constructor
 
@@ -60,10 +56,9 @@ class LogicalPartition(object):
 
         Raises:
             None
-
         """
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self.name = lpar_name
         self.uri = lpar_uri
@@ -72,7 +67,6 @@ class LogicalPartition(object):
     # __init__()
 
     def get_properties(self):
-
         """
         This method returns the LPAR's properties dictionary
 
@@ -80,11 +74,10 @@ class LogicalPartition(object):
             None
 
         Returns:
-            The logical partition properties dictionary
+            dict: logical partition properties
 
         Raises:
             None
-
         """
 
         properties = self._hmc.session.json_request(
@@ -96,25 +89,22 @@ class LogicalPartition(object):
     # get_properties()
 
     def activate(self, image_profile=None, force=False):
-
         """
         This method activates the lpar, putting it in a 'not-operating' status.
 
         Args:
-            force (bool): when true we have the right to force activation if
-            the partition is in "operating" status
             image_profile (str): image activation profile name. If not set, HMC
-            will use the profile present in the parameter
-            'next-activation-profile'
+                                 will use the profile present in the parameter
+                                 'next-activation-profile'
+            force (bool): when true we have the right to force activation if
+                          the partition is in "operating" status
 
         Returns:
-            job (dict): contains what the hmc returns after executing the
-            operation, plus some info regarding the time needed to fulfill
-            the operation
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
 
         Raises:
             None
-
         """
 
         param = dict()
@@ -135,23 +125,20 @@ class LogicalPartition(object):
     # activate()
 
     def deactivate(self, force=False):
-
         """
         This method deactivates the lpar, putting it in a 'not-activated'
         status.
 
         Args:
             force (bool): when true we have the right to force deactivation
-            if the partition is in "operating" status
+                          if the partition is in "operating" status
 
         Returns:
-            job (dict): contains what the hmc returns after executing the
-            operation, plus some info regarding the time needed to fulfill
-            the operation
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
 
         Raises:
             None
-
         """
 
         param = dict()
@@ -169,7 +156,6 @@ class LogicalPartition(object):
     # deactivate()
 
     def load(self, load_address, force=True):
-
         """
         This method is used to perform the operation of initial program load,
         or just load for short.
@@ -177,16 +163,15 @@ class LogicalPartition(object):
         Args:
             load_address (str): disk address to perform the IPL.
             force (bool): when true we have the right to force ipl if the
-            partition is in "operating" status
+                          partition is in "operating" status
 
         Returns:
-            job (str):  a dictionary that contains what the hmc returns after
-            executing the operation, plus some info regarding the time needed
-            to fulfill the operation
+            dict: a dictionary that contains what the hmc returns after
+                  executing the operation, plus some info regarding the time
+                  needed to fulfill it
 
         Raises:
             None
-
         """
         param = dict()
 
@@ -205,7 +190,6 @@ class LogicalPartition(object):
     # load()
 
     def scsi_load(self, load_address, wwpn, lun, force=False):
-
         """
         This method is used to perform the operation of initial program load,
         or just load for short, from a SCSI device.
@@ -213,20 +197,18 @@ class LogicalPartition(object):
         Args:
             load_address (str): address to perform the IPL.
             wwpn (str): worldwide port name (WWPN) of the target SCSI device to
-            be used for this operation, in hexadecimal.
+                        be used for this operation, in hexadecimal.
             lun (str): hexadecimal logical unit number to be used for the SCSI
-            Load.
+                       Load.
             force (bool): when true we have the right to force ipl if the
-            partition is in "operating" status
+                          partition is in "operating" status
 
         Returns:
-            job (dict): contains what the hmc returns after executing the
-            operation, plus some info regarding the time needed to fulfill
-            the operation
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
 
         Raises:
             None
-
         """
         param = dict()
 
@@ -247,7 +229,6 @@ class LogicalPartition(object):
     # scsi_load()
 
     def stop(self):
-
         """
         This method is used to perform the 'stop' operation on a LPAR.
         The 'stop' operation stops the processors from processing instructions.
@@ -256,13 +237,11 @@ class LogicalPartition(object):
             None
 
         Returns:
-            job (dict): contains what the hmc returns after executing the
-            operation, plus some info regarding the time needed to fulfill
-            the operation
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
 
         Raises:
             None
-
         """
 
         job = self._issue_operation(
@@ -274,7 +253,6 @@ class LogicalPartition(object):
     # stop()
 
     def reset_clear(self, force=False):
-
         """
         This method is used to perform the 'reset-clear' operation on a LPAR.
         The Reset Clear operation initializes system or logical partition by
@@ -288,11 +266,10 @@ class LogicalPartition(object):
 
         Returns:
             job: contains what the hmc returns after executing the operation,
-            plus some info regarding the time needed to fulfill the operation
+                 plus some info regarding the time needed to fulfill it
 
         Raises:
             None
-
         """
         param = dict()
 
@@ -309,7 +286,6 @@ class LogicalPartition(object):
     # reset_clear()
 
     def _issue_operation(self, operation, timeout, arg_dict=None):
-
         """
         Auxiliary method.
         Its role is to start the execution of the basic operations of an
@@ -319,24 +295,19 @@ class LogicalPartition(object):
 
         Args:
             operation (str): name of the operation we want to issue, in
-            compliance with the Web Services documentation.
+                             compliance with the Web Services documentation.
             timeout (int): how long we should wait for the asynchronous
-            operation to finish before raising an error.
+                           operation to finish before raising an error.
             arg_dict (dict) : argument dictionary will take the place of the
-            body in the POST request if provided
+                              body in the POST request if provided
 
         Returns:
-            jdict (dict): contains what the hmc returns after executing the
-            operation, plus some info regarding the time needed to fulfill
-            the operation
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
 
         Raises:
-            ZHmcError:  in case of timeout
-
+            ZHmcError: in case of timeout
         """
-
-        start_time = time.time()
-
         start_status = self.status
 
         action = self.uri + "/operations/" + operation
@@ -346,10 +317,10 @@ class LogicalPartition(object):
             action,
             body=arg_dict
         )
-        #validate response
 
-        i = 1
-        while i <= timeout:
+        start_time = time.time()
+        timeout_time = start_time + timeout
+        while time.time() <= timeout_time:
             job = self._hmc.session.json_request(
                 "GET",
                 response['job-uri']
@@ -357,7 +328,6 @@ class LogicalPartition(object):
             if job['status'] != 'running':
                 break
             time.sleep(1)
-            i = i + 1
 
         if job['status'] == 'running':
             raise ZHmcError(
