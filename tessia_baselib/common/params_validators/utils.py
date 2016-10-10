@@ -55,22 +55,19 @@ def create_params_validator(json_schema_file, validator=None):
                     configuration file or it is not a supported validator.
     """
     if validator is None:
-        conf = CONF.get_config()
-        default_schema_validator = conf.get("default_schema_validator")
-
-        if default_schema_validator is None:
-            raise ValueError("default_schema_validator not defined in the"
-                             " tessia_baselib configuration file")
-
-        validator_lib = default_schema_validator
+        try:
+            validator_lib = CONF.get_config()["default_schema_validator"]
+        # config file not available or missing option: use jsonschema
+        except (KeyError, IOError):
+            validator_lib = 'jsonschema'
     else:
         validator_lib = validator
 
     if validator_lib not in VALIDATOR_LIBS.keys():
-        raise ValueError("{} is not a valid"
-                         " validator. "
-                         "Use one of {}".format(validator_lib,
-                                                VALIDATOR_LIBS.keys()))
+        raise ValueError(
+            "{} is not a valid validator. Use one of {}".format(
+                validator_lib, ', '.join(VALIDATOR_LIBS.keys()))
+        )
 
     return VALIDATOR_LIBS[validator_lib](json_schema_file)
 # create_params_validator()

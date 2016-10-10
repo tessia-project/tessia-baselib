@@ -41,8 +41,8 @@ class TestUtils(unittest.TestCase):
                 autospect=True)
     def test_invalid_params_validator(self, mock_conf):
         """
-        Test the case that the default validator is not defined and not
-        provided in the factory function arguments
+        Test the case that the default validator is incorrectly defined as
+        None in configuration file.
 
         Args:
             mock_conf: Mock of the configuration dictionary that is created
@@ -58,8 +58,9 @@ class TestUtils(unittest.TestCase):
             "default_schema_validator": None
         }
 
-        self.assertRaisesRegex(ValueError, "not defined in",
-                               create_params_validator, "any_schema")
+        self.assertRaisesRegex(
+            ValueError, "None is not a valid validator. Use one of",
+            create_params_validator, "any_schema")
     # test_invalid_params_validator()
 
     def test_invalid_params_validator_in_arguments(self):
@@ -163,6 +164,42 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(lib, mock_other_lib)
 
     # test_create_params_validator_argument()
+
+    @mock.patch(
+        'tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS',
+        autospec=True)
+    @mock.patch(
+        'tessia_baselib.common.params_validators.utils.JsonschemaValidator',
+        autospec=True)
+    @mock.patch('tessia_baselib.common.params_validators.utils.CONF')
+    def test_default_validator(self, mock_conf, mock_jsonschema, mock_libs):
+        """
+        Test the case when the default validator is not defined and not
+        provided in the factory function arguments
+
+        Args:
+            mock_conf (Mock): Mock of the configuration dictionary that is
+                              created from the configuration file.
+            mock_jsonschema (Mock): mock representing the JsonschemaValidator
+                                    class
+            mock_libs (Mock): mock representing the VALIDATOR_LIBS dictionary
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        mock_conf.get_config.return_value = {}
+        mock_jsonschema.return_value = mock.sentinel.JsonschemaValidator
+        mock_libs.keys.return_value = ['jsonschema']
+        mock_libs.__getitem__.return_value = mock_jsonschema
+
+        self.assertIs(
+            create_params_validator('any_schema'),
+            mock.sentinel.JsonschemaValidator)
+    # test_default_validator()
+
 
     def test_func_name_is_not_valid(self):
         """
