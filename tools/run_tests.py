@@ -27,8 +27,12 @@ import sys
 #
 # CONSTANTS AND DEFINITIONS
 #
-CMD_COVERAGE = "python3 -m coverage run -a --source={} -m unittest -v {}"
-CMD_ERASE = "coverage erase"
+CMD_COVERAGE = "python3 -m coverage run -a --source={} {}"
+CMD_COVERAGE_ERASE = "python3 -m coverage erase"
+CMD_COVERAGE_REPORT = "python3 -m coverage report -m"
+SUBCMD_UNITTEST_DISCOVER = "-m unittest discover -v {} -p '*.py'"
+SUBCMD_UNITTEST_MODULE = "-m unittest -v {}"
+
 #
 # CODE
 #
@@ -38,59 +42,54 @@ def main():
     command
 
     Args:
-        Optional    Relative path to test
-
-    Returns:
         None
 
+    Returns:
+        int: exit code from coverage shell command
+
     Raises:
-        Exception   If the operation fails
+        None
     """
-
-    # erase previously collected coverage data
-    subprocess.call(CMD_ERASE, shell=True)
-
+    # determine repository's root dir
     my_dir = os.path.dirname(os.path.abspath(__file__))
     lib_dir = os.path.abspath('{}/..'.format(my_dir))
 
-    # return value
-    ret = 0
+    # switch to root dir to make sure paths are found
+    cmds = ['cd {}'.format(lib_dir)]
 
-    # module path provided
-    if len(sys.argv) > 1:
-        cmd = CMD_COVERAGE.format(
+    # erase previously collected coverage data
+    cmds.append(CMD_COVERAGE_ERASE)
+
+    # no arguments provided: execute all tests
+    if len(sys.argv) < 2:
+        subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format('tests/unit')
+        cmds.append(CMD_COVERAGE.format('tessia_baselib', subcmd_unittest))
+
+    # module path provided: use module's command version
+    elif sys.argv[1].endswith('.py'):
+        subcmd_unittest = SUBCMD_UNITTEST_MODULE.format(sys.argv[1])
+        cmds.append(CMD_COVERAGE.format(
             sys.argv[1].replace("tests/unit", "tessia_baselib"),
-            sys.argv[1]
-        )
-        ret += subprocess.call(cmd, shell=True)
+            subcmd_unittest
+        ))
+
+    # package path provided: use discover option
     else:
-        # search in the directory /tests/unit for all tests
-        for root, dirs, files in os.walk(lib_dir + "/tests/unit"):
-            for name in files:
-                # skip __init__.py files
-                if name.endswith(".py") and name != "__init__.py":
-                    test_abs_path = os.path.join(root, name)
-
-                    test_rel_path = os.path.relpath(test_abs_path, lib_dir)
-                    source = test_abs_path.replace(
-                        "/tests/unit", "/tessia_baselib"
-                    )
-
-                    cmd = CMD_COVERAGE.format(source, test_rel_path)
-
-                    # show command line to user
-                    print(cmd)
-
-                    cmd = 'cd {} && {}'.format(lib_dir, cmd)
-                    ret += subprocess.call(cmd, shell=True)
+        subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format(sys.argv[1])
+        cmds.append(CMD_COVERAGE.format(
+            sys.argv[1].replace("tests/unit", "tessia_baselib"),
+            subcmd_unittest
+        ))
 
     # display report
-    subprocess.call("python3 -m coverage report -m", shell=True)
+    cmds.append(CMD_COVERAGE_REPORT)
 
-    if ret != 0:
-        raise Exception(
-            "A tess contain an error or the coverage command failed to run."
-        )
+    # show to user cmd to be executed
+    cmd = ' && '.join(cmds)
+    print(cmd)
+
+    # execute and return exit code
+    return subprocess.call(cmd, shell=True)
 # main()
 
 if __name__ == '__main__':
