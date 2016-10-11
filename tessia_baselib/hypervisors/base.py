@@ -38,16 +38,17 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # the identifier for this hypervisor class, should be a lowercase string
     HYP_ID = 'base'
 
-    def __init__(self, system_name, host_name, user, passwd, extensions):
+    def __init__(self, system_name, host_name, user,
+                 passwd, parameters=None):
         """
         Constructor
 
         Args:
-            system_name (str): hypervisor name
+            system_name (str): string containing the hypervisor name
             host_name (str): hostname or ip address of system
             user (str): user to login to system
             passwd (str): password to login to system
-            extensions (dict): contains values specific to each hypervisor type
+            parameters (dict): content specific to each hypervisor type.
 
         Returns:
             None
@@ -60,7 +61,10 @@ class HypervisorBase(metaclass=abc.ABCMeta):
         self.host_name = host_name
         self.user = user
         self.passwd = passwd
-        self.extensions = extensions
+        if parameters is None:
+            self.parameters = {}
+        else:
+            self.parameters = parameters
 
     # __init__()
 
@@ -100,8 +104,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # logoff()
 
     @abc.abstractmethod
-    def start(self, guest_name, resources, boot_method, boot_device,
-              extensions):
+    def start(self, guest_name, cpu, memory, parameters):
         """
         Attach the given resources and start the guest using the method
         and devices specified. Returns 'ok' if succeded, error message
@@ -109,11 +112,9 @@ class HypervisorBase(metaclass=abc.ABCMeta):
 
         Args:
             guest_name (str): name of the guest as known by hypervisor
-            resources (dict): resources to attach
-            boot_method (str): one of 'disk' or 'network'
-            boot_device (str): the disk name (for disk method) or uri
-                               (for network method)
-            extensions (dict): content specific to hypervisor type
+            cpu (int): number of CPU's to assign
+            memory (int): amount of memory to assign in megabytes
+            parameters (dict): content specfic to each hypervisor type
 
         Returns:
             None
@@ -125,13 +126,13 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # start()
 
     @abc.abstractmethod
-    def stop(self, guest_name, extensions):
+    def stop(self, guest_name, parameters):
         """
         Stop a given guest. Returns 'ok' if succeded, error message otherwise
 
         Args:
             guest_name (str): name of the guest as known by hypervisor
-            extensions (dict): content specific to hypervisor type
+            parameters (dict):  content specific to hypervisor type
 
         Returns:
             None
@@ -142,4 +143,21 @@ class HypervisorBase(metaclass=abc.ABCMeta):
         raise NotImplementedError()
     # stop()
 
+    @abc.abstractmethod
+    def reboot(self, guest_name, parameters):
+        """
+        Reboot a given guest
+
+        Args:
+            guest_name (str): name of the guest as known by hypervisor
+            parameters (dict): content specific to hypervisor type
+
+        Returns:
+            string 'ok' if succeded, error message otherwise
+
+        Raises:
+            NotImplementedError: as it has to be implemented by child class
+        """
+        raise NotImplementedError()
+    # stop()
 # HypervisorBase

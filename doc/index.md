@@ -24,6 +24,7 @@ The following sections are available:
 **User guide**
 
 - [Building](users/build.md)
+- [Hypervisor HMC](users/hypervisor_hmc.md)
 - [Rest-like API](users/api.md)
 
 **Developers**

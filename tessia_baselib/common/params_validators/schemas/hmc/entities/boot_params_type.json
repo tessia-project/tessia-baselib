@@ -1,6 +1,32 @@
 {
-  "type": "object",
-  "allOf": [
-    {"$ref": "../entities/boot_disk_type.json"}
-  ]
+    "definitions": {
+        "scsi_disk_type": {
+            "properties": {
+                "iface_devicenr": {"type": "string"},
+                "lun": {"type": "string"},
+                "wwpn": {"type": "string"}
+            },
+            "required": ["iface_devicenr", "lun", "wwpn"]
+        },
+        "dasd_disk_type": {
+            "properties": {
+                "devicenr": {
+                    "$ref": "../../common/entities/devicenr_type.json"
+                }
+            },
+            "required": ["devicenr"]
+        }
+    },
+    "type": "object",
+    "properties": {
+        "boot_method": {
+            "type": "string",
+            "enum": ["scsi", "dasd"]
+        }
+    },
+    "required": ["boot_method"],
+    "oneOf": [
+        {"$ref": "#/definitions/dasd_disk_type"},
+        {"$ref": "#/definitions/scsi_disk_type"}
+    ]
 }

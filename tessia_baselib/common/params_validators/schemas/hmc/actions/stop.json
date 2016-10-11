@@ -1,7 +1,7 @@
 {
   "type": "object",
   "properties": {
-    "cpc_name": {"type": "string"}
-  }
+    "cpc_name": {"$ref": "../entities/cpc_name_type.json"}
+  },
   "required": ["cpc_name"]
 }
