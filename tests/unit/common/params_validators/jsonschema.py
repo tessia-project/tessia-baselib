@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#pylint:skip-file
 """
 Module for unit tests of the JsonschemaValidator class.
 """
@@ -39,8 +40,8 @@ class TestJsonschemaValidator(unittest.TestCase):
     """
     Unit test for the JsonschemaValidator class
     """
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospect=True)
-    @mock.patch('tessia_baselib.common.params_validators.base.open', create=True)
+    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('builtins.open', autospec=True)
     def test_schema_not_valid(self, mock_open, mock_json):
         """
         Test the case that an invalid json schema is provided.
@@ -58,8 +59,8 @@ class TestJsonschemaValidator(unittest.TestCase):
         self.assertRaises(ValueError, JsonschemaValidator, "any_place")
     # test_schema_not_valid()
 
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospect=True)
-    @mock.patch('tessia_baselib.common.params_validators.base.open', create=True)
+    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('builtins.open', autospec=True)
     def test_validation_error(self, mock_open, mock_json):
         """
         Test the case that the json data to be validated does not conform
@@ -79,10 +80,13 @@ class TestJsonschemaValidator(unittest.TestCase):
     # test_validation_error()
 
     @mock.patch('tessia_baselib.common.params_validators.jsonschema.jsonschema',
-                autospect=True)
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospect=True)
-    @mock.patch('tessia_baselib.common.params_validators.base.open', create=True)
-    def test_validate(self, mock_open, mock_json, mock_jsonschema):
+                autospec=True)
+    @mock.patch('tessia_baselib.common.params_validators.jsonschema.FormatChecker',
+                autospec=True)
+    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('builtins.open', autospec=True)
+    def test_validate(self, mock_open, mock_json, mock_fmt_checker,
+                      mock_jsonschema):
         """
         Test the case that a json data is successfully validated
         against the json schema.
@@ -90,6 +94,7 @@ class TestJsonschemaValidator(unittest.TestCase):
         Args:
             mock_open: Mock of the builtin open function.
             mock_json: Mock of the json module.
+            mock_fmt_checker: Mock of the FormatChecker class.
             mock_jsonschema: Mock of the jsonschema module.
 
         Returns:
@@ -113,7 +118,9 @@ class TestJsonschemaValidator(unittest.TestCase):
         validate_function = mock_jsonschema.validate
         draft4_class = mock_jsonschema.Draft4Validator
         #Assert tha the data was validated against the json schema.
-        validate_function.assert_called_once_with(VALID_DATA, VALID_SCHEMA,
-                                                  cls=draft4_class)
+        validate_function.assert_called_once_with(
+            VALID_DATA, VALID_SCHEMA,
+            cls=draft4_class,
+            format_checker=mock_fmt_checker.return_value)
     # test_validate()
 # TestJsonschemaValidator

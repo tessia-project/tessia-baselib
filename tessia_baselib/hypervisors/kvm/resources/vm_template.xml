@@ -1,5 +1,6 @@
 <domain type='kvm'>
     <name>{name}</name>
+    <uuid>{uuid}</uuid>
     <memory unit='MiB'>{memory}</memory>
     <currentMemory unit='MiB'>{memory}</currentMemory>
     <vcpu placement='static'>{cpu}</vcpu>

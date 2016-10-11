@@ -83,6 +83,24 @@ class HypervisorKvm(HypervisorBase):
         self._host_session = None
     # __init__()
 
+    def _test_logged_in(self):
+        """
+        Auxiliary Method. Test if we are logged in the system
+        before performing any operation.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError: if it is not logged in the system.
+        """
+        if self._host_session is None:
+            raise RuntimeError("You must login first")
+    # _test_logged_in()
+
     def login(self, timeout=60):
         """
         Execute the login to the hypervisor system using the credentials
@@ -113,7 +131,7 @@ class HypervisorKvm(HypervisorBase):
             )
 
         self._host_cnn.login(timeout)
-        self._host_session = self._host_cnn.openSession()
+        self._host_session = self._host_cnn.open_session()
     # login()
 
     def logoff(self):
@@ -129,8 +147,7 @@ class HypervisorKvm(HypervisorBase):
         Raises:
             RuntimeError: It is not logged in the guest
         """
-        if self._host_session is None:
-            raise RuntimeError("You must login first")
+        self._test_logged_in()
 
         self._logger.debug("performing LOGOFF HypervisorKVM")
 
@@ -158,8 +175,7 @@ class HypervisorKvm(HypervisorBase):
         Raises:
             RuntimeError: If it is not logged in the guest.
         """
-        if self._host_session is None:
-            raise RuntimeError("You must login first")
+        self._test_logged_in()
 
         self._logger.debug(
             "performing START HypervisorKVM: guest_name=%s "
@@ -179,8 +195,23 @@ class HypervisorKvm(HypervisorBase):
         #Activate all hardware
         guest_kvm.activate()
 
-        virsh.define(guest_kvm.to_xml())
+        domain_xml = guest_kvm.to_xml()
+        is_netboot = (
+            parameters.get("parameters") is not None and
+            parameters.get("parameters").get("boot_method") == "network")
+
+        if is_netboot:
+            virsh.define_netboot(
+                domain_xml,
+                parameters.get("parameters").get("boot_options"))
+        else:
+            virsh.define(domain_xml)
+
         virsh.start(guest_name)
+
+        if is_netboot:
+            virsh.clean_tmp_netboot_files()
+            virsh.define(domain_xml)
     # start()
 
     @validate_params
@@ -200,9 +231,7 @@ class HypervisorKvm(HypervisorBase):
             RuntimeError: In case it is not logged in, or the domain is
                           undefined or not started.
         """
-
-        if self._host_session is None:
-            raise RuntimeError("You must login first.")
+        self._test_logged_in()
 
         self._logger.debug(
             "performing REBOOT HypervisorKVM: guest_name=%s "
@@ -238,9 +267,7 @@ class HypervisorKvm(HypervisorBase):
             RuntimeError: In case it is not logged in, or the domain is
                           undefined or not started.
         """
-
-        if self._host_session is None:
-            raise RuntimeError("You must login first.")
+        self._test_logged_in()
 
         self._logger.debug(
             "performing STOP HypervisorKVM: guest_name=%s "

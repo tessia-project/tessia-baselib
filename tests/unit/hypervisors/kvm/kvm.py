@@ -56,7 +56,19 @@ DISK_DASD = {
 }
 START_PARAMETERS = {
     "storage_volumes" : [DISK_SCSI, DISK_DASD],
-    "IFACEs" : [IFACE]
+    "ifaces" : [IFACE]
+}
+START_PARAMETERS_NETBOOT = {
+    "storage_volumes" : [DISK_SCSI, DISK_DASD],
+    "ifaces" : [IFACE],
+    "parameters": {
+        "boot_method": "network",
+        "boot_options": {
+            "kernel_uri": "http://kernel",
+            "initrd_uri": "http://initrd",
+            "cmdline": "some cmdline"
+        }
+    }
 }
 #
 # CODE
@@ -70,6 +82,10 @@ class TestHypervisorKvm(unittest.TestCase):
         patcher = mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestLinux",
                              spec_set=True)
         self._mock_guest_linux = patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch("tessia_baselib.hypervisors.kvm.kvm.get_logger",
+                             spec_set=True)
+        self._mock_logger = patcher.start().return_value
         self.addCleanup(patcher.stop)
         self._hyp = HypervisorKvm(sentinel.system_name,
                                   sentinel.host_name,
@@ -108,7 +124,14 @@ class TestHypervisorKvm(unittest.TestCase):
 
         self.assertIs(
             self._hyp._host_session,
-            self._mock_guest_linux.return_value.openSession.return_value)
+            self._mock_guest_linux.return_value.open_session.return_value)
+        self._mock_logger.warning.assert_not_called()
+
+        # in order to achieve 100% coverage
+        self._hyp.login()
+        self._mock_logger.warning.assert_called_with(
+            "Login called with connection already active: dropping"
+            " previous connection object")
     # test_login()
 
     def test_logoff(self):
@@ -119,18 +142,28 @@ class TestHypervisorKvm(unittest.TestCase):
         self._hyp.logoff()
 
         host_session = (
-            self._mock_guest_linux.return_value.openSession.return_value)
+            self._mock_guest_linux.return_value.open_session.return_value)
         host_session.close.assert_called_with()
 
         self._mock_guest_linux.return_value.logoff.assert_called_with()
-
         self.assertIs(self._hyp._host_session, None)
+
     # test_logoff()
 
-    def test_logoff_fails(self):
+    def test_operations_fails_without_login(self):
         """
-        Test the case that the login was not executed before logging off.
+        Test that the operations fails if performed without doing login first.
         """
+        guest_name = "some guest"
+        cpu = 10
+        memory = 4096
+        self.assertRaisesRegex(RuntimeError, "You must login first",
+                               self._hyp.start, guest_name, cpu, memory,
+                               START_PARAMETERS)
+        self.assertRaisesRegex(RuntimeError, "You must login first",
+                               self._hyp.stop, guest_name,  {})
+        self.assertRaisesRegex(RuntimeError, "You must login first",
+                               self._hyp.reboot, guest_name, {})
         self.assertRaisesRegex(RuntimeError, "You must login first",
                                self._hyp.logoff)
     # test_logoff_fails()
@@ -232,7 +265,7 @@ class TestHypervisorKvm(unittest.TestCase):
 
         self._hyp.login()
         self._hyp.start(guest_name, cpu, memory, START_PARAMETERS)
-        
+
         mock_guest.assert_called_with(guest_name, cpu, memory,
                                       START_PARAMETERS,
                                       self._hyp._host_session)
@@ -241,6 +274,34 @@ class TestHypervisorKvm(unittest.TestCase):
             mock_guest.return_value.to_xml.return_value)
         mock_virsh.return_value.start.assert_called_with(
             guest_name)
+    # test_start()
+
+    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.Virsh", spec_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    def test_start_netboot(self, mock_guest, mock_virsh):
+        """
+        Test the start operation in the case a network boot is performed.
+        """
+        mock_virsh.return_value.is_running.return_value = True
+        mock_virsh.return_value.is_defined.return_value = True
+        guest_name = "some guest"
+        cpu = 10
+        memory = 4096
+
+        self._hyp.login()
+        self._hyp.start(guest_name, cpu, memory, START_PARAMETERS_NETBOOT)
+
+        mock_guest.assert_called_with(guest_name, cpu, memory,
+                                      START_PARAMETERS_NETBOOT,
+                                      self._hyp._host_session)
+        mock_guest.return_value.activate.assert_called_with()
+        mock_virsh.return_value.define.assert_called_with(
+            mock_guest.return_value.to_xml.return_value)
+        mock_virsh.return_value.start.assert_called_with(
+            guest_name)
+        mock_virsh.return_value.define_netboot.assert_called_with(
+            mock_guest.return_value.to_xml.return_value,
+            START_PARAMETERS_NETBOOT.get("parameters").get("boot_options"))
     # test_start()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.kvm.Virsh", spec_set=True)

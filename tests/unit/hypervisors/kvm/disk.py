@@ -63,6 +63,7 @@ class TestDisk(unittest.TestCase):
         """
         return DiskBase(parameters, self._mock_tgt_dv_mngr,
                         self._mock_ssh_shell)
+
     def test_init_with_system_attrs(self):
         """
         Test the case that the disk is initiated with parameters
@@ -95,8 +96,8 @@ class TestDisk(unittest.TestCase):
 
         self.assertIs(disk._parameters, PARAMS_WITHOUT_SYS_ATTRS)
         self.assertIs(disk._source_dev, None)
-        self._mock_tgt_dv_mngr.get_valid_dev.assert_called_once()
-        self._mock_tgt_dv_mngr.get_valid_devno.assert_called_once()
+        self._mock_tgt_dv_mngr.get_valid_dev.assert_called_once_with()
+        self._mock_tgt_dv_mngr.get_valid_devno.assert_called_once_with()
         self.assertIs(disk._target_dev,
                       self._mock_tgt_dv_mngr.get_valid_dev.return_value)
         self.assertIs(disk._target_devno,

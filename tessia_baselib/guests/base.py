@@ -197,7 +197,8 @@ class GuestBase(metaclass=abc.ABCMeta):
             None
 
         Raises:
-            None
+            NotImplementedError: in case this method is called, since it is
+                                 implemented in the child class.
         """
         raise NotImplementedError()
     # push_file()

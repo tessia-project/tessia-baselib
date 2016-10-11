@@ -83,6 +83,69 @@ The definition of the parameters format is available in the jsonschema folder:
 	kvm.logoff()
 ```
 
+## Start a Guest using network boot
+
+```python
+    from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
+
+    hypervisor_name = "cpc3lp55"
+    hypervisor_hostname = "cpc3lp55.domain.com"
+    hypervisor_user = "root"
+    hypervisor_pwd = "somepasswd"
+    # Currently there is not parameters for instantiating a kvm hypervisor
+    hypervisor_params = None
+    kvm = HypervisorKvm(hypervisor_name, hypervisor_hostname,
+                        hypervisor_user, hypervisor_pwd, hypervisor_params)
+
+    # We must be logged in before submitting any command.
+    kvm.login()
+
+    # Here we define the parameters of the guest to be started.
+    guest_name = "kvm054"
+    guest_cpu = 2
+    guest_memory = 4096
+    iface = {
+        "attributes":
+        {
+            "libvirt": '''<interface type="direct">
+              <mac address="02:57:52:01:ff:01"/>
+              <source dev="eth0" mode="bridge"/>
+              <model type="virtio"/>
+            <address type="ccw" cssid="0xfe" ssid="0x0" devno="0xf500"/>
+            </interface>'''
+        }
+    }
+    disk_scsi = {
+        "disk_type": "SCSI",
+        "volume_id": "0x1024400000000000",
+        "specs": {
+            "multipath": True,
+            "paths": [{
+                "devno": "0.0.1800",
+                "wwpns": ['0x300607630503c1ae']
+            }]
+        }
+    }
+    disk_dasd = {
+        "disk_type": "DASD",
+        "volume_id": "3961",
+    }
+    guest_parameters = {
+        "storage_volumes" : [disk_scsi ],
+        "ifaces" : [iface],
+        "parameters": {
+            "boot_method": "network",
+            "boot_options": {
+                "kernel_uri": "http://installserver.domain.com/redhat/RHEL7.2/DVD/images/kernel.img",
+                "initrd_uri": "http://installserver.domain.com/redhat/RHEL7.2/DVD/images/initrd.img",
+                "cmdline": "ro ramdisk_size=40000 inst.repo=http://installserver.domain.com/redhat/RHEL7.2/DVD/ ip=192.168.5.54::192.168.5.1:22:kvm054.domain.com:eth0:none nameserver=192.168.15.241 inst.sshd inst.vnc inst.vncpassword=123456 inst.ks=http://install_server/anaconda-ks.cfg"
+            }
+        }
+    }
+    kvm.start(guest_name, guest_cpu, guest_memory, guest_parameters)
+	kvm.logoff()
+```
+
 ## Stop a Guest
 ```python
     from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
@@ -99,7 +162,7 @@ The definition of the parameters format is available in the jsonschema folder:
 
     # We must be logged in before submitting any command.
     kvm.login()
-	kvm.stop()
+	kvm.stop(guest_name)
 	kvm.logoff()
 ```
 ## Reboot a Guest
@@ -118,6 +181,6 @@ The definition of the parameters format is available in the jsonschema folder:
 
     # We must be logged in before submitting any command.
     kvm.login()
-	kvm.reboot()
+	kvm.reboot(guest_name)
 	kvm.logoff()
 ```

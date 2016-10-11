@@ -19,8 +19,9 @@ Module for Virsh class
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tempfile import mkstemp
+from xml.etree import ElementTree
 
 import os
 #
@@ -52,8 +53,139 @@ class Virsh(object):
         """
         self._cmd_channel = cmd_channel
         self._host_cnn = host_cnn
-        self._logger = self._logger = getLogger(__name__)
+        self._logger = self._logger = get_logger(__name__)
+        # These variables keep tracks of temporary files created to perform
+        # a network boot.
+        self._tmp_netboot_initrd = None
+        self._tmp_netboot_kernel = None
     # __init__()
+
+    def _add_boot_tag(self, domain_xml, kernel_path, initrd_path, cmdline):
+        """
+        Auxiliary method, add the boot parameters to the domain xml.
+
+        Args:
+            domain_xml (str):  The original domain xml.
+            kernel_path (str): Path to kernel in the host.
+            initrd_path (str): Path to the initrd in the host.
+            cmdline (str):     Parameters passed to the kernel during the boot.
+
+        Returns:
+            str: Domain xml with the boot tag fulfilled.
+
+        Raises:
+            None
+        """
+        domain_element = ElementTree.fromstring(domain_xml)
+
+        os_element = domain_element.find("os")
+
+        # create the new tags
+        kernel_element = ElementTree.SubElement(os_element, "kernel")
+        initrd_element = ElementTree.SubElement(os_element, "initrd")
+        cmdline_element = ElementTree.SubElement(os_element, "cmdline")
+
+        kernel_element.text = kernel_path
+        initrd_element.text = initrd_path
+        cmdline_element.text = cmdline
+        boot_domain_xml = ElementTree.tostring(domain_element,
+                                               encoding="unicode")
+
+        self._logger.debug("Boot domain %s:", boot_domain_xml)
+
+        return boot_domain_xml
+    # _add_boot_tag()
+
+    def clean_tmp_netboot_files(self):
+        """
+        Auxiliary method to remove the temporary kernel and initrd
+        created in the host.
+        """
+
+        if self._tmp_netboot_kernel is not None:
+            cmd = "rm {}".format(self._tmp_netboot_kernel)
+            ret, output = self._cmd_channel.run(cmd)
+
+            if ret != 0:
+                self._logger.warning("Error while removing temporary"
+                                     " kernel file %s: %s",
+                                     self._tmp_netboot_kernel,
+                                     output)
+        else:
+            self._logger.warning("Temporary kernel file does not exist.")
+
+        if self._tmp_netboot_initrd is not None:
+            cmd = "rm {}".format(self._tmp_netboot_initrd)
+            ret, output = self._cmd_channel.run(cmd)
+
+            if ret != 0:
+                self._logger.warning("Error while removing temporary"
+                                     " initrd file %s: %s",
+                                     self._tmp_netboot_initrd,
+                                     output)
+        else:
+            self._logger.warning("Temporary initrd file does not exist.")
+
+        self._tmp_netboot_initrd = None
+        self._tmp_netboot_kernel = None
+    # clean_tmp_netboot_files()
+
+
+    def define_netboot(self, domain_xml, boot_params):
+        """
+        Defines a domain xml used for network boot.
+
+        Args:
+            domain_xml (str): String containing the domain xml.
+            boot_params (dict): A dictionary contaning information about the
+                                the netboot, as described in the jsonschema
+                                kvm/entitites/boot_params_type.json.
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError: In case there is a error while creating the temporary
+                          files.
+        """
+        kernel_uri = boot_params["kernel_uri"]
+        initrd_uri = boot_params["initrd_uri"]
+        cmdline = boot_params["cmdline"]
+
+        self._logger.debug("Defining domain xml for network boot with"
+                           " parameters: %s", boot_params)
+
+        if (self._tmp_netboot_initrd is not None or
+                self._tmp_netboot_kernel is not None):
+            self._logger.warning("The kernel and initrd from"
+                                 " a previous netboot still"
+                                 " exist. Performing cleaning up.")
+            self.clean_tmp_netboot_files()
+
+        # create temporary files to hold the kernel and initrd
+        cmd = "mktemp"
+        status, output = self._cmd_channel.run(cmd)
+        if status != 0:
+            raise RuntimeError("Error while creating "
+                               "temporary file in the"
+                               " host: {}".format(output))
+        self._tmp_netboot_kernel = output.strip()
+
+        status, output = self._cmd_channel.run(cmd)
+        if status != 0:
+            raise RuntimeError("Error while creating "
+                               "temporary file in the"
+                               " host: {}".format(output))
+        self._tmp_netboot_initrd = output.strip()
+
+        # send kernel and initrd to the temporary files.
+        self._host_cnn.push_file(kernel_uri, self._tmp_netboot_kernel)
+        self._host_cnn.push_file(initrd_uri, self._tmp_netboot_initrd)
+
+        self.define(self._add_boot_tag(domain_xml,
+                                       self._tmp_netboot_kernel,
+                                       self._tmp_netboot_initrd, cmdline))
+    # define_netboot()
 
     def define(self, domain_xml):
         """

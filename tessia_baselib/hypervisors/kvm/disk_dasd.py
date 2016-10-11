@@ -18,7 +18,7 @@ Module for class DiskDasd
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
 from tessia_baselib.hypervisors.kvm.disk import DiskBase
 
@@ -54,7 +54,7 @@ class DiskDasd(DiskBase):
         """
         super().__init__(parameters, target_dev_mngr, cmd_channel)
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self._devicenr = self._parameters.get("volume_id")
         self._devicenr = self._devicenr.replace("0x", "")

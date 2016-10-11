@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#pylint:skip-file
 """
 Module for unit tests of the BaseParamsValidator class.
 """
@@ -39,15 +40,15 @@ class TestBaseParamsValidator(unittest.TestCase):
     """
     Test the base class that is used to implement each params validator.
     """
-    @mock.patch("tessia_baselib.common.params_validators.base.open", create=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.json", autospect=True)
+    @mock.patch("builtins.open", autospec=True)
+    @mock.patch("tessia_baselib.common.params_validators.base.json", autospec=True)
     @mock.patch("tessia_baselib.common.params_validators."
-                "base.BaseParamsValidator._check_schema", autospect=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.os", autospect=True)
-    def test_constructor(self, mock_os, mock_check_schema,
+                "base.BaseParamsValidator._check_schema", autospec=True)
+    @mock.patch("tessia_baselib.common.params_validators.base.os", autospec=True)
+    def test_init(self, mock_os, mock_check_schema,
                          mock_json, mock_open):
         """
-        Test the constructor of the base class assuming all the arguments
+        Test the initialization of the base class assuming all the arguments
         were properly used.
 
         Args:
@@ -63,11 +64,10 @@ class TestBaseParamsValidator(unittest.TestCase):
             None
         """
         mock_fp = mock.Mock()
-        mock_open.return_value = mock_fp
         mock_os.path.abspath.return_value = SOME_FILE
         #Returns a empty dictionary
         mock_json.load.return_value = {}
-
+        mock_open.return_value.__enter__.return_value = mock_fp
         base = BaseParamsValidator(SOME_FILE)
 
         #Asserts that we are opening the file correctly.
@@ -99,7 +99,7 @@ class TestBaseParamsValidator(unittest.TestCase):
                           INEXISTENT_FILE)
     # test_schema_file_not_found()
 
-    @mock.patch("tessia_baselib.common.params_validators.base.open", create=True)
+    @mock.patch("builtins.open", autospec=True)
     def test_schema_not_valid_json(self, mock_open):
         """
         Test the case that the json contained in the schema file is not a valid
@@ -118,7 +118,7 @@ class TestBaseParamsValidator(unittest.TestCase):
         #we change the return value of the read function in order to return
         #an invalid json.
         mock_fp.read.return_value = INVALID_JSON
-        mock_open.return_value = mock_fp
+        mock_open.return_value.__enter__.return_value = mock_fp
 
         self.assertRaises(ValueError, BaseParamsValidator, "")
     # test_schema_not_valid_json()

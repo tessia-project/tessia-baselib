@@ -28,6 +28,7 @@ from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 
 import os
+import uuid
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -77,7 +78,6 @@ class GuestKvm(object):
     """
     Class abstraction for a KVM Guest
     """
-    #pylint: disable=too-many-instance-attributes
     def __init__(self, guest_name, cpu, memory, parameters, cmd_channel):
         """
         Constructor. Initialize all instance values.
@@ -111,25 +111,19 @@ class GuestKvm(object):
         self._virt_disks = []
         self._ifaces = []
 
-        self._create_disks(self._parameters.get("storage_volumes"))
-        self._create_ifaces(self._parameters.get("ifaces"))
+        self._create_disks(self._parameters.get("storage_volumes", []))
+        self._create_ifaces(self._parameters.get("ifaces", []))
     # __init__()
 
     # _create_boot_params()
 
     def _create_disks(self, parameters):
-        if parameters is None:
-            return
-
         for disk_params in parameters:
             self._disks.append(create_disk(disk_params, self._target_dev_mngr,
                                            self._cmd_channel))
     # _create_disks()
 
     def _create_ifaces(self, parameters):
-        if parameters is None:
-            return
-
         for iface_params in parameters:
             self._ifaces.append(Iface(iface_params,
                                       self._target_dev_mngr))
@@ -173,11 +167,18 @@ class GuestKvm(object):
         for iface in self._ifaces:
             ifaces_xml += iface.to_xml()
 
-        template_xml = open(TEMPLATE_FILE, "r").read()
+        with open(TEMPLATE_FILE, "r") as template_file:
+            template_xml = template_file.read()
 
-        return template_xml.format(name=self._guest_name, memory=self._memory,
-                                   cpu=self._cpu,
-                                   disks=disks_xml,
-                                   ifaces=ifaces_xml)
+            # generate the uuid of the domain xml
+            # Necessary to redefine the domain xml while
+            # performing the network boot.
+            uuid_str = str(uuid.uuid4())
+            return template_xml.format(name=self._guest_name,
+                                       uuid=uuid_str,
+                                       memory=self._memory,
+                                       cpu=self._cpu,
+                                       disks=disks_xml,
+                                       ifaces=ifaces_xml)
     # to_xml()
 # GuestKvm

@@ -23,6 +23,7 @@ from tessia_baselib.common.ssh.shell import SshShell
 from tessia_baselib.guests.linux.linux import GuestLinux
 from tessia_baselib.hypervisors.kvm.virsh import Virsh
 from unittest import mock
+from unittest.mock import sentinel
 
 import unittest
 #
@@ -81,6 +82,158 @@ class TestVirsh(unittest.TestCase):
         cmd = "virsh define {}".format(domain_file)
         self._mock_ssh_shell.run.assert_any_call(cmd)
     # test_define()
+
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os", spect_set=True)
+    def test_define_rm_tmpfile_fails(self, mock_os, mock_mkstemp, mock_open):
+        """
+        Test the definition of a libvirt domain xml.
+        """
+        xml = "some xml"
+        mock_file_descriptor = mock.Mock()
+        path = "some path"
+        source_url = "file://" + path
+        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        domain_file = "some tmp file"
+        self._mock_ssh_shell.run.side_effect = [
+            (0, domain_file), (0, ""), (1, "")]
+
+        self._virsh.define(xml)
+
+        self.assertTrue(mock_mkstemp.called)
+        self._mock_guest_linux.push_file.assert_called_with(source_url,
+                                                            domain_file)
+        mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
+        mock_open.return_value.write.assert_called_with(xml)
+        mock_open.return_value.close.assert_called_with()
+        mock_os.remove.assert_called_with(path)
+        cmd = "virsh define {}".format(domain_file)
+        self._mock_ssh_shell.run.assert_any_call(cmd)
+    # test_define_rm_tmpfile_fails()
+
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os", spect_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.ElementTree", spect_set=True)
+    def test_define_netboot(self, mock_et, mock_os, mock_mkstemp, mock_open):
+        """
+        Test the definition of a domain xml used for network boot.
+        """
+        domain_xml = "some xml"
+        boot_params = {
+            "kernel_uri": sentinel.kernel_url,
+            "initrd_uri": sentinel.initrd_url,
+            "cmdline": sentinel.cmdline
+        }
+        mock_tmpfile1 = mock.Mock()
+        mock_tmpfile2 = mock.Mock()
+
+        mock_file_descriptor = mock.Mock()
+        path = "some path"
+        source_url = "file://" + path
+        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        domain_file = "some tmp file"
+
+        self._mock_ssh_shell.run.side_effect = [
+            (0, mock_tmpfile1),
+            (0, mock_tmpfile2),
+            (0, domain_file), (0, ""), (0, "")]
+
+        self._virsh.define_netboot(domain_xml, boot_params)
+
+        self._mock_guest_linux.push_file.assert_any_call(
+            boot_params.get("kernel_uri"),
+            mock_tmpfile1.strip.return_value)
+        self._mock_guest_linux.push_file.assert_any_call(
+            boot_params.get("initrd_uri"),
+            mock_tmpfile2.strip.return_value)
+    # test_define_netboot()
+
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os", spect_set=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.ElementTree", spect_set=True)
+    def test_define_netboot_tmp_files_exists(self, mock_et, mock_os,
+                                             mock_mkstemp, mock_open):
+        """
+        Test the case that temporary files exits.
+        """
+        domain_xml = "some xml"
+        boot_params = {
+            "kernel_uri": sentinel.kernel_url,
+            "initrd_uri": sentinel.initrd_url,
+            "cmdline": sentinel.cmdline
+        }
+        mock_tmpfile1 = mock.Mock()
+        mock_tmpfile2 = mock.Mock()
+
+        mock_file_descriptor = mock.Mock()
+        path = "some path"
+        source_url = "file://" + path
+        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        domain_file = "some tmp file"
+
+        self._mock_ssh_shell.run.side_effect = [
+            (0, ""), (0, ""), # to perform the cleanup of the files
+            (0, mock_tmpfile1),
+            (0, mock_tmpfile2),
+            (0, domain_file), (0, ""), (0, "")]
+
+        self._virsh._tmp_netboot_initrd = "initrd file"
+        self._virsh._tmp_netboot_kernel = "kernel file"
+        self._virsh.define_netboot(domain_xml, boot_params)
+
+        self._mock_guest_linux.push_file.assert_any_call(
+            boot_params.get("kernel_uri"),
+            mock_tmpfile1.strip.return_value)
+        self._mock_guest_linux.push_file.assert_any_call(
+            boot_params.get("initrd_uri"),
+            mock_tmpfile2.strip.return_value)
+    # test_define_netboot_tmp_file_exists()
+
+    def test_define_netboot_tmpfiles_fails(self):
+        """
+        Test the case that the creation of temporary file fails.
+        """
+        boot_params = {
+            "kernel_uri": sentinel.kernel_url,
+            "initrd_uri": sentinel.initrd_url,
+            "cmdline": sentinel.cmdline
+        }
+        domain_xml = "some xml"
+        self._mock_ssh_shell.run.return_value = (1, "")
+
+        self.assertRaisesRegex(RuntimeError, "Error while creating",
+                               self._virsh.define_netboot, domain_xml,
+                               boot_params)
+        self._mock_ssh_shell.run.side_effect = [(0, ""), (1, "")]
+
+        self.assertRaisesRegex(RuntimeError, "Error while creating",
+                               self._virsh.define_netboot, domain_xml,
+                               boot_params)
+    # test_define_netboot_tmpfiles_fails()
+
+    def test_clean_tmp_netboot_files(self):
+        """
+        Test the deletion of temporary files.
+        """
+        self._mock_ssh_shell.run.return_value = (1, mock.Mock())
+        self._virsh.clean_tmp_netboot_files()
+
+
+        self._virsh._tmp_netboot_initrd = sentinel.tmp_initrd
+        self._virsh._tmp_netboot_kernel = sentinel.tmp_kernel
+        self._virsh.clean_tmp_netboot_files()
+        self._mock_ssh_shell.run.assert_any_call(
+            "rm {}".format(sentinel.tmp_initrd))
+        self._mock_ssh_shell.run.assert_any_call(
+            "rm {}".format(sentinel.tmp_kernel))
+
+        self._mock_ssh_shell.run.return_value = (0, mock.Mock())
+        self._virsh.clean_tmp_netboot_files()
+
+    # test_clean_tmp_netboot_files()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
     @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)

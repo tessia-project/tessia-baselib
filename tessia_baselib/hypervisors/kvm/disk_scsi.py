@@ -18,7 +18,7 @@ Module for DiskScsi class.
 #
 # IMPORTS
 #
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
 from tessia_baselib.hypervisors.kvm.disk import DiskBase
 from time import sleep
@@ -122,7 +122,7 @@ class DiskScsi(DiskBase):
 
         super().__init__(parameters, target_dev_mngr, cmd_channel)
 
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         self._lun = self._parameters.get("volume_id")
         self._multipath = self._parameters.get("specs").get("multipath")
@@ -409,7 +409,7 @@ class DiskScsi(DiskBase):
                     '/dev/mapper/{}'.format(devmap)).split('/')[-1]
                 return mpath_dm_dev
             except RuntimeError:
-                return None
+                pass
         return None
     # _get_dm_dev()
 

@@ -148,8 +148,9 @@ class TestGuestKvm(unittest.TestCase):
             disk.activate.assert_called_with()
     # test_activate()
 
+    @mock.patch("tessia_baselib.hypervisors.kvm.guest.uuid", spec_set=True)
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.open", create=True)
-    def test_to_xml(self, mock_open):
+    def test_to_xml(self, mock_open, mock_uuid):
         """
         Test that the guest object is properly converted to xml.
         """
@@ -161,6 +162,9 @@ class TestGuestKvm(unittest.TestCase):
         for iface in self._ifaces:
             iface.to_xml.return_value = iface_xml
 
+        mock_template_file = mock.Mock()
+        mock_open.return_value.__enter__.return_value = mock_template_file
+
         self._guest.to_xml()
 
         for disk in self._disks:
@@ -171,8 +175,9 @@ class TestGuestKvm(unittest.TestCase):
 
         # since we have two disks and two interfaces, it is expected that
         # the content of the xml for disks and ifaces to be concatenated.
-        mock_open.return_value.read.return_value.format.assert_called_with(
-            name=sentinel.guest_name, memory=sentinel.memory,
+        mock_template_file.read.return_value.format.assert_called_with(
+            name=sentinel.guest_name, uuid=str(mock_uuid.uuid4.return_value),
+            memory=sentinel.memory,
             cpu=sentinel.cpu, disks=(disk_xml+disk_xml),
             ifaces=(iface_xml+iface_xml))
     # test_to_xml()

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#pylint:skip-file
 """
 Module for unit tests of the utility functions of the util module.
 """
@@ -38,7 +39,7 @@ class TestUtils(unittest.TestCase):
     Unit tests for the utility functions of parameters validation.
     """
     @mock.patch('tessia_baselib.common.params_validators.utils.CONF',
-                autospect=True)
+                autospec=True)
     def test_invalid_params_validator(self, mock_conf):
         """
         Test the case that the default validator is incorrectly defined as
@@ -82,9 +83,9 @@ class TestUtils(unittest.TestCase):
     # test_invalid_params_validator_in_arguments()
 
     @mock.patch("tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS",
-                autospect=True)
+                autospec=True)
     @mock.patch("tessia_baselib.common.params_validators.utils.CONF",
-                autospect=True)
+                autospec=True)
     def test_create_params_validator_default(self, mock_conf,
                                              mock_validator_libs):
         """
@@ -121,11 +122,11 @@ class TestUtils(unittest.TestCase):
     # test_create_params_validator_default()
 
     @mock.patch("tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS",
-                autospect=True)
+                autospec=True)
     @mock.patch("tessia_baselib.common.params_validators.utils.CONF",
-                autospect=True)
+                autospec=True)
     def test_create_params_validator_argument(self,mock_conf,
-                                             mock_validator_libs):
+                                              mock_validator_libs):
         """
         Test that the validator passed as argument to
         create_params_validator is sucessfuly created.
@@ -224,7 +225,7 @@ class TestUtils(unittest.TestCase):
     # test_func_name_is_not_valid()
 
     @mock.patch("tessia_baselib.common.params_validators.utils.inspect",
-                autospect=True)
+                autospec=True)
     def test_func_argument_not_valid(self, mock_inspect):
         """
         Test the case that the argument to be validated is not present
@@ -252,14 +253,14 @@ class TestUtils(unittest.TestCase):
     # test_func_argument_not_valid()
 
     @mock.patch("tessia_baselib.common.params_validators.utils.inspect",
-                autospect=True)
-    @mock.patch("tessia_baselib.common.params_validators.utils.os", autospect=True)
+                autospec=True)
+    @mock.patch("tessia_baselib.common.params_validators.utils.os", autospec=True)
     @mock.patch("tessia_baselib.common.params_validators"
-                ".utils.create_params_validator", autospect=True)
+                ".utils.create_params_validator", autospec=True)
     @mock.patch("tessia_baselib.common.params_validators"
                 ".utils.SCHEMAS_BASE_DIR", new="BASE_DIR")
-    def test_validate_params(self, mock_create_params_validator, mock_os,
-                             mock_inspect):
+    def test_validate_params(self, mock_create_params_validator,
+                             mock_os, mock_inspect):
         """
         Test that the decorator was properly used.
 
@@ -279,11 +280,10 @@ class TestUtils(unittest.TestCase):
         func = mock.Mock()
         func.__name__ = func_name
 
-        mock_func_specs = mock.Mock()
-        mock_inspect.getfullargspec.return_value = mock_func_specs
-
-        #Chooses the index of the argument to be validated
-        mock_func_specs.args.index.return_value = 0
+        func_signature = mock_inspect.signature.return_value
+        # the parameters will be in the function argument array in the index 0
+        func_signature.parameters.keys.return_value.__iter__.return_value = (
+            ["parameters"])
 
         #Create a fake dir name for the function beeing decorated
         mock_os.path.dirname.return_value = "/dir1/dir2"
@@ -302,8 +302,8 @@ class TestUtils(unittest.TestCase):
         #Assert that the schema file full path was created correctly
         mock_create_params_validator.assert_called_with(schema_file)
 
-        #Assert that the validator chose the correct parameter based on the
-        #index returned by mock_func_specs.args.index
+        # Assert that the validator chose the correct parameter based on the
+        # index returned by func_params.index
         mock_validator.validate.assert_called_with(1)
 
         #Assert that the function was called with correct arguments

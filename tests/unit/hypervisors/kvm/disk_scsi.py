@@ -253,6 +253,30 @@ class TestDiskScsi(unittest.TestCase):
         self.assertRaisesRegex(RuntimeError, "up after adding LUN",
                                disk.activate)
     # test_activate_fail2_activate_lun()
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_scsi.timer", autospec=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_scsi.DiskBase", autospec=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_scsi.sleep", autospec=True)
+    @mock.patch.object(DiskBase, "_enable_device")
+    def test_activate_fail_add_lun(self, mock_enable_device, mock_sleep,
+                                         mock_disk_base, mock_timer):
+        """
+        Test the case that a lun fails to be add.
+        """
+        self._mock_ssh_shell.run.side_effect = [
+            (0, ""), # _enable_zfcp_module
+            #PATH 1
+            (1, ""), # _enable_path _is_wwpn_active 0 = True, 1 = False
+            (1, ""), # _enable_path _activate_wwpn
+            (0, ""), # _enable_path _activate_wwpn
+            (1, ""), # _enable_path _is_lun_active 0 = True, 1 = False
+            (0, ""), # _enable_path _activate_lun (can raise Exception if 1)
+            (0, "1") # _enable_path _activate_lun (can raise Exception if 1)
+        ]
+        mock_timer.side_effect = [None, None, RuntimeError]
+        disk = self._create_disk(PARAMS_SCSI)
+        self.assertRaisesRegex(RuntimeError, "Failed to add",
+                               disk.activate)
+    # test_activate_fail_add_lun()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.disk_scsi.timer", autospec=True)
     @mock.patch("tessia_baselib.hypervisors.kvm.disk_scsi.DiskBase", autospec=True)

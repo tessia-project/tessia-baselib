@@ -42,13 +42,14 @@ def create_params_validator(json_schema_file, validator=None):
     """
     This functions is a factory for json schema validators.
     Args:
-        json_schema_file: Path to the file containing the json schema.
-        validator: Name (string) of the validator that will be instantiated.
+        json_schema_file (str): Path to the file containing the json schema.
+        validator (str):        Name of the validator that will be
+                                instantiated.
                    If no name is provided, it will use the default validator
                    defined in the configuration file.
 
-    Returns:
-        An instance of the chosen parameters validator.
+    Return:
+        object: An instance of the chosen parameters validator.
 
     Raises:
         ValueError: It the default validator is not defined in the
@@ -81,9 +82,10 @@ def validate_params(func):
         @validate_params
         def start(arg1, arg2, parameters):
             ...
-
+    Returns:
+        func: Decorated function.
     Raises:
-        NameError if the function name is not valid, and if the "parameters"
+        NameError: if the function name is not valid, and if the "parameters"
         argument is not found.
     """
     func_name = func.__name__
@@ -92,13 +94,13 @@ def validate_params(func):
     if func_name not in VALID_ACTIONS:
         raise NameError("validate_params should only decorate functions"
                         "in {}".format(VALID_ACTIONS))
-
-    func_specs = inspect.getfullargspec(func)
+    func_signature = inspect.signature(func)
+    func_params = list(func_signature.parameters.keys())
     # get the correct function argument
     try:
-        parameters_index = func_specs.args.index(ARGUMENT_TO_VALIDATE)
+        parameters_index = func_params.index(ARGUMENT_TO_VALIDATE)
         #the parameter to validate must be present in the function parameters
-    except ValueError as ex:
+    except ValueError:
         raise NameError("Decorated function does not have correct argument"
                         "to validate: {}".format(ARGUMENT_TO_VALIDATE))
 

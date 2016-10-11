@@ -153,7 +153,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
             parameters (dict): content specific to hypervisor type
 
         Returns:
-            string 'ok' if succeded, error message otherwise
+            None
 
         Raises:
             NotImplementedError: as it has to be implemented by child class

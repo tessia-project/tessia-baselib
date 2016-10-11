@@ -8,6 +8,14 @@
     "ifaces": {
       "type": "array",
       "items": {"$ref": "../entities/iface_type.json"}
+    },
+    "parameters": {
+      "type": "object",
+      "properties": {
+	"boot_method": {"type": "string",
+			"enum": ["network", "disk"]},
+	"boot_options": {"$ref": "../entities/boot_params_type.json"}
+      }
     }
   }
 }
