@@ -15,18 +15,20 @@
                 }
             },
             "required": ["devicenr"]
-        }
-    },
+        },
+        "network_type": {}
+	},
     "type": "object",
     "properties": {
         "boot_method": {
             "type": "string",
-            "enum": ["scsi", "dasd"]
+            "enum": ["scsi", "dasd", "network"]
         }
     },
     "required": ["boot_method"],
     "oneOf": [
         {"$ref": "#/definitions/dasd_disk_type"},
-        {"$ref": "#/definitions/scsi_disk_type"}
+        {"$ref": "#/definitions/scsi_disk_type"},
+		{"$ref": "#/definitions/network_type"}
     ]
 }

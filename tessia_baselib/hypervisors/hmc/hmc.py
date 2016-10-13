@@ -19,11 +19,13 @@ Implementation of hypervisor interface for HMC
 #
 # IMPORTS
 #
+
+from tessia_baselib.config import CONF
 from tessia_baselib.common.logger import get_logger
-from tessia_baselib.common.params_validators.utils import validate_params
+from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
 from tessia_baselib.hypervisors.base import HypervisorBase
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
+from tessia_baselib.common.params_validators.utils import validate_params
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -181,7 +183,7 @@ class HypervisorHmc(HypervisorBase):
 
         cpc = self._session.get_cpc(parameters.get('cpc_name'))
         lpar = cpc.get_lpar(guest_name)
-        # The profiles have the same name as the LPAR's
+        # Profiles have the same name as the LPAR's
         image_profile = cpc.get_image_profile(guest_name)
 
         # Calculating the number of processors chosen
@@ -200,16 +202,20 @@ class HypervisorHmc(HypervisorBase):
             elif lpar.status == 'not-activated':
                 lpar.activate()
 
-            # SCSI Load
             if parameters.get('boot_params').get('boot_method') == 'scsi':
+                # SCSI Load
                 lpar.scsi_load(
                     parameters.get('boot_params').get('iface_devicenr'),
                     parameters.get('boot_params').get('wwpn'),
                     parameters.get('boot_params').get('lun')
                 )
-            else:
-            # DASD Load
+            elif parameters.get('boot_params').get('boot_method') == 'dasd':
+                # DASD Load
                 lpar.load(parameters.get('boot_params').get('devicenr'))
+            else:
+                # Network
+                disks = CONF.get_config()["netdisks"]
+                lpar.load(disks[cpc.name])
         except Exception as exc:
             self._logger.debug(
                 'An error ocurred during start, info:', exc_info=True)

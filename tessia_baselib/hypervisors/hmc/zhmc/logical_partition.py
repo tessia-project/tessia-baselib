@@ -21,16 +21,12 @@ Logical Partition Abstraction
 #
 from datetime import timedelta
 from tessia_baselib.common.logger import get_logger
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 import time
 
 #
 # CONSTANTS AND DEFINITIONS
 #
-
-# default json request timeout (seconds)
-DEFAULT_JSON_REQUEST_TIMEOUT = 60
 
 #
 # CODE
@@ -117,7 +113,6 @@ class LogicalPartition(object):
 
         job = self._issue_operation(
             "activate",
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT,
             arg_dict=param
         )
 
@@ -148,14 +143,13 @@ class LogicalPartition(object):
 
         job = self._issue_operation(
             "deactivate",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # deactivate()
 
-    def load(self, load_address, force=True):
+    def load(self, load_address, force=False):
         """
         This method is used to perform the operation of initial program load,
         or just load for short.
@@ -182,8 +176,7 @@ class LogicalPartition(object):
 
         job = self._issue_operation(
             "load",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
@@ -221,8 +214,7 @@ class LogicalPartition(object):
 
         job = self._issue_operation(
             "scsi-load",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
@@ -244,10 +236,7 @@ class LogicalPartition(object):
             None
         """
 
-        job = self._issue_operation(
-            "stop",
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
-        )
+        job = self._issue_operation("stop")
 
         return job
     # stop()
@@ -278,14 +267,13 @@ class LogicalPartition(object):
 
         job = self._issue_operation(
             "reset-clear",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # reset_clear()
 
-    def _issue_operation(self, operation, timeout, arg_dict=None):
+    def _issue_operation(self, operation, arg_dict=None):
         """
         Auxiliary method.
         Its role is to start the execution of the basic operations of an
@@ -308,40 +296,20 @@ class LogicalPartition(object):
         Raises:
             ZHmcError: in case of timeout
         """
-        start_status = self.status
+        start_time = time.time()
 
         action = self.uri + "/operations/" + operation
 
-        response = self._hmc.session.json_request(
+        self._hmc.session.json_request(
             "POST",
             action,
             body=arg_dict
         )
 
-        start_time = time.time()
-        timeout_time = start_time + timeout
-        while time.time() <= timeout_time:
-            job = self._hmc.session.json_request(
-                "GET",
-                response['job-uri']
-            )
-            if job['status'] != 'running':
-                break
-            time.sleep(1)
-
-        if job['status'] == 'running':
-            raise ZHmcError(
-                'Timeout value has been exceeded during ' + operation
-            )
-
-        self.status = self.get_properties()['status']
-        end_status = self.status
         end_time = time.time()
         human_uptime = timedelta(seconds=int(end_time - start_time))
 
         jdict = dict()
-        jdict['status-start'] = start_status
-        jdict['status-end'] = end_status
         jdict['time-start'] = start_time
         jdict['time-end'] = end_time
         jdict['duration-formatted'] = str(human_uptime)

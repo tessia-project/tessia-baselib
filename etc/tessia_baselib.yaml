@@ -4,3 +4,8 @@
 #parameters used in guest/hypervisor operations
 default_schema_validator: jsonschema
 
+# specifies which disks for each box should be used
+# to perform the Network Boot operation for LPARs.
+netdisks:
+  CP23: disk_address
+
