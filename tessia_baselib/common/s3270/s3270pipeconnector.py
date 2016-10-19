@@ -15,20 +15,24 @@
 """
 S3270 Pipe connector class
 """
-# pylint: disable=too-few-public-methods
+# pylint: disable=redefined-variable-type
 #
 # IMPORTS
 #
 import time
 import select
 import subprocess
+from os import read
 
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 
 #
 # CONSTANTS AND DEFINITONS
 #
-STATUS = ['ok', 'error']
+# Possible status messages from s3270 terminal
+STATUS = [b'ok', b'error']
+# Maximum s3270 data line size
+ROW_SIZE = 87
 
 #
 # CODE
@@ -52,7 +56,7 @@ class S3270PipeConnector(object):
             None
         """
         # intialize logger object
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         # create new s3270 process and connects to its pipes
         self._s3270 = subprocess.Popen(
@@ -61,83 +65,99 @@ class S3270PipeConnector(object):
                 '-model',
                 '3278-4',
             ],
-            bufsize=1,
-            universal_newlines=True,
+            bufsize=0,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            stderr=subprocess.STDOUT
         )
     # __init__()
 
-    def _read(self, timeout):
+    def _read(self, timeout=120):
         """
         Perform low level reading from s3270 stdout. This is intended to be
         used internally only.
 
         Args:
-            timeout: how many seconds to wait for an output
+            timeout (int): how many seconds to wait for an output
 
         Returns:
-            tuple (status, output)
+            str: last line of s3270 terminal with status message
+            str: whole output content from s3270 terminal
 
         Raises:
-            TimeoutError: if receiving output reaches timeout specified or
-                          there is no content to read
+            TimeoutError: if while receiving output we reaches timeout
+                          specified
         """
-        # poll_timeout is defined in miliseconds
-        poll_timeout = timeout * 1000
         # define the timeout limit
         timeout = time.time() + timeout
 
         # buffer for content read
-        output = ""
-        output_line = ""
+        output = b''
+        buffer_read = b''
 
         # set poll object to wait for content on stdout before try to read
-        poll_obj = select.poll()
+        poller = select.epoll()
+        stdout_fd = self._s3270.stdout.fileno()
         # register stdout descriptor for pending I/O event
         # POLLIN means wait for data to read
-        poll_obj.register(self._s3270.stdout, select.POLLIN)
-        # poll wait for data on stdout 'poll_timeout' miliseconds before return
-        poll_output = poll_obj.poll(poll_timeout)
-        # when content is available, 'poll_output' list is filled up with
-        # '(fd, event)'
-        # fd is the STDOUT file descriptor, and event is a bitmask with bits
-        # set for the reported events for that descriptor, in our case, POLLIN.
-        # Otherwhise, 'poll_output' will be an empty list.
-        if poll_output:
-            # loop until we read all the data from stdout or timeout reached
-            while True:
-                # read line by line from stdout
-                output_line = self._s3270.stdout.readline().rstrip('\n')
-                output += output_line+'\n'
-
-                # all data received or EOF: finish operation
-                if output_line in STATUS or len(output_line) == 0:
-                    break
+        poller.register(stdout_fd, select.EPOLLIN)
+        # poll wait for data on stdout 1 second before return.
+        # when content is available, 'events' list is filled up with
+        # '(fd, event)' of all registered fd.
+        # in our case, fd is the STDOUT file descriptor, and event is a bitmask
+        # with bits set for the reported events for that descriptor, in our
+        # case, POLLIN.
+        # Otherwhise, 'events' will be an empty list.
+        # loop until we read all the data from stdout or timeout reached
+        while True:
+            events = poller.poll(1)
+            for fileno, _ in events:
+                if fileno == stdout_fd:
+                    # read 'ROW_SIZE' bytes from stdout
+                    buffer_read += read(stdout_fd, ROW_SIZE)
 
                 # timeout reached: abort with exception
                 if time.time() > timeout:
                     self._logger.debug('content read: %s', output)
                     raise TimeoutError('Timeout while reading output')
-        else:
-            raise TimeoutError('No content to read')
+
+                # if we do not have the full line, keep reading
+                if buffer_read.find(b'\n') < 0:
+                    continue
+
+            # append buffer to the output
+            output += buffer_read
+
+            # 'ok/error' found: finish operation
+            if output.rsplit() and output.rsplit()[-1] in STATUS:
+                break
+
+            # more content to read, clean buffer
+            buffer_read = b''
+
+            # timeout reached: abort with exception
+            if time.time() > timeout:
+                self._logger.debug('content read: %s', output)
+                raise TimeoutError('Timeout while reading output')
+
+        # convert output to text
+        output = output.decode()
 
         # remove trailing newline as it is added by logger later
         self._logger.info(output.rstrip('\n'))
 
         # return status and output
-        return (output_line, output)
+        return (output.rsplit()[-1], output)
     # _read()
 
-    def _write(self, cmd, timeout):
+    def _write(self, cmd, timeout=120):
         """
         Perform low level writing to s3270 stdin. This is intended to be used
         internally only.
 
         Args:
-            cmd: s3270 command
-            timeout: how many seconds to wait for an output
+            cmd (str): s3270 command
+            timeout (int): how many seconds to wait for stdin to be ready
 
         Returns:
             None
@@ -147,6 +167,9 @@ class S3270PipeConnector(object):
         """
         # remove trailing newline as it is added by logger later
         self._logger.info('s3270 console: %s', cmd.rstrip('\n'))
+
+        # command arrives without newline control character
+        cmd = cmd+'\n'
 
         # poll_timeout is defined in miliseconds
         poll_timeout = timeout * 1000
@@ -166,7 +189,7 @@ class S3270PipeConnector(object):
         # Otherwhise, 'poll_output' will be an empty list.
         if poll_output:
             # write command to s3270 stdin
-            self._s3270.stdin.write(cmd+"\n")
+            self._s3270.stdin.write(cmd.encode('utf-8'))
         else:
             self._logger.debug('stdin not available')
             raise TimeoutError('Could not write on stdin')
@@ -178,11 +201,12 @@ class S3270PipeConnector(object):
         method is the entry point to be consumed by users.
 
         Args:
-            cmd: s3270 command
-            timeout: how many seconds to wait for an output to complete
+            cmd (str): s3270 command
+            timeout (int): how many seconds to wait for an output to complete
 
         Returns:
-            tuple (status, output)
+            str: last line of s3270 terminal with status message
+            str: whole output content from s3270 terminal
 
         Raises:
             None
@@ -197,5 +221,25 @@ class S3270PipeConnector(object):
 
         return (status, output)
     # run()
+
+    def quit(self, timeout=120):
+        """
+        Execute a 'Quit' command and return.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        # write command to s3270 stdin
+        self._write('Quit', timeout)
+
+        # remove trailing newline as it is added by logger later
+        self._logger.info('prompt: Quiting!')
+    # quit()
 
 # S3270PipeConnector

@@ -20,7 +20,7 @@ S3270 module
 #
 import time
 
-from tessia_baselib.common.logger import getLogger
+from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.s3270.exceptions import S3270StatusError
 from tessia_baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
 #
@@ -52,7 +52,7 @@ class S3270(object):
             None
         """
         # intialize logger object
-        self._logger = getLogger(__name__)
+        self._logger = get_logger(__name__)
 
         # connection parameters
         self.host_name = None
@@ -66,12 +66,13 @@ class S3270(object):
         Send an Ascii command to s3270
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
@@ -90,18 +91,19 @@ class S3270(object):
         Send a Clear command to s3270
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
             (status, output) = self._s3270.run('Clear', timeout)
         except TimeoutError:
-            self._logger.exception('Timeout while executing Ascii:')
+            self._logger.exception('Timeout while executing Clear:')
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Clear command')
@@ -114,13 +116,14 @@ class S3270(object):
         Stablishes a connection to the target system
 
         Args:
-            host_name: target hostname
-            timeout: how many seconds to wait for connection to complete
+            host_name (str): target hostname
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         # save hostname for later use
@@ -168,12 +171,13 @@ class S3270(object):
         Send a Disconnect command to s3270
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
@@ -192,12 +196,13 @@ class S3270(object):
         Send an Enter command to s3270
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
@@ -216,13 +221,14 @@ class S3270(object):
         Execute a command in a shell
 
         Args:
-            cmd: command to be executed
-            timeout: how many seconds to wait for action to complete
+            cmd (str): command to be executed
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
@@ -241,13 +247,14 @@ class S3270(object):
         Send a Query command to s3270
 
         Args:
-            attr: attribute to be queried
-            timeout: how many seconds to wait for action to complete
+            attr (str): attribute to be queried
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
-            None
+            output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         if len(attr) == 0:
@@ -273,16 +280,17 @@ class S3270(object):
         Send a Quit command to s3270
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             None
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
-            self._s3270.run('Quit', timeout)
+            self._s3270.quit(timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Quit:')
         # clean object and free s3270 defunct process
@@ -294,13 +302,14 @@ class S3270(object):
         Send a Snap command to s3270 with 'cmd' content
 
         Args:
-            cmd: content to be sent to Snap
-            timeout: how many seconds to wait for action to complete
+            cmd (str): content to be sent to Snap
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         if len(cmd) == 0:
@@ -325,13 +334,14 @@ class S3270(object):
         Send a String command to s3270 with 'string' content
 
         Args:
-            string: content to be sent to String
-            timeout: how many seconds to wait for action to complete
+            string (str): content to be sent to String
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
@@ -352,12 +362,13 @@ class S3270(object):
         Send a file to host/receive a file from host
 
         Args:
-            timeout: how many seconds to wait for action to complete
+            timeout (int): how many seconds to wait for action to complete
 
         Returns:
             output: output of run command
 
         Raises:
+            TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
         try:
