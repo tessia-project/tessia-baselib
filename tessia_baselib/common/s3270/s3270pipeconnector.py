@@ -70,6 +70,17 @@ class S3270PipeConnector(object):
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT
         )
+
+        # set poll object to wait for content on stdin/stdout
+        self._poller = select.epoll()
+        self._stdout_fd = self._s3270.stdout.fileno()
+        self._stdin_fd = self._s3270.stdin.fileno()
+        # register stdout descriptor for pending I/O event
+        # EPOLLIN means available for read
+        self._poller.register(self._stdout_fd, select.EPOLLIN)
+        # register stdin descriptor for I/O event
+        # EPOLLOUT means available for write
+        self._poller.register(self._stdin_fd, select.EPOLLOUT)
     # __init__()
 
     def _read(self, timeout=120):
@@ -95,26 +106,20 @@ class S3270PipeConnector(object):
         output = b''
         buffer_read = b''
 
-        # set poll object to wait for content on stdout before try to read
-        poller = select.epoll()
-        stdout_fd = self._s3270.stdout.fileno()
-        # register stdout descriptor for pending I/O event
-        # POLLIN means wait for data to read
-        poller.register(stdout_fd, select.EPOLLIN)
         # poll wait for data on stdout 1 second before return.
         # when content is available, 'events' list is filled up with
         # '(fd, event)' of all registered fd.
-        # in our case, fd is the STDOUT file descriptor, and event is a bitmask
-        # with bits set for the reported events for that descriptor, in our
-        # case, POLLIN.
+        # here we are looking for STDOUT file descriptor, and event with a
+        # bitmask of bits set for the reported events for that descriptor,
+        # in our case, EPOLLIN.
         # Otherwhise, 'events' will be an empty list.
         # loop until we read all the data from stdout or timeout reached
         while True:
-            events = poller.poll(1)
+            events = self._poller.poll(1)
             for fileno, _ in events:
-                if fileno == stdout_fd:
+                if fileno == self._stdout_fd:
                     # read 'ROW_SIZE' bytes from stdout
-                    buffer_read += read(stdout_fd, ROW_SIZE)
+                    buffer_read += read(self._stdout_fd, ROW_SIZE)
 
                 # timeout reached: abort with exception
                 if time.time() > timeout:
@@ -171,28 +176,29 @@ class S3270PipeConnector(object):
         # command arrives without newline control character
         cmd = cmd+'\n'
 
-        # poll_timeout is defined in miliseconds
-        poll_timeout = timeout * 1000
+        # define the timeout limit
+        timeout = time.time() + timeout
 
-        # set poll object to wait for stdin to be read before write to it
-        poll_obj = select.poll()
-        # register stdin descriptor for I/O event
-        # POLLOUT means wait for data to read
-        poll_obj.register(self._s3270.stdin, select.POLLOUT)
-        # poll wait for stdin for 'poll_timeout' miliseconds before return
-        poll_output = poll_obj.poll(poll_timeout)
-        # when stdin is available, 'poll_output' list is filled up with
-        # '(fd, event)'
-        # fd is the STDIN file descriptor, and event is a bitmask with bits
-        # set for the reported events for that descriptor, in our case,
-        # POLLOUT.
-        # Otherwhise, 'poll_output' will be an empty list.
-        if poll_output:
-            # write command to s3270 stdin
-            self._s3270.stdin.write(cmd.encode('utf-8'))
-        else:
-            self._logger.debug('stdin not available')
-            raise TimeoutError('Could not write on stdin')
+        # poll wait for data on stdin 1 second before return.
+        # when content is available, 'events' list is filled up with
+        # '(fd, event)' of all registered fd.
+        # here we are looking for STDIN file descriptor, and event with a
+        # bitmask of bits set for the reported events for that descriptor,
+        # in our case, EPOLLOUT.
+        # Otherwhise, 'events' will be an empty list.
+        # loop until we read all the data from stdout or timeout reached
+        done = 0
+        while not done:
+            events = self._poller.poll(1)
+            for fileno, _ in events:
+                if fileno == self._stdin_fd:
+                    self._s3270.stdin.write(cmd.encode('utf-8'))
+                    done = 1
+
+                # timeout reached: abort with exception
+                if time.time() > timeout:
+                    self._logger.debug('stdin not available')
+                    raise TimeoutError('Could not write on stdin')
     # _write()
 
     def run(self, cmd, timeout=120):
