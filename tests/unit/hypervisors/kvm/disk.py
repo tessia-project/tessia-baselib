@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
-Module for TestDisk class.
+Test module for disk_base module
 """
 
 #
@@ -26,8 +25,7 @@ from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 
 from unittest import mock
-
-import unittest
+from unittest import TestCase
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -40,12 +38,13 @@ PARAMS_WITH_SYS_ATTRS = {
 
 PARAMS_WITHOUT_SYS_ATTRS = {
 }
+
 #
 # CODE
 #
 
 
-class TestDisk(unittest.TestCase):
+class TestDisk(TestCase):
     """
     Class that provides unit tests for the DiskBase class.
     """
@@ -135,7 +134,8 @@ class TestDisk(unittest.TestCase):
         self.assertIs(system_attrs.get("libvirt"), disk.to_xml())
     # test_to_xml_with_libvirt_xml()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open", create=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open",
+                create=True)
     def test_to_xml_read_template(self, mock_open):
         """
         Test the case that the libvirt xml is not provided and must
@@ -144,11 +144,11 @@ class TestDisk(unittest.TestCase):
         disk = self._create_disk({})
         source_dev = "/dev/dasda1"
         disk._source_dev = source_dev
-        template_file = mock_open.return_value.read.return_value
+        template_file = mock_open().__enter__.return_value.read.return_value
 
         self.assertIs(
             disk.to_xml(),
-            mock_open.return_value.read.return_value.format.return_value)
+            template_file.format.return_value)
 
         template_file.format.assert_called_with(
             dev=source_dev,
@@ -157,7 +157,8 @@ class TestDisk(unittest.TestCase):
             boot_tag="")
     # test_to_xml_reading_template()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open", create=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open",
+                create=True)
     def test_to_xml_read_template_with_boot_tag(self, mock_open):
         """
         Test the case that the libvirt xml is not provided and must
@@ -166,11 +167,11 @@ class TestDisk(unittest.TestCase):
         disk = self._create_disk({"boot_device": True})
         source_dev = "/dev/dasda1"
         disk._source_dev = source_dev
-        template_file = mock_open.return_value.read.return_value
+        template_file = mock_open().__enter__.return_value.read.return_value
 
         self.assertIs(
             disk.to_xml(),
-            mock_open.return_value.read.return_value.format.return_value)
+            template_file.format.return_value)
 
         template_file.format.assert_called_with(
             dev=source_dev,

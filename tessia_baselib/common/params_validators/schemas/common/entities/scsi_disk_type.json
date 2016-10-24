@@ -1,14 +1,50 @@
 {
-  "properties": {
-    "volume_id": {"type": "string"},
-    "specs": {
-      "type": "object",
-      "properties": {
-	"multipath": {"type": "boolean"}
-      },
-      "oneOf": [{"$ref": "../../common/entities/multipath_scsi_disk_type.json"},
-		{"$ref": "../../common/entities/singlepath_scsi_disk_type.json"}]
-    }
-  },
-  "required": ["volume_id", "specs"]
+    "definitions": {
+        "adapter": {
+            "required": [
+                "devno",
+                "wwpns"
+            ],
+            "type": "object",
+            "properties": {
+                "devno": {
+                    "$ref": "../../common/entities/devicenr_type.json"
+                },
+                "wwpns": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "pattern": "^[a-f0-9]{16}$"
+                    }
+                }
+            }
+        }
+    },
+    "properties": {
+        "specs": {
+            "properties": {
+                "adapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/adapter"
+                    }
+                },
+                "multipath": {
+                    "type": "boolean"
+                }
+            },
+            "type": "object",
+            "required": [
+                "adapters"
+            ]
+        },
+        "volume_id": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{16}$"
+        }
+    },
+    "required": [
+        "volume_id",
+        "specs"
+    ]
 }

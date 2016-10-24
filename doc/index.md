@@ -25,7 +25,7 @@ The following sections are available:
 
 - [Building](users/build.md)
 - [Hypervisor HMC](users/hypervisor_hmc.md)
-- [HypervisorKvm](users/hypervisor_kvm.md)
+- [Hypervisor KVM](users/hypervisor_kvm.md)
 - [Rest-like API](users/api.md)
 
 **Developers**

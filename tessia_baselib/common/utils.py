@@ -38,9 +38,9 @@ def timer(cmd_channel, cmd, times, error_msg):
                           "run(self, cmd, timeout=120):". This method is used
                           to perform commands in a target connected by
                           channel.
-    cmd (str):            Command to be performed.
-    times (int):          list of times to be waited between each trial.
-    error_msg (str):      Error message that will be presented.
+    cmd (str): Command to be performed.
+    times (list): interval to wait in each trial (i.e. [1, 2, 5])
+    error_msg (str): error message to raise in case of failure
 
     Returns:
         None

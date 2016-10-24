@@ -84,13 +84,14 @@ def validate_params(func):
             ...
     Returns:
         func: Decorated function.
+
     Raises:
         NameError: if the function name is not valid, and if the "parameters"
         argument is not found.
     """
     func_name = func.__name__
 
-    #Only valid actions can be decorated with @validate_params
+    # Only valid actions can be decorated with @validate_params
     if func_name not in VALID_ACTIONS:
         raise NameError("validate_params should only decorate functions"
                         "in {}".format(VALID_ACTIONS))
@@ -99,19 +100,19 @@ def validate_params(func):
     # get the correct function argument
     try:
         parameters_index = func_params.index(ARGUMENT_TO_VALIDATE)
-        #the parameter to validate must be present in the function parameters
+    # the parameter to validate must be present in the function parameters
     except ValueError:
         raise NameError("Decorated function does not have correct argument"
                         "to validate: {}".format(ARGUMENT_TO_VALIDATE))
 
-    #gather information about the module in order to choose the proper
-    #json schema
+    # gather information about the module in order to choose the proper
+    # json schema
     func_file = inspect.getfile(func)
     func_dir_name = os.path.dirname(func_file).split("/")[-1]
 
-    #all json schemas must be placed inside the
-    #tessia_baselib/common/validators/jsonschemas directory according to the
-    #name of the module
+    # all json schemas must be placed inside the
+    # tessia_baselib/common/validators/jsonschemas directory according to the
+    # name of the module
     schema_file = SCHEMAS_BASE_DIR + "/" + func_dir_name \
                   + "/actions/" + func_name + ".json"
 

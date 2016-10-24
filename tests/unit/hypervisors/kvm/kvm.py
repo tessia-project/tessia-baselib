@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
-Module for TestHypervisorKvm class.
+Test module for kvm module
 """
+
 #
 # IMPORTS
 #
@@ -24,6 +24,7 @@ from unittest import mock
 from unittest.mock import sentinel
 
 import unittest
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -40,13 +41,13 @@ IFACE = {
 }
 DISK_SCSI = {
     "disk_type": "SCSI",
-    "volume_id": "0x1024400000000000",
+    "volume_id": "1024400000000000",
     "boot_device": True,
     "specs": {
         "multipath": True,
-        "paths": [{
+        "adapters": [{
             "devno": "0.0.1800",
-            "wwpns": ['0x300607630503c1ae']
+            "wwpns": ['300607630503c1ae']
         }]
     }
 }
@@ -161,7 +162,7 @@ class TestHypervisorKvm(unittest.TestCase):
                                self._hyp.start, guest_name, cpu, memory,
                                START_PARAMETERS)
         self.assertRaisesRegex(RuntimeError, "You must login first",
-                               self._hyp.stop, guest_name,  {})
+                               self._hyp.stop, guest_name, {})
         self.assertRaisesRegex(RuntimeError, "You must login first",
                                self._hyp.reboot, guest_name, {})
         self.assertRaisesRegex(RuntimeError, "You must login first",
@@ -180,7 +181,6 @@ class TestHypervisorKvm(unittest.TestCase):
         self._hyp.login()
         self._hyp.stop(guest_name, parameters_stop)
         mock_virsh.return_value.destroy.assert_called_with(guest_name)
-        mock_virsh.return_value.undefine.assert_called_with(guest_name)
     # test_stop()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.kvm.Virsh", spec_set=True)
@@ -306,7 +306,7 @@ class TestHypervisorKvm(unittest.TestCase):
 
     @mock.patch("tessia_baselib.hypervisors.kvm.kvm.Virsh", spec_set=True)
     @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
-    def test_start_not_logged_in(self, mock_guest, mock_virsh):
+    def test_start_not_logged_in(self, *args, **kwargs):
         """
         Test the start operation when it is not logged in the hypervisor.
         """

@@ -1,21 +1,32 @@
 {
-  "type": "object",
-  "properties": {
-    "storage_volumes": {
-      "type": "array",
-      "items": {"$ref": "../../common/entities/disk_type.json"}
-    },
-    "ifaces": {
-      "type": "array",
-      "items": {"$ref": "../entities/iface_type.json"}
-    },
-    "parameters": {
-      "type": "object",
-      "properties": {
-	"boot_method": {"type": "string",
-			"enum": ["network", "disk"]},
-	"boot_options": {"$ref": "../entities/boot_params_type.json"}
-      }
+    "type": "object",
+    "properties": {
+        "storage_volumes": {
+            "type": "array",
+            "items": {
+                "$ref": "../../common/entities/disk_type.json"
+            }
+        },
+        "ifaces": {
+            "type": "array",
+            "items": {
+                "$ref": "../entities/iface_type.json"
+            }
+        },
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "boot_options": {
+                    "$ref": "../entities/boot_params_type.json"
+                },
+                "boot_method": {
+                    "type": "string",
+                    "enum": [
+                        "network",
+                        "disk"
+                    ]
+                }
+            }
+        }
     }
-  }
 }

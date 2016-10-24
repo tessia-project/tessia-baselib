@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
 Module for TestTargetDeviceManager Class
 """
+
 #
 # IMPORTS
 #
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 from unittest import mock
+from unittest import TestCase
 
 import types
-import unittest
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -36,11 +37,12 @@ _LETTERS = [chr(i) for i in range(ord('a'), ord('z') + 1)]
 # where _ is a empty string. This happens 26 * 26 times.
 TOTAL_NUM_VALID_DEVS = ((len(_LETTERS) + 1)**2 * len(_LETTERS)
                         - (len(_LETTERS) * len(_LETTERS)))
+
 #
 # CODE
 #
 #
-class TestTargetDeviceManager(unittest.TestCase):
+class TestTargetDeviceManager(TestCase):
     """
     Class that provides the unit tests for the TargetDevicemanager class.
     """
@@ -58,7 +60,7 @@ class TestTargetDeviceManager(unittest.TestCase):
         """
         self.assertIs(len(self._target_dev_mngr._dev_blacklist), 0)
         self.assertIs(len(self._target_dev_mngr._devno_blacklist), 0)
-        self.assertIsInstance(self._target_dev_mngr._valid_devs,
+        self.assertIsInstance(self._target_dev_mngr._generate_devname,
                               types.GeneratorType)
         self.assertIs(self._target_dev_mngr._next_devno, 0x0001)
     # test_init()

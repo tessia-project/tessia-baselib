@@ -1,19 +1,34 @@
 {
-  "type": "object",
-  "properties": {
-    "disk_type": {
-      "type": "string",
-      "enum": ["SCSI", "DASD"]
+    "properties": {
+        "disk_type": {
+            "enum": [
+                "SCSI",
+                "DASD"
+            ],
+            "type": "string"
+        },
+        "system_attributes": {
+            "properties": {
+                "libvirt": {
+                    "type": "string"
+                }
+            },
+            "type": "object",
+            "required": [
+                "libvirt"
+            ]
+        }
     },
-    "system_attributes": {
-      "type": "object",
-      "properties": {
-	"libvirt": {"type": "string"}
-      },
-      "required": ["libvirt"]
-    }
-  },
-  "required": ["disk_type"],
-  "oneOf": [{"$ref": "../../common/entities/dasd_disk_type.json"},
-	    {"$ref": "../../common/entities/scsi_disk_type.json"}]
+    "oneOf": [
+        {
+            "$ref": "../../common/entities/dasd_disk_type.json"
+        },
+        {
+            "$ref": "../../common/entities/scsi_disk_type.json"
+        }
+    ],
+    "type": "object",
+    "required": [
+        "disk_type"
+    ]
 }

@@ -15,9 +15,7 @@
 """
 Module for GuestKvm class
 """
-#
-# IMPORTS
-#
+
 #
 # IMPORTS
 #
@@ -29,6 +27,7 @@ from tessia_baselib.hypervisors.kvm.target_device_manager \
 
 import os
 import uuid
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -88,7 +87,7 @@ class GuestKvm(object):
             memory (int):      Amount of memory used by the guest in MB
             parameters (dict):  Specific parameters for the gues
             cmd_channel (object): An object that provides a method in the
-                                  format "run(self, cmd, timeout=120):".
+                                  format "run(cmd, timeout=120)".
                                   This method is used to perform commands
                                   in the host ir order to handle all the
                                   hardware configuration.
@@ -111,20 +110,41 @@ class GuestKvm(object):
         self._virt_disks = []
         self._ifaces = []
 
+        with open(TEMPLATE_FILE, "r") as template_file:
+            self._template_xml = template_file.read()
+
+        # create a disk object for each entry in the parameters dict
         self._create_disks(self._parameters.get("storage_volumes", []))
+        # create an iface object for each entry in the parameters dict
         self._create_ifaces(self._parameters.get("ifaces", []))
     # __init__()
 
     # _create_boot_params()
 
-    def _create_disks(self, parameters):
-        for disk_params in parameters:
+    def _create_disks(self, vols):
+        """
+        Auxiliar function, creates a disk object using the appropriate factory
+        function.
+
+        Args:
+            vols (list): list of entries defined by schema
+                         common/entities/disk_type.json
+        """
+        for disk_params in vols:
             self._disks.append(create_disk(disk_params, self._target_dev_mngr,
                                            self._cmd_channel))
     # _create_disks()
 
-    def _create_ifaces(self, parameters):
-        for iface_params in parameters:
+    def _create_ifaces(self, ifaces):
+        """
+        Auxiliar function, creates an iface object
+        function.
+
+        Args:
+            ifaces (list): list of entries defined by schema
+                               kvm/entities/iface_type.json
+        """
+        for iface_params in ifaces:
             self._ifaces.append(Iface(iface_params,
                                       self._target_dev_mngr))
     # _create_ifaces()
@@ -167,18 +187,14 @@ class GuestKvm(object):
         for iface in self._ifaces:
             ifaces_xml += iface.to_xml()
 
-        with open(TEMPLATE_FILE, "r") as template_file:
-            template_xml = template_file.read()
-
-            # generate the uuid of the domain xml
-            # Necessary to redefine the domain xml while
-            # performing the network boot.
-            uuid_str = str(uuid.uuid4())
-            return template_xml.format(name=self._guest_name,
-                                       uuid=uuid_str,
-                                       memory=self._memory,
-                                       cpu=self._cpu,
-                                       disks=disks_xml,
-                                       ifaces=ifaces_xml)
+        # generate the uuid of the domain xml, necessary to redefine the
+        # domain xml while performing the network boot.
+        uuid_str = str(uuid.uuid4())
+        return self._template_xml.format(name=self._guest_name,
+                                         uuid=uuid_str,
+                                         memory=self._memory,
+                                         cpu=self._cpu,
+                                         disks=disks_xml,
+                                         ifaces=ifaces_xml)
     # to_xml()
 # GuestKvm
