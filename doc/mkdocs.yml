@@ -17,6 +17,7 @@ pages:
 - User guide:
     - Build and install: 'users/build.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
+    - HypervisorKvm: 'users/hypervisor_kvm.md'    
     - REST-API: 'users/api.md'
 - Developers:
     - Coding guidelines: 'developers/coding_guidelines.md'

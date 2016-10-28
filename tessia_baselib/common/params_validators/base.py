@@ -19,8 +19,6 @@ Module for BaseParamsValidator class
 #
 # IMPORTS
 #
-from tessia_baselib.config import CONF
-
 import json
 import os
 
@@ -43,8 +41,8 @@ class BaseParamsValidator(object):
         """
         Initialize the instance variables, load and check the json schema.
         Args:
-            sechema_file: File containing the json schema that will be used to
-                          validate parameters.
+            schema_file (str): Path to the file containing the json schema
+                               that will be used to validate parameters.
 
         Returns:
             None
@@ -59,13 +57,13 @@ class BaseParamsValidator(object):
         #does not exist, or a ValueError if the json contained in the file is
         #is not valid.
         self.schema = None
-        fp = open(schema_file, "r")
-        self.schema = json.load(fp)
+        with open(schema_file, "r") as schema_file_desc:
+            self.schema = json.load(schema_file_desc)
 
-        #create the id property that is reference for all definitions in the
-        #json schema.
+        #create the id property that is reference for all definitions in
+        # the json schema.
+
         self.schema['id'] = "file://" + os.path.abspath(schema_file)
-
         #Validate the loaded schema. This method is implemented according
         #to the library that is used to handle json schema.
         self._check_schema()
@@ -82,7 +80,7 @@ class BaseParamsValidator(object):
             None
 
         Raises:
-            ValueError: if the json schema loaded is not valid.
+            NotImplementedError: to avoid the method being called.
         """
         raise NotImplementedError()
     # _check_schema()
@@ -92,14 +90,14 @@ class BaseParamsValidator(object):
         Validate parameters against the loaded json schema. This method is
         dependent of the chosen library that implement json schema validation.
         Args:
-            parameters: A dictionary that will be validated.
+            parameters (dict): A dictionary that will be validated.
 
         Returns:
             None
 
         Raises:
-            ValueError: If parameters fails to validate against the loaded json
-                        schema.
+            NotImplementedError: as it has to be implemented in concrete
+                                 classes
         """
         raise NotImplementedError()
     # validate()

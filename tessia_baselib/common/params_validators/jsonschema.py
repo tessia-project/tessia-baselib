@@ -15,12 +15,12 @@
 """
 Module for JsonschemaValidator class.
 """
-
 #
 # IMPORTS
 #
 from .base import BaseParamsValidator
-
+# the FormatChecker is used to validate URIs
+from jsonschema import FormatChecker
 import jsonschema
 
 #
@@ -30,14 +30,12 @@ import jsonschema
 #
 # CODE
 #
-
 class JsonschemaValidator(BaseParamsValidator):
     """
     This class implements a validator that uses the jsconschema
     library to validate json schemas.
     Jsonschema https://github.com/Julian/jsonschema
     """
-
     def _check_schema(self):
         """
         Checks if the loaded json schema is valid. This method is dependent of
@@ -62,7 +60,7 @@ class JsonschemaValidator(BaseParamsValidator):
         Validate parameters against the loaded json schema. This method is
         dependent of the chosen library that implement json schema validation.
         Args:
-            parameters: A dictionary that will be validated.
+            parameters (dict): A dictionary that will be validated.
 
         Returns:
             None
@@ -73,7 +71,8 @@ class JsonschemaValidator(BaseParamsValidator):
         """
         try:
             jsonschema.validate(parameters, self.schema,
-                                cls=jsonschema.Draft4Validator)
+                                cls=jsonschema.Draft4Validator,
+                                format_checker=FormatChecker())
         except jsonschema.ValidationError as exc:
             raise ValueError("Invalid parameter for jsonschema") from exc
     # validate()

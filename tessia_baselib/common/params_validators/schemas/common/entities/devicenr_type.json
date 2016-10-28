@@ -1,4 +1,4 @@
 {
   "type": "string",
-  "pattern": "^[a-fA-F0-9]{4}$"
+  "pattern": "^(([a-fA-F0-9]\\.){2})?[a-fA-F0-9]{4}$"
 }

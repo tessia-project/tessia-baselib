@@ -155,6 +155,7 @@ class TestHypervisorBase(TestCase):
             ('reboot', (None, None,)),
             ('start', (None, None, None, None,)),
             ('stop', (None, None)),
+            ('reboot', (None, None)),
         ]
         for method in methods:
             attr = getattr(hyp_obj, method[0])

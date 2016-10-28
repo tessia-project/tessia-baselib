@@ -40,7 +40,7 @@ def main():
         None
 
     Returns:
-        None
+        int: return code of the pylint process.
 
     Raises:
         None

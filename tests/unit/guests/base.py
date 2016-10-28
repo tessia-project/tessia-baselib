@@ -152,7 +152,7 @@ j       """
             ('install_packages', (None,)),
             ('open_session', ()),
             ('pull_file', ()),
-            ('push_file', ()),
+            ('push_file', (None, None, None)),
             ('stop', ()),
         ]
         for method in methods:
