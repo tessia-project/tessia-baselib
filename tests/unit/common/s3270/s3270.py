@@ -15,7 +15,7 @@
 """
 S3270 unittest
 """
-# pylint: disable=no-member,too-many-public-methods,protected-access
+# pylint: disable=attribute-defined-outside-init,no-member,invalid-name
 #
 # IMPORTS
 #
