@@ -111,6 +111,29 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.ascii)
     # test_ascii_error()
 
+    def test_ascii_timeout(self):
+        """
+        Exercise an ascii command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.ascii)
+    # test_ascii_timeout()
+
     def test_clear_ok(self):
         """
         Exercise a normal clear command
@@ -156,6 +179,29 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.clear)
     # test_clear_error()
 
+    def test_clear_timeout(self):
+        """
+        Exercise a clear command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.clear)
+    # test_clear_timeout()
+
     def test_connect_ok(self):
         """
         Exercise a normal connect command
@@ -194,12 +240,130 @@ class TestS3270(TestCase):
         self.mock_pipeconnector.return_value.run.return_value = [
             'error\n', 'L U U N N 4 24 80 0 0 0x0 -\nerror\n'
         ]
+
         # create new instance of s3270
         s3270 = S3270()
 
         # simple command execution
         self.assertRaises(S3270StatusError, s3270.connect, 'test.host.com')
     # test_connect_error()
+
+    def test_connect_first_timeout(self):
+        """
+        Exercise a connect command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.connect, 'test.host.com')
+    # test_connect_first_timeout()
+
+    def test_connect_second_timeout(self):
+        """
+        Exercise a connect command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.return_value = ['', '']
+
+        self.time_patcher = patch('time.time', autospec=True)
+        self.mock_time = self.time_patcher.start()
+        self.addCleanup(self.time_patcher.stop)
+
+        self.mock_time.side_effect = [
+            1475010078.6838996,
+            1475010111.7996376,
+            1475010511.7996376,
+        ]
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.connect, 'test.host.com')
+    # test_connect_second_timeout()
+
+    def test_connect_second_timeout_wrong_status(self):
+        """
+        Exercise a connect command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = [
+            ('break', ''),
+            ('break', ''),
+            ]
+
+        self.time_patcher = patch('time.time', autospec=True)
+        self.mock_time = self.time_patcher.start()
+        self.addCleanup(self.time_patcher.stop)
+
+        self.mock_time.side_effect = [
+            1475010078.6838996,
+            1475010111.7996376,
+            1475010511.7996376,
+        ]
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.connect, 'test.host.com')
+    # test_connect_second_timeout_wrong_status()
+
+    def test_connect_no_address(self):
+        """
+        Exercise a connect command returning error
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to error
+        self.mock_pipeconnector.return_value.run.return_value = [
+            'ok\n', 'No address associated with hostname\nok\n'
+        ]
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(S3270StatusError, s3270.connect, 'test.host.com')
+    # test_connect_no_address()
 
     def test_disconnect_ok(self):
         """
@@ -246,6 +410,29 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.disconnect)
     # test_disconnect_error()
 
+    def test_disconnect_timeout(self):
+        """
+        Exercise a disconnect command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.disconnect)
+    # test_disconnect_timeout()
+
     def test_enter_ok(self):
         """
         Exercise a normal enter command
@@ -291,6 +478,29 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.enter)
     # test_enter_error()
 
+    def test_enter_timeout(self):
+        """
+        Exercise a enter command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.enter)
+    # test_enter_timeout()
+
     def test_execute_ok(self):
         """
         Exercise a normal execute command
@@ -335,6 +545,29 @@ class TestS3270(TestCase):
         # simple command execution
         self.assertRaises(S3270StatusError, s3270.execute, 'time')
     # test_execute_error()
+
+    def test_execute_timeout(self):
+        """
+        Exercise a execute command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.execute, 'bash')
+    # test_execute_timeout()
 
     def test_query_ok(self):
         """
@@ -402,6 +635,52 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.query)
     # test_query_error()
 
+    def test_query_timeout(self):
+        """
+        Exercise a query command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.query)
+    # test_query_timeout()
+
+    def test_query_attribute_timeout(self):
+        """
+        Exercise a query command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.query, 'Host')
+    # test_query_attribute_timeout()
+
     def test_quit_ok(self):
         """
         Exercise a normal quit command
@@ -422,6 +701,29 @@ class TestS3270(TestCase):
         s3270.quit()
         self.assertIsNone(s3270._s3270)
     # test_quit_ok()
+
+    def test_quit_timeout(self):
+        """
+        Exercise a quit command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.quit.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.quit)
+    # test_quit_timeout()
 
     def test_snap_ok(self):
         """
@@ -489,6 +791,52 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.snap)
     # test_snap_error()
 
+    def test_snap_timeout(self):
+        """
+        Exercise a snap command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.snap)
+    # test_snap_timeout()
+
+    def test_snap_attribute_timeout(self):
+        """
+        Exercise a snap command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.snap, 'ascii')
+    # test_snap_attribute_timeout()
+
     def test_string_ok(self):
         """
         Exercise a normal string command
@@ -534,6 +882,29 @@ class TestS3270(TestCase):
         self.assertRaises(S3270StatusError, s3270.string, 'test')
     # test_string_error()
 
+    def test_string_timeout(self):
+        """
+        Exercise a string command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.string, 'ascii')
+    # test_string_timeout()
+
     def test_transfer_ok(self):
         """
         Exercise a normal transfer command
@@ -578,6 +949,29 @@ class TestS3270(TestCase):
         # simple command execution
         self.assertRaises(S3270StatusError, s3270.transfer)
     # test_transfer_error()
+
+    def test_transfer_timeout(self):
+        """
+        Exercise a transfer command returning timeout
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set status to timeout
+        self.mock_pipeconnector.return_value.run.side_effect = TimeoutError()
+
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        self.assertRaises(TimeoutError, s3270.transfer)
+    # test_string_timeout()
 
 
 # TestS3270

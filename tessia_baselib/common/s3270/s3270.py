@@ -79,6 +79,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Ascii', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Ascii:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Ascii command')
@@ -104,6 +105,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Clear', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Clear:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Clear command')
@@ -157,6 +159,10 @@ class S3270(object):
                 if 'No address associated with hostname' in output:
                     raise S3270StatusError('No address associated with '
                                            'hostname '+host_name)
+                elif 'error' in status:
+                    raise S3270StatusError(
+                        'Error while sending Connect command'
+                    )
                 elif 'ok' in status:
                     break
 
@@ -184,6 +190,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Disconnect', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Disconnect:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Disconnect command')
@@ -209,6 +216,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Enter', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Enter:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Enter command')
@@ -235,6 +243,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Execute('+cmd+')', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Execute:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Failed to execute '+cmd+' using s3270')
@@ -262,12 +271,14 @@ class S3270(object):
                 (status, output) = self._s3270.run('Query("Host")', timeout)
             except TimeoutError:
                 self._logger.exception('Timeout while executing Query:')
+                raise
         else:
             try:
                 (status, output) = self._s3270.run('Query("'+attr+'")',
                                                    timeout)
             except TimeoutError:
                 self._logger.exception('Timeout while executing Query:')
+                raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Query command')
@@ -293,6 +304,8 @@ class S3270(object):
             self._s3270.quit(timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Quit:')
+            raise
+
         # clean object and free s3270 defunct process
         self._s3270 = None
     # quit()
@@ -317,11 +330,13 @@ class S3270(object):
                 (status, output) = self._s3270.run('Snap', timeout)
             except TimeoutError:
                 self._logger.exception('Timeout while executing Snap:')
+                raise
         else:
             try:
                 (status, output) = self._s3270.run('Snap("'+cmd+'")', timeout)
             except TimeoutError:
                 self._logger.exception('Timeout while executing Snap:')
+                raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Snap command')
@@ -348,6 +363,7 @@ class S3270(object):
             (status, output) = self._s3270.run('String("'+string+'")', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing String:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending String command')
@@ -375,6 +391,7 @@ class S3270(object):
             (status, output) = self._s3270.run('Clear', timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Transfer:')
+            raise
 
         if 'ok' not in status:
             raise S3270StatusError('Error while sending Transfer command')
