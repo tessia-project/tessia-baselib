@@ -371,6 +371,25 @@ class S3270(object):
         return output
     # string()
 
+    def terminate(self, timeout=60):
+        """
+        Terminate s3270 process and clean up object
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        self._s3270.terminate(timeout)
+
+        # clean object
+        self._s3270 = None
+    # terminate()
+
     def transfer(self, timeout=60):
         """
         ### TO BE IMPLEMENTED                  ###

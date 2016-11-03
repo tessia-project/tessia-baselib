@@ -201,6 +201,29 @@ class S3270PipeConnector(object):
                     raise TimeoutError('Could not write on stdin')
     # _write()
 
+    def quit(self, timeout=120):
+        """
+        Execute a 'Quit' command and return.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        # write command to s3270 stdin
+        self._write('Quit', timeout)
+
+        # clean up process
+        self.terminate()
+
+        # remove trailing newline as it is added by logger later
+        self._logger.info('prompt: Quiting!')
+    # quit()
+
     def run(self, cmd, timeout=120):
         """
         Execute a command and wait 'timeout' seconds for the output. This
@@ -228,9 +251,9 @@ class S3270PipeConnector(object):
         return (status, output)
     # run()
 
-    def quit(self, timeout=120):
+    def terminate(self, timeout=120):
         """
-        Execute a 'Quit' command and return.
+        Terminate process execution and clean up object.
 
         Args:
             None
@@ -241,11 +264,17 @@ class S3270PipeConnector(object):
         Raises:
             None
         """
-        # write command to s3270 stdin
-        self._write('Quit', timeout)
+        # communicate wait for the process to end
+        try:
+            self._s3270.communicate(timeout=timeout)
+        except subprocess.TimeoutExpired:
+            # kill the process otherwise
+            self._s3270.kill()
+            # and try to communicate again to clen up defunct
+            self._s3270.communicate(timeout=timeout)
 
-        # remove trailing newline as it is added by logger later
-        self._logger.info('prompt: Quiting!')
-    # quit()
+        # clean up object
+        self._s3270 = None
+    # terminate()
 
 # S3270PipeConnector
