@@ -140,8 +140,15 @@ class SshClient(object):
         # it might be necessary to loop around multiple write
         # calls to ensure all bytes are consumed by the write call
         # (e.g. with raw io).
-        assert (isinstance(target_fd, io.BufferedWriter)
-                or isinstance(target_fd, paramiko.SFTPFile))
+        is_sftp = isinstance(target_fd, paramiko.SFTPFile)
+        is_buffered_writer = isinstance(target_fd, io.BufferedWriter)
+        assert is_buffered_writer or is_sftp
+
+        if is_sftp:
+            # Set pipelined to true so that sftp writes don't wait
+            # for a response every time. If something goes wrong
+            # an exception will be thrown when the file is closed.
+            target_fd.set_pipelined(True)
 
         n_bytes_copied = 0
 
@@ -159,7 +166,7 @@ class SshClient(object):
 
             # target_fd is a BufferedWriter: return value of it is a number
             # and we can check it
-            if isinstance(target_fd, io.BufferedWriter):
+            if is_buffered_writer:
                 # Make sure BufferedWriter really wrote
                 # or buffered all the bytes we gave it.
                 # This should be the case but the python
