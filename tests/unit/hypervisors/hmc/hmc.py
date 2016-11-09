@@ -400,8 +400,8 @@ class TestHypervisorHmc(TestCase):
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         f501 = hex(int("f500", 16)+1).strip("0x")
         f502 = hex(int("f500", 16)+2).strip("0x")
-        mock_lpar.send_os_command.assert_has_any_calls(
-            mock.call("cio_ignore -r {}".format("f500," + f501 + "," +f502))
+        mock_lpar.send_os_command.assert_any_call(
+            "cio_ignore -r {}".format("f500," + f501 + "," +f502)
         )
     # test_netboot()
 
