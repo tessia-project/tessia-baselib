@@ -69,7 +69,7 @@ class GuestSessionLinux(GuestSessionBase):
         self._ssh_shell = None
     # close()
 
-    def run(self, cmd, timeout=120):
+    def run(self, cmd, timeout=120, ignore_ret=False):
         """
         Execute a command and wait timeout seconds for the completion.
 
@@ -87,7 +87,7 @@ class GuestSessionLinux(GuestSessionBase):
         # since the ssh shell interface is the same we can just call it
         # directly
         try:
-            ret, output = self._ssh_shell.run(cmd, timeout)
+            ret, output = self._ssh_shell.run(cmd, timeout, ignore_ret)
         # catch specific ssh exception and re-raise with appropriate type to
         # keep the interface consistent
         except SshShellError as exc:

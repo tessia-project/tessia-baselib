@@ -63,7 +63,7 @@ class TestGuestLinux(TestCase):
         self.assertEqual('dummy output', output)
 
         # validate it
-        mock_ssh_shell.run.assert_called_with('ls /etc', 120)
+        mock_ssh_shell.run.assert_called_with('ls /etc', 120, False)
 
         # command with timeout specified
         mock_ssh_shell.run.return_value = (0, 'another dummy output')
@@ -72,7 +72,7 @@ class TestGuestLinux(TestCase):
         # validate it
         self.assertEqual(0, ret)
         self.assertEqual('another dummy output', output)
-        mock_ssh_shell.run.assert_called_with('cat /etc/passwd', 10)
+        mock_ssh_shell.run.assert_called_with('cat /etc/passwd', 10, False)
 
         # test a failed command
         mock_ssh_shell.run.return_value = (1, 'error dummy output')
@@ -81,7 +81,7 @@ class TestGuestLinux(TestCase):
         # validate it
         self.assertEqual(1, ret)
         self.assertEqual('error dummy output', output)
-        mock_ssh_shell.run.assert_called_with('errorcmd', 120)
+        mock_ssh_shell.run.assert_called_with('errorcmd', 120, False)
 
         # make sure clean up is correct upon closing session
         session_obj.close()

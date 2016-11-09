@@ -1,34 +1,21 @@
 {
-    "definitions": {
-        "scsi_disk_type": {
-            "properties": {
-                "iface_devicenr": {"type": "string"},
-                "lun": {"type": "string"},
-                "wwpn": {"type": "string"}
-            },
-            "required": ["iface_devicenr", "lun", "wwpn"]
-        },
-        "dasd_disk_type": {
-            "properties": {
-                "devicenr": {
-                    "$ref": "../../common/entities/devicenr_type.json"
-                }
-            },
-            "required": ["devicenr"]
-        },
-        "network_type": {}
-	},
-    "type": "object",
-    "properties": {
-        "boot_method": {
-            "type": "string",
-            "enum": ["scsi", "dasd", "network"]
-        }
-    },
-    "required": ["boot_method"],
-    "oneOf": [
-        {"$ref": "#/definitions/dasd_disk_type"},
-        {"$ref": "#/definitions/scsi_disk_type"},
-		{"$ref": "#/definitions/network_type"}
-    ]
+  "properties": {
+    "kernel_url": {"type": "string",
+       "format": "uri"},
+    "initrd_url": {"type": "string",
+       "format": "uri"},
+    "cmdline": {"type": "string",
+       "maxLength": 4096},
+    "mac": {"type": "string",
+        "maxLength": 17},
+    "ip": {"type": "string",
+        "maxLength": 16},
+    "mask": {"type": "string",
+        "maxLength": 16},
+    "gateway": {"type": "string",
+        "maxLength": 16},
+    "device": {"type": "string",
+        "maxLength": 14}
+  },
+  "required": ["kernel_url", "initrd_url", "cmdline", "mac", "ip", "mask", "gateway", "device"]
 }

@@ -22,14 +22,20 @@ Implementation of hypervisor interface for HMC
 
 from tessia_baselib.config import CONF
 from tessia_baselib.common.logger import get_logger
+from tessia_baselib.guests.linux.linux import GuestLinux
 from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
 from tessia_baselib.hypervisors.base import HypervisorBase
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from tessia_baselib.common.params_validators.utils import validate_params
 
+import time
 #
 # CONSTANTS AND DEFINITIONS
 #
+
+NETBOOT_LOAD_TIMEOUT = 30 # seconds
+NETBOOT_USER = "root"
+NETBOOT_PASSWORD = "somepasswd"
 
 #
 # CODE
@@ -195,17 +201,14 @@ class HypervisorHmc(HypervisorBase):
             update = self._update_resources(args, image_profile)
 
             # image profile updated: we need to activate the LPAR again so
-            # changes can take effect, no matter LPAR current state
-            if update:
-                lpar.activate(force=True)
-            # lpar not active: activate it
-            elif lpar.status == 'not-activated':
+            # changes can take effect
+            if update or lpar.status == 'not-activated':
                 lpar.activate()
 
             if parameters.get('boot_params').get('boot_method') == 'scsi':
                 # SCSI Load
                 lpar.scsi_load(
-                    parameters.get('boot_params').get('iface_devicenr'),
+                    parameters.get('boot_params').get('zfcp_devicenr'),
                     parameters.get('boot_params').get('wwpn'),
                     parameters.get('boot_params').get('lun')
                 )
@@ -214,13 +217,159 @@ class HypervisorHmc(HypervisorBase):
                 lpar.load(parameters.get('boot_params').get('devicenr'))
             else:
                 # Network
-                disks = CONF.get_config()["netdisks"]
+                # The netboot is performed using a a custom ramdisk.
+                # Once the ramdisk is loaded, we configure the network
+                # using the SEND_OS_CMD, connect throught SSH, copy the files
+                # to the host and execute the kexec to load the kernel the user
+                # specified in the parameters.
+                # The HMC API does not support Boot From Removable Media
+                # like in the UI, so this is a workaround.
+
+                # retrieve the netboot disk
+                disks = CONF.get_config()['netdisks']
+
+                # load and wait operation to finish
                 lpar.load(disks[cpc.name])
+
+                start = time.time()
+                timeout = start + NETBOOT_LOAD_TIMEOUT
+                while lpar.get_properties()['status'] != 'operating' and \
+                      start <= timeout:
+                    time.sleep(1)
+                    start += 1
+                if start >= timeout:
+                    raise Exception(
+                        "Problem while performing load on netboot disk"
+                    )
+
+                time.sleep(5) # wait 5 seconds to make sure prompt is ready
+
+                # enable ramdisk network
+                self._setup_ramdisk_network(
+                    parameters.get('boot_params'), lpar
+                )
+
+                # FIXME
+                # There is a a very known issue that happens once in a while
+                # that causes LPAR's to be unreachable in the network until a
+                # ping is performed (probably to update some arp table or so).
+                # Once this issue is fixed, remove this.
+                lpar.send_os_command(
+                    "ping -c 1 {}".format(
+                        parameters.get('boot_params').get('gateway')
+                    )
+                )
+
+                guest = GuestLinux(
+                    lpar.name,
+                    parameters.get('boot_params').get('ip'),
+                    NETBOOT_USER,
+                    NETBOOT_PASSWORD,
+                    {}
+                )
+
+                guest.login()
+                self._execute_kexec(guest, parameters.get('boot_params'))
+                guest.logoff()
+
         except Exception as exc:
             self._logger.debug(
                 'An error ocurred during start, info:', exc_info=True)
             raise ZHmcError('Operation failed with: {}'.format(str(exc)))
     # start()
+
+    def _execute_kexec(self, guest, boot_params):
+        """
+        Auxiliary method. Execute kexec command on target host.
+        This method is only used for the network boot method.
+
+        Args:
+            guest (GuestLinux): guest linux object
+            boot_params (dict): dictionary with boot parameters
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        self._logger.debug(
+            "Executing kexec on target ramdisk: args='%s'", boot_params
+        )
+
+        cmdline = boot_params.get('cmdline')
+        kernel = boot_params.get('kernel_url')
+        initrd = boot_params.get('initrd_url')
+
+        # copy files to ramdisk
+        guest.push_file(kernel, "/root/kernel")
+        guest.push_file(initrd, "/root/initrd")
+
+        session = guest.open_session()
+
+        # execute kexec and ignore the return since it won't be
+        # possible to read it
+        session.run(
+            "kexec kernel --initrd=initrd --command-line='{}'".format(
+                cmdline
+            ), ignore_ret=True
+        )
+    #_execute_kexec()
+
+    def _setup_ramdisk_network(self, boot_params, lpar):
+        """
+        Auxiliary method. Setups the network on target ramdisk.
+        This method is only used for the network boot method.
+
+        Args:
+            boot_params (dict): dictionary with boot parameters
+            lpar (LogicalPartition): logical partition object
+
+        Returns:
+            None
+
+        Raises:
+            None
+        """
+        self._logger.debug(
+            "Setting up ramdisk network: args='%s'", boot_params
+        )
+
+
+        mac_addr = boot_params.get('mac')
+        ip_addr = boot_params.get('ip')
+        subnet_addr = boot_params.get('mask')
+        gw_addr = boot_params.get('gateway')
+        channel = boot_params.get('device')
+
+        ch_list = list()
+        if channel.find(',') != -1:
+            ch_list = channel.split(',')
+        else:
+            ch_list.append(channel)
+            ch_list.append(hex(int(channel, 16)+1).strip("0x"))
+            ch_list.append(hex(int(channel, 16)+2).strip("0x"))
+
+        channels = ','.join(ch_list)
+
+        # login into the system
+        lpar.send_os_command(NETBOOT_USER)
+        lpar.send_os_command(NETBOOT_PASSWORD)
+
+        lpar.send_os_command("cio_ignore -r {}".format(channels))
+        lpar.send_os_command(
+            "znetconf -a {} -o portname=osaport".format(ch_list[0])
+        )
+        lpar.send_os_command(
+            "ifconfig enc{} hw ether {}".format(ch_list[0], mac_addr)
+        )
+        lpar.send_os_command(
+            "ifconfig enc{} {} netmask {}".format(
+                ch_list[0], ip_addr, subnet_addr
+            )
+        )
+        lpar.send_os_command("route add default gw {}".format(gw_addr))
+    # _setup_ramdisk_network
 
     def _calculate_number_cpus(self, total_cpus, ifl_cpus):
         """

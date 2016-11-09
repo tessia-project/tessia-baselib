@@ -1,0 +1,32 @@
+{
+  "definitions": {
+    "scsi": {
+      "properties": {
+        "zfcp_devicenr": {"$ref": "../../common/entities/devicenr_type.json"},
+        "lun": {"type": "string"},
+        "wwpn": {"type": "string"}
+      },
+      "required": ["zfcp_devicenr", "lun", "wwpn"]
+    },
+    "dasd": {
+      "properties": {
+        "devicenr": {"$ref": "../../common/entities/devicenr_type.json"}
+      },
+      "required": ["devicenr"]
+    },
+  "network": {"$ref": "../entities/boot_params_type.json"}
+  },
+  "properties": {
+    "boot_method": {
+      "type": "string",
+      "enum": ["scsi", "dasd", "network"]
+    }
+  },
+  "type": "object",
+  "required": ["boot_method"],
+  "oneOf": [
+    {"$ref": "#/definitions/scsi"},
+      {"$ref": "#/definitions/dasd"},
+      {"$ref": "#/definitions/network"}
+  ]
+}

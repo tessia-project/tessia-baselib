@@ -233,7 +233,7 @@ class SshShell(object):
         self.socket.close()
     # close()
 
-    def run(self, cmd, timeout=120):
+    def run(self, cmd, timeout=120, ignore_ret=False):
         """
         Execute a command and wait timeout seconds for the output. This method
         is the entry point to be consumed by users.
@@ -241,6 +241,8 @@ class SshShell(object):
         Args:
             cmd (str): command
             timeout (int): how many seconds to wait for output to complete
+            ignore_ret (bool): if the exit_code and output should be ignored
+
 
         Returns:
             tuple: (exit_code, output)
@@ -261,6 +263,11 @@ class SshShell(object):
 
         # send command through socket
         self._write(cmd)
+
+        # send command and ignore return values
+        if ignore_ret:
+            return 0, ""
+
         # read the output from command
         output = self._read(timeout, cmd)
 

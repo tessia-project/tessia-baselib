@@ -22,8 +22,6 @@ Unit test for the logical_partition module
 from unittest import mock
 from unittest import TestCase
 from tessia_baselib.hypervisors.hmc.zhmc import logical_partition
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-import itertools
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -105,6 +103,32 @@ class TestLogicalPartition(TestCase):
         )
     # test_get_properties()
 
+    def test_send_os_command(self):
+        """
+        Test if send_os_command() method work as expected.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+
+        # test with image_profile name set
+        self.lpar.send_os_command('some_command')
+        session = self.lpar._hmc.session
+        session.json_request.assert_called_with(
+            'POST',
+            'dummy.domain.com/operations/send-os-cmd',
+            body={
+                'operating-system-command-text': 'some_command'
+            }
+        )
+    # test_send_os_command()
+
     def test_activate(self):
         """
         Test if activate() method work as expected.
@@ -118,23 +142,18 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+
+        # test with image_profile name set
+        self.lpar.activate(image_profile='dummy_profile')
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'not-operating'}
-        ])
-
-        # test with force flag and image_profile name set
-        job = self.lpar.activate(image_profile='dummy_profile', force=True)
-        self.assertEqual(job['status-end'], 'not-operating')
-
-        # test with no flag set
-        job = self.lpar.activate()
-        self.assertEqual(job['status-end'], 'not-operating')
-
-        # set timeout to 0 so we do not need to wait
-        logical_partition.ISSUE_OPERATION_WAIT_TIMEOUT = 0
+        session.json_request.assert_called_with(
+            'POST',
+            'dummy.domain.com/operations/activate',
+            body={
+                'activation-profile-name': 'dummy_profile',
+                'force': True
+            }
+        )
     # test_activate()
 
     def test_deactivate(self):
@@ -150,20 +169,16 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+        self.lpar.deactivate()
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'not-activated'}
-        ])
+        session.json_request.assert_called_with(
+            'POST',
+            'dummy.domain.com/operations/deactivate',
+            body={
+                'force': True
+            }
+        )
 
-        # test with force flag set
-        job = self.lpar.deactivate(force=True)
-        self.assertEqual(job['status-end'], 'not-activated')
-
-        # test with no flag set
-        job = self.lpar.deactivate()
-        self.assertEqual(job['status-end'], 'not-activated')
     # test_deactivate()
 
     def test_load(self):
@@ -179,20 +194,19 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+
+        self.lpar.load('dummy_address')
+
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'operating'}
-        ])
+        session.json_request.assert_called_with(
+            'POST',
+            'dummy.domain.com/operations/load',
+            body={
+                'load-address': 'dummy_address',
+                'force': True
+            }
+        )
 
-        # test with force flag set
-        job = self.lpar.load('dummy_address', force=True)
-        self.assertEqual(job['status-end'], 'operating')
-
-        # test with no flag set
-        job = self.lpar.load('dummy_address')
-        self.assertEqual(job['status-end'], 'operating')
     # test_load()
 
     def test_scsi_load(self):
@@ -209,28 +223,24 @@ class TestLogicalPartition(TestCase):
             AssertionError: if validation fails
         """
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'operating'}
-        ])
 
         # test with force flag set
-        job = self.lpar.scsi_load(
-            'dummy_address',
-            'dummy_wwpn',
-            'dummy_lun',
-            force=True
-        )
-        self.assertEqual(job['status-end'], 'operating')
-
-        # test with no flag set
-        job = self.lpar.scsi_load(
+        self.lpar.scsi_load(
             'dummy_address',
             'dummy_wwpn',
             'dummy_lun'
         )
-        self.assertEqual(job['status-end'], 'operating')
+
+        session.json_request.assert_called_with(
+            'POST',
+            'dummy.domain.com/operations/scsi-load',
+            body={
+                'load-address': 'dummy_address',
+                'world-wide-port-name': 'dummy_wwpn',
+                'logical-unit-number': 'dummy_lun',
+                'force': True
+            }
+        )
     # test_scsi_load()
 
     def test_stop(self):
@@ -246,15 +256,11 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+        self.lpar.stop()
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'not-operating'}
-        ])
-
-        job = self.lpar.stop()
-        self.assertEqual(job['status-end'], 'not-operating')
+        session.json_request.assert_called_with(
+            "POST", "dummy.domain.com/operations/stop", body=None
+        )
     # test_stop()
 
     def test_reset_clear(self):
@@ -270,41 +276,13 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+        self.lpar.reset_clear()
         session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri'},
-            {'status': 'complete'},
-            {'status': 'not-operating'}
-        ])
-
-        # test with force flag set
-        job = self.lpar.reset_clear(force=True)
-        self.assertEqual(job['status-end'], 'not-operating')
-        # test with no force flag set
-        job = self.lpar.reset_clear()
-        self.assertEqual(job['status-end'], 'not-operating')
+        session.json_request.assert_called_with(
+            "POST",
+            "dummy.domain.com/operations/reset-clear",
+            body={
+                "force": True
+            }
+        )
     # test_reset_clear()
-
-    def test_operation_on_timeout(self):
-        """
-        Test if the operation fails because some sort of timeout.
-
-        Args:
-            None
-
-        Returns:
-            None
-
-        Raises:
-            AssertionError: if validation fails
-        """
-        # test timeout when the operation timeouts
-        session = self.lpar._hmc.session
-        session.json_request.side_effect = itertools.cycle([
-            {'job-uri':'some_uri', 'status': 'running'}
-        ])
-
-        logical_partition.DEFAULT_JSON_REQUEST_TIMEOUT = 3
-        with self.assertRaises(ZHmcError):
-            self.lpar.reset_clear()
-    # test_operation_on_timeout

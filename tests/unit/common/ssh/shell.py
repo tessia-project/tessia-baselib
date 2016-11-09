@@ -220,6 +220,26 @@ class TestSshShell(TestCase):
         self.assertIsInstance(status, int)
         self.assertEqual(output, expected_output + '\n')
 
+    def test_run_no_return(self):
+        """
+        Test regular run function with the return flag set.
+
+        Args:
+        Returns:
+        Raises:
+        """
+
+        cmd = 'dummy_cmd'
+        expected_output = 'dummy_output'
+        self._shell.socket.recv.side_effect = (
+            self._build_regular_run_output(cmd, expected_output))
+
+        status, output = self._shell.run(cmd + '\n', ignore_ret=True)
+
+        self.assertEqual(status, 0)
+        self.assertEqual(output, "")
+    # test_run_no_return()
+
     def test_run_bad_status(self):
         """
         Test a call to run that fails when casting
