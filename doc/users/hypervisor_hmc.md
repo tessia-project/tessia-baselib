@@ -75,7 +75,6 @@ hmc.logoff()
 	hmc.login()
 
     # Here we define the parameters of the guest to be started.
-{"cpc_name": "CP23", "boot_params": {"boot_method": "network", "cmdline": cmdline, "kernel_url": kernel, "initrd_url": initrd, "mac": "02:23:12:00:76:00", "ip": "192.168.5.12", "mask": "255.255.255.0", "gateway": "192.168.5.1", "device": "f500,f501,f502"}})
     lpar_name = "CP23LP12"
     lpar_cpu = 6
     lpar_memory = 4096
