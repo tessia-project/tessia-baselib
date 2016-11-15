@@ -24,17 +24,21 @@ from tempfile import mkstemp
 from xml.etree import ElementTree
 
 import os
+
 #
 # CONSTANTS AND DEFINITIONS
 #
+DOMAIN_FILENAME = 'domain'
+KERNEL_FILENAME = 'kernel'
+INITRD_FILENAME = 'initrd'
 
 #
 # CODE
 #
 class Virsh(object):
     """
-    This class provides an wrapper for the virsh command
-    that is executed in the hypervisor.
+    This class provides a wrapper for the virsh commands that are executed in
+    the hypervisor.
     """
     def __init__(self, host_cnn, cmd_channel):
         """
@@ -42,7 +46,7 @@ class Virsh(object):
 
         Args:
             cmd_channel An object that provides a method in the format
-                        "run(self, cmd, timeout=120):". This method is used
+                        "run(cmd, timeout=120)". This method is used
                         to perform commands in the hypervisor.
 
         Returns:
@@ -54,10 +58,10 @@ class Virsh(object):
         self._cmd_channel = cmd_channel
         self._host_cnn = host_cnn
         self._logger = self._logger = get_logger(__name__)
-        # These variables keep tracks of temporary files created to perform
-        # a network boot.
-        self._tmp_netboot_initrd = None
-        self._tmp_netboot_kernel = None
+
+        # temporary directory to hold working files (domain xml, kernel,
+        # initrd)
+        self._tmp_dir = None
     # __init__()
 
     def _add_boot_tag(self, domain_xml, kernel_path, initrd_path, cmdline):
@@ -91,45 +95,82 @@ class Virsh(object):
         boot_domain_xml = ElementTree.tostring(domain_element,
                                                encoding="unicode")
 
-        self._logger.debug("Boot domain %s:", boot_domain_xml)
+        self._logger.debug("Domain after adding boot tag: %s", boot_domain_xml)
 
         return boot_domain_xml
     # _add_boot_tag()
 
-    def clean_tmp_netboot_files(self):
+    def _get_tmp_dir(self):
         """
-        Auxiliary method to remove the temporary kernel and initrd
-        created in the host.
+        Return the temp directory used by the object to store working files.
+
+        Returns:
+            str: path to temp directory on host
+
+        Raises:
+            RuntimeError: in case of error while creating temp dir on host
+        """
+        # temp dir already exists: return it
+        if self._tmp_dir is not None:
+            return self._tmp_dir
+
+        # first time usage: create the temp dir on host and set appropriate
+        # permissions
+        cmd = "mktemp -d"
+        status, output = self._cmd_channel.run(cmd)
+        if status != 0:
+            raise RuntimeError("Error while creating "
+                               "temporary directory in the"
+                               " host: {}".format(output))
+        self._tmp_dir = output.strip()
+        cmd = "chmod 755 {}".format(self._tmp_dir)
+        status, output = self._cmd_channel.run(cmd)
+        if status != 0:
+            self._raise_and_cleanup(
+                "Failed to set permissions for temporary directory in the "
+                "host: {}".format(output))
+
+        return self._tmp_dir
+    # _get_tmp_dir()
+
+    def _raise_and_cleanup(self, msg):
+        """
+        In case some operation fails, make sure to clean up temp dir otherwise
+        files will be forgotten in filesystem
+
+        Args:
+            msg (str): message to used in Exception
+
+        Returns:
+            None
+
+        Raises:
+            RuntimeError: always
+        """
+        self.clean_tmp_dir()
+        raise RuntimeError(msg)
+    # _raise_and_cleanup()
+
+    def clean_tmp_dir(self):
+        """
+        Auxiliary method to remove the temporary directory created in the host.
         """
 
-        if self._tmp_netboot_kernel is not None:
-            cmd = "rm {}".format(self._tmp_netboot_kernel)
-            ret, output = self._cmd_channel.run(cmd)
+        # no temp directory created: nothing to do
+        if self._tmp_dir is None:
+            return
 
-            if ret != 0:
-                self._logger.warning("Error while removing temporary"
-                                     " kernel file %s: %s",
-                                     self._tmp_netboot_kernel,
-                                     output)
-        else:
-            self._logger.warning("Temporary kernel file does not exist.")
+        cmd = "rm -rf {}".format(self._tmp_dir)
+        ret, output = self._cmd_channel.run(cmd)
 
-        if self._tmp_netboot_initrd is not None:
-            cmd = "rm {}".format(self._tmp_netboot_initrd)
-            ret, output = self._cmd_channel.run(cmd)
+        if ret != 0:
+            self._logger.warning(
+                "Failed to remove temporary directory %s: %s",
+                self._tmp_dir,
+                output)
+        self._tmp_dir = None
 
-            if ret != 0:
-                self._logger.warning("Error while removing temporary"
-                                     " initrd file %s: %s",
-                                     self._tmp_netboot_initrd,
-                                     output)
-        else:
-            self._logger.warning("Temporary initrd file does not exist.")
-
-        self._tmp_netboot_initrd = None
-        self._tmp_netboot_kernel = None
-    # clean_tmp_netboot_files()
-
+    # clean_tmp_dir()
 
     def define_netboot(self, domain_xml, boot_params):
         """
@@ -137,16 +178,16 @@ class Virsh(object):
 
         Args:
             domain_xml (str): String containing the domain xml.
-            boot_params (dict): A dictionary contaning information about the
-                                the netboot, as described in the jsonschema
+            boot_params (dict): A dictionary containing information about the
+                                netboot, as described in the jsonschema
                                 kvm/entitites/boot_params_type.json.
 
         Returns:
             None
 
         Raises:
-            RuntimeError: In case there is a error while creating the temporary
-                          files.
+            RuntimeError: In case there is an error while creating the
+                          temporary files.
         """
         kernel_uri = boot_params["kernel_uri"]
         initrd_uri = boot_params["initrd_uri"]
@@ -155,36 +196,14 @@ class Virsh(object):
         self._logger.debug("Defining domain xml for network boot with"
                            " parameters: %s", boot_params)
 
-        if (self._tmp_netboot_initrd is not None or
-                self._tmp_netboot_kernel is not None):
-            self._logger.warning("The kernel and initrd from"
-                                 " a previous netboot still"
-                                 " exist. Performing cleaning up.")
-            self.clean_tmp_netboot_files()
-
-        # create temporary files to hold the kernel and initrd
-        cmd = "mktemp"
-        status, output = self._cmd_channel.run(cmd)
-        if status != 0:
-            raise RuntimeError("Error while creating "
-                               "temporary file in the"
-                               " host: {}".format(output))
-        self._tmp_netboot_kernel = output.strip()
-
-        status, output = self._cmd_channel.run(cmd)
-        if status != 0:
-            raise RuntimeError("Error while creating "
-                               "temporary file in the"
-                               " host: {}".format(output))
-        self._tmp_netboot_initrd = output.strip()
-
         # send kernel and initrd to the temporary files.
-        self._host_cnn.push_file(kernel_uri, self._tmp_netboot_kernel)
-        self._host_cnn.push_file(initrd_uri, self._tmp_netboot_initrd)
+        tmp_kernel = os.path.join(self._get_tmp_dir(), KERNEL_FILENAME)
+        self._host_cnn.push_file(kernel_uri, tmp_kernel)
+        tmp_initrd = os.path.join(self._get_tmp_dir(), INITRD_FILENAME)
+        self._host_cnn.push_file(initrd_uri, tmp_initrd)
 
-        self.define(self._add_boot_tag(domain_xml,
-                                       self._tmp_netboot_kernel,
-                                       self._tmp_netboot_initrd, cmdline))
+        self.define(self._add_boot_tag(
+            domain_xml, tmp_kernel, tmp_initrd, cmdline))
     # define_netboot()
 
     def define(self, domain_xml):
@@ -205,32 +224,24 @@ class Virsh(object):
 
         self._logger.debug("Defining domain xml: %s", domain_xml)
 
+        # create local file with the xml content
         file_descriptor, path = mkstemp(suffix=".xml", text=True)
         tmp_file = open(file_descriptor, "w")
-
         tmp_file.write(domain_xml)
         tmp_file.close()
 
+        # push the local file to the host in our temporary directory
         source_url = "file://" + path
-
-        cmd = "mktemp --suffix='.xml'"
-        status, output = self._cmd_channel.run(cmd)
-        if status != 0:
-            raise RuntimeError("Error while creating "
-                               "temporary file in the"
-                               " host: {}".format(output))
-
-        domain_file = output.strip()
-
+        domain_file = os.path.join(self._get_tmp_dir(), DOMAIN_FILENAME)
         self._host_cnn.push_file(source_url, domain_file)
 
         cmd = "virsh define {}".format(domain_file)
         status, output = self._cmd_channel.run(cmd)
         if status != 0:
-            raise RuntimeError("Error while defining domain: "
-                               "{}".format(output))
+            self._raise_and_cleanup(
+                "Error while defining domain: {}".format(output))
         os.remove(path)
-        cmd = "rm {}".format(domain_file)
+        cmd = "rm -f {}".format(domain_file)
         status, output = self._cmd_channel.run(cmd)
         if status != 0:
             self._logger.warning("Unable to remove "
@@ -257,8 +268,8 @@ class Virsh(object):
         status, output = self._cmd_channel.run(cmd)
 
         if status != 0:
-            raise RuntimeError("Error while destroying domain: "
-                               "{}: {}".format(domain_name, output))
+            self._raise_and_cleanup("Error while destroying domain: "
+                                    "{}: {}".format(domain_name, output))
     # destroy()
 
     def get_dominfo(self, domain_name):
@@ -355,8 +366,8 @@ class Virsh(object):
         status, output = self._cmd_channel.run(cmd)
 
         if status != 0:
-            raise RuntimeError("Error while reseting domain "
-                               "{}: {}".format(domain_name, output))
+            self._raise_and_cleanup("Error while reseting domain "
+                                    "{}: {}".format(domain_name, output))
     # reset()
 
     def start(self, domain_name):
@@ -377,8 +388,8 @@ class Virsh(object):
         cmd = "virsh start {}".format(domain_name)
         status, output = self._cmd_channel.run(cmd)
         if status != 0:
-            raise RuntimeError("Error while starting domain "
-                               "{}: {}".format(domain_name, output))
+            self._raise_and_cleanup("Error while starting domain "
+                                    "{}: {}".format(domain_name, output))
     # start()
 
     def undefine(self, domain_name):
@@ -401,7 +412,9 @@ class Virsh(object):
         status, output = self._cmd_channel.run(cmd)
 
         if status != 0:
-            raise RuntimeError("Error while undefining "
-                               "domain {}: {}".format(domain_name, output))
+            self._raise_and_cleanup(
+                "Error while undefining domain {}: {}".format(
+                    domain_name, output)
+            )
     # undefine()
 # Virsh

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
-Module for the TestGuestKvm class.
+Test module for the guest module.
 """
+
 #
 # IMPORTS
 #
@@ -25,6 +25,7 @@ from tessia_baselib.hypervisors.kvm.guest import GuestKvm
 from tessia_baselib.hypervisors.kvm.guest import create_disk
 from tessia_baselib.hypervisors.kvm.iface import Iface
 from unittest import mock
+from unittest import TestCase
 from unittest.mock import sentinel
 
 import unittest
@@ -36,20 +37,20 @@ import unittest
 #
 # CODE
 #
-class TestCreateDisk(unittest.TestCase):
+class TestCreateDisk(TestCase):
     """
     Class that provides the unit tests for the create_disk factory method.
     """
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.DISK_TYPEMAP", spec_set=True)
-    def test_create_disk_scsi(self, mock_DISK_TYPEMAP):
+    def test_create_disk_scsi(self, mock_disk_typemap):
         """
         Test the factory method create_disk for the regular usage.
         """
         parameters = {"disk_type": "SCSI"}
         mock_disk = mock.Mock(spec_set=DiskBase)
 
-        mock_DISK_TYPEMAP.__getitem__.return_value = mock_disk
-        mock_DISK_TYPEMAP.keys.return_value = ["SCSI", "DASD"]
+        mock_disk_typemap.__getitem__.return_value = mock_disk
+        mock_disk_typemap.keys.return_value = ["SCSI", "DASD"]
         # Exercise the software
         disk = create_disk(parameters, sentinel.target_dev_mngr,
                            sentinel.cmd_channel)
@@ -61,13 +62,13 @@ class TestCreateDisk(unittest.TestCase):
     # test_create_disk_scsi()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.DISK_TYPEMAP", spec_set=True)
-    def test_create_disk_unknow_fails(self, mock_DISK_TYPEMAP):
+    def test_create_disk_unknow_fails(self, mock_disk_typemap):
         """
         Test if the factory method create_disk properly fails when the
         disk_type is unknown.
         """
         parameters = {"disk_type": "OTHER_DISK_TYPE"}
-        mock_DISK_TYPEMAP.keys.return_value = ["SCSI", "DASD"]
+        mock_disk_typemap.keys.return_value = ["SCSI", "DASD"]
         self.assertRaisesRegex(RuntimeError, "Invalid or unknown",
                                create_disk, parameters,
                                sentinel.target_dev_mngr, sentinel.cmd_channel)
@@ -95,6 +96,14 @@ class TestGuestKvm(unittest.TestCase):
 
         patcher = mock.patch("tessia_baselib.hypervisors.kvm.guest.Iface")
         self._mock_iface = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = mock.patch("tessia_baselib.hypervisors.kvm.guest.open",
+                             create=True)
+        self._mock_open = patcher.start()
+        self._mock_template_file = mock.Mock()
+        self._mock_open.return_value.__enter__.return_value = \
+            self._mock_template_file
         self.addCleanup(patcher.stop)
 
         self._parameters = {
@@ -149,8 +158,7 @@ class TestGuestKvm(unittest.TestCase):
     # test_activate()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.uuid", spec_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.guest.open", create=True)
-    def test_to_xml(self, mock_open, mock_uuid):
+    def test_to_xml(self, mock_uuid):
         """
         Test that the guest object is properly converted to xml.
         """
@@ -162,9 +170,6 @@ class TestGuestKvm(unittest.TestCase):
         for iface in self._ifaces:
             iface.to_xml.return_value = iface_xml
 
-        mock_template_file = mock.Mock()
-        mock_open.return_value.__enter__.return_value = mock_template_file
-
         self._guest.to_xml()
 
         for disk in self._disks:
@@ -175,7 +180,7 @@ class TestGuestKvm(unittest.TestCase):
 
         # since we have two disks and two interfaces, it is expected that
         # the content of the xml for disks and ifaces to be concatenated.
-        mock_template_file.read.return_value.format.assert_called_with(
+        self._mock_template_file.read.return_value.format.assert_called_with(
             name=sentinel.guest_name, uuid=str(mock_uuid.uuid4.return_value),
             memory=sentinel.memory,
             cpu=sentinel.cpu, disks=(disk_xml+disk_xml),

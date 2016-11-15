@@ -166,13 +166,14 @@ class GuestBase(metaclass=abc.ABCMeta):
     # pull_file()
 
     @abc.abstractmethod
-    def push_file(self, source_url, target_file_path, write_mode='wb'):
+    def push_file(self, source_url, target_path, write_mode='wb'):
         """
         Retrieve a file from source_url and copy it to a file on this
-        ssh host.
+        ssh host. In concrete classes should raise RuntimeError in case of
+        errors.
 
         Args:
-            source_url (str): Url to which the source file should be copied.
+            source_url (str): url where the source file should be copied from.
                         The following schemes are accepted:
                         ssh://[user[:pass]]@ssh_host[:port]/target/path
                         file:///target/path
@@ -188,8 +189,7 @@ class GuestBase(metaclass=abc.ABCMeta):
                         other components (e.g. the password, which could
                         contain a '/' which must be quoted).
 
-            target_file_path (str): Path of the file in this ssh host to which
-                                    the source will be copied.
+            target_path (str): target filepath in this ssh host
             write_mode (str): Either 'wb' or 'ab', for truncating and appending
                                to the target file, respectively.
 

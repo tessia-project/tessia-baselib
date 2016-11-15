@@ -1,13 +1,19 @@
 {
-  "type": "object",
-  "properties": {
-    "attributes": {
-      "type": "object",
-      "properties": {
-	"libvirt": {"type": "string"}
-      },
-      "required": ["libvirt"]
+    "required": [
+        "attributes"
+    ],
+    "type": "object",
+    "properties": {
+        "attributes": {
+            "required": [
+                "libvirt"
+            ],
+            "type": "object",
+            "properties": {
+                "libvirt": {
+                    "type": "string"
+                }
+            }
+        }
     }
-  },
-  "required": ["attributes"]
 }

@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
-Module for TestIface class.
+Test module for iface module.
 """
+
 #
 # IMPORTS
 #
@@ -23,8 +23,8 @@ from tessia_baselib.hypervisors.kvm.iface import Iface
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 from unittest import mock
+from unittest import TestCase
 
-import unittest
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -33,10 +33,11 @@ IFACE_PARAMS = {
         "libvirt": "some xml"
     }
 }
+
 #
 # CODE
 #
-class TestIface(unittest.TestCase):
+class TestIface(TestCase):
     """
     Class for testing of Ifaces.
     """

@@ -15,6 +15,7 @@
 """
 Module for HypervisorKvm class
 """
+
 #
 # IMPORTS
 #
@@ -33,7 +34,6 @@ from tessia_baselib.hypervisors.kvm.virsh import Virsh
 # CODE
 #
 
-# pylint:disable=abstract-method
 class HypervisorKvm(HypervisorBase):
     """
     This class implements the driver to support the KVM hypervisor type
@@ -76,8 +76,8 @@ class HypervisorKvm(HypervisorBase):
             str(self.parameters)
         )
 
-        #a KVM hypervisor is also a linux guest, so we establish connection
-        #with it using the GuestLinux class.
+        # a KVM hypervisor is also a linux guest, so we establish connection
+        # with it using the GuestLinux class.
         self._host_cnn = GuestLinux(system_name, host_name, user,
                                     passwd, parameters)
         self._host_session = None
@@ -184,15 +184,13 @@ class HypervisorKvm(HypervisorBase):
 
         virsh = Virsh(self._host_cnn, self._host_session)
 
-        #perform clean up before starting
+        # vm is already running: stop it
         if virsh.is_running(guest_name):
             virsh.destroy(guest_name)
-        if virsh.is_defined(guest_name):
-            virsh.undefine(guest_name)
 
         guest_kvm = GuestKvm(guest_name, cpu, memory,
                              parameters, self._host_session)
-        #Activate all hardware
+        # Activate all hardware
         guest_kvm.activate()
 
         domain_xml = guest_kvm.to_xml()
@@ -200,18 +198,27 @@ class HypervisorKvm(HypervisorBase):
             parameters.get("parameters") is not None and
             parameters.get("parameters").get("boot_method") == "network")
 
+        # domain already defined in libvirt: remove it to avoid error when
+        # trying to re-define
+        if virsh.is_defined(guest_name):
+            virsh.undefine(guest_name)
+
+        # network boot: define a temporary domain xml using kernel/initrd
+        # to boot
         if is_netboot:
             virsh.define_netboot(
                 domain_xml,
-                parameters.get("parameters").get("boot_options"))
+                parameters["parameters"]["boot_options"])
+        # no netboot: use the final domain xml
         else:
             virsh.define(domain_xml)
 
         virsh.start(guest_name)
 
+        # netboot performed: re-define domain to remove temporary boot tag
         if is_netboot:
-            virsh.clean_tmp_netboot_files()
             virsh.define(domain_xml)
+            virsh.clean_tmp_dir()
     # start()
 
     @validate_params
@@ -284,6 +291,5 @@ class HypervisorKvm(HypervisorBase):
                                "running".format(guest_name))
 
         virsh.destroy(guest_name)
-        virsh.undefine(guest_name)
     # stop()
 # HypervisorKvm

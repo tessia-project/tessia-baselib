@@ -49,9 +49,13 @@ class TargetDeviceManager(object):
         Raises:
             None
         """
+        # device names (i.e. vda, vdb)
         self._dev_blacklist = []
+        # the devno parameters (i.e. 0xffba)
         self._devno_blacklist = []
-        self._valid_devs = TargetDeviceManager._valid_devs_generator()
+        # generator to be called whenever a new dev name is needed
+        self._generate_devname = TargetDeviceManager._valid_devs_generator()
+        # beginning of the devno range
         self._next_devno = 0x0001
     # __init__()
 
@@ -101,18 +105,20 @@ class TargetDeviceManager(object):
             str: the next valid device name.
 
         Raises:
-            RuntimeError: In case there is no more device available.
+            RuntimeError: In case there is no more devices available.
         """
 
         try:
-            valid_dev = next(self._valid_devs)
-            # generate device names until not in blacklist
-            while valid_dev in self._dev_blacklist:
-                valid_dev = next(self._valid_devs)
+            new_devname = next(self._generate_devname)
+            # generate new device name until it is not in blacklist
+            while new_devname in self._dev_blacklist:
+                new_devname = next(self._generate_devname)
         except StopIteration:
             raise RuntimeError("Out of valid devices")
-        self._dev_blacklist.append(valid_dev)
-        return valid_dev
+
+        # add the new devname to the list to avoid conflicts
+        self._dev_blacklist.append(new_devname)
+        return new_devname
     # get_valid_dev()
 
     def get_valid_devno(self):

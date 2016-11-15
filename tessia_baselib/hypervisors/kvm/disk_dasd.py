@@ -96,7 +96,7 @@ class DiskDasd(DiskBase):
         self._logger.debug("DiskDasd devicenr=%s attached.",
                            self._devicenr)
 
-        #update the source dev
+        # update the source device path
         self._source_dev = DASD_DEVPATH + self._devicenr
     # attach()
 # DiskDasd

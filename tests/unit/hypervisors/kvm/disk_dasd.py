@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#pylint:skip-file
 """
-Module for TestDiskDasd class.
+Test module for disk_dasd module.
 """
+
 #
 # IMPORTS
 #
@@ -24,10 +24,9 @@ from tessia_baselib.hypervisors.kvm.disk import DiskBase
 from tessia_baselib.hypervisors.kvm.disk_dasd import DiskDasd
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
-
 from unittest import mock
+from unittest import TestCase
 
-import unittest
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -35,15 +34,15 @@ PARAMS_DASD = {
     "disk_type": "DASD",
     "volume_id": "3961",
 }
-# The DEVICE path for a dasd disk was
-#copied here to detect future changes in the format
-#(eg.: by an udev update)
+# The DEVICE path for a dasd disk was copied here to detect future changes in
+# the format (eg.: by an udev update)
 DASD_DEVPATH = "/dev/disk/by-path/ccw-0.0."
+
 #
 # CODE
 #
 
-class TestDiskDasd(unittest.TestCase):
+class TestDiskDasd(TestCase):
     """
     Class that provides unit tests for the DiskDasd class.
     """
@@ -74,10 +73,12 @@ class TestDiskDasd(unittest.TestCase):
                          PARAMS_DASD.get("volume_id"))
     # test_init()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer", autospec=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase", autospec=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase",
+                autospec=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer",
+                autospec=True)
     @mock.patch.object(DiskBase, "_enable_device")
-    def test_activate(self, mock_enable_device, mock_disk_base, mock_timer):
+    def test_activate(self, mock_enable_device, mock_timer, *args, **kwargs):
         """
         Test the activation of the disk when it is not active.
         """
@@ -98,11 +99,12 @@ class TestDiskDasd(unittest.TestCase):
         self.assertEqual(disk._source_dev, DASD_DEVPATH + disk._devicenr)
     # test_activate()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer", autospec=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase", autospec=True)
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase",
+                autospec=True)
     @mock.patch.object(DiskBase, "_enable_device")
-    def test_already_activated(self, mock_enable_device,
-                               mock_disk_base, mock_timer):
+    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer",
+                autospec=True)
+    def test_already_activated(self, mock_timer, *args, **kwargs):
         """
         Test the case that the disk is already activated.
         """
