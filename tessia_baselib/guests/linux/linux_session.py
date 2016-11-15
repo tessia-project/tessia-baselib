@@ -76,6 +76,7 @@ class GuestSessionLinux(GuestSessionBase):
         Args:
             cmd (str): command to execute
             timeout (int): seconds to wait for response
+            ignore_ret (bool): ignore command return
 
         Returns:
             tuple: (integer_exit_code, string_output)

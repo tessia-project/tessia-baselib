@@ -54,7 +54,7 @@ class GuestSessionBase(metaclass=abc.ABCMeta):
     # close()
 
     @abc.abstractmethod
-    def run(self, cmd, timeout=120):
+    def run(self, cmd, timeout=120, ignore_ret=False):
         """
         Execute a command and wait timeout seconds for the completion.
         It should raise the following exceptions:
@@ -64,6 +64,7 @@ class GuestSessionBase(metaclass=abc.ABCMeta):
         Args:
             cmd (str): command to execute
             timeout (int): seconds to wait for response
+            ignore_ret (bool): ignore command return
 
         Returns:
             tuple (integer_exit_code, string_output)
