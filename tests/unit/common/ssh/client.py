@@ -777,6 +777,26 @@ class TestSshClientConnected(TestCase):
                                     url, target_path,
                                     source_path, target_path)
 
+    def test_reusing_sftp_session(self):
+        """
+        Test if we are reusing the sftp session.
+
+        Args:
+        Returns:
+        Raises:
+        """
+        file_path = '/source/file'
+        other_file_path = '/source/file2'
+        mode = 'wb'
+
+        self._client.open_file(file_path, mode)
+        sftp_conn = self._client._sftp_conn
+
+        # Try to open another file to make sure we are
+        # reusing the sftp session.
+        self._client.open_file(other_file_path, mode)
+        self.assertIs(sftp_conn, self._client._sftp_conn)
+
     @mock.patch('urllib.request', autospec=True)
     def test_push_ftp_bad_length(self, request_mock):
         """
@@ -940,11 +960,13 @@ class TestSshClientNotConnected(TestCase):
                            user=USERNAME, passwd=PASSWORD)
 
         self.assertEqual(self._client._ssh_client.connect.call_count, 1)
-        self.assertEqual(self._client._ssh_client.open_sftp.call_count, 1)
+        # Make sure we are not opening a sftp session
+        self.assertEqual(self._client._ssh_client.open_sftp.call_count, 0)
 
         # Make sure the connection objects were created.
         self.assertIsNot(self._client._ssh_client, None)
-        self.assertIsNot(self._client._sftp_conn, None)
+        # The sftp session is not open just by issuing a login
+        self.assertIs(self._client._sftp_conn, None)
 
     def test_login_auth_exception(self):
         """
@@ -992,33 +1014,6 @@ class TestSshClientNotConnected(TestCase):
         self.assertEqual(str(assert_raises_contex.exception.__cause__),
                          exception_text)
 
-    def test_login_open_sftp_exception(self):
-        """
-        Test a login that fails when opening the sftp
-        channel fails.
-
-        Args:
-        Returns:
-        Raises:
-        """
-        exception_text = 'test text for exception'
-
-        # Force open_sftp to raise an exception
-        (self._paramiko_client_class_mock
-         .return_value
-         .open_sftp
-         .side_effect) = Exception(exception_text)
-
-        with self.assertRaises(ConnectionError) as assert_raises_contex:
-            self._client.login(host_name=HOST_NAME, port=PORT,
-                               user=USERNAME, passwd=PASSWORD)
-
-        self.assertEqual(str(assert_raises_contex.exception.__cause__),
-                         exception_text)
-
-        self.assertIs(self._client._ssh_client, None)
-        self.assertIs(self._client._sftp_conn, None)
-
     def test_login_active_connection(self):
         """
         Test a login with a class that has already logged in.
@@ -1051,7 +1046,8 @@ class TestSshClientNotConnected(TestCase):
                            user=USERNAME, passwd=PASSWORD)
 
         self.assertIsNot(self._client._ssh_client, None)
-        self.assertIsNot(self._client._sftp_conn, None)
+        # The sftp session is only open when necessary.
+        self.assertIs(self._client._sftp_conn, None)
 
         self._client.logoff()
 
@@ -1077,6 +1073,37 @@ class TestSshClientNotConnected(TestCase):
         # Check if the logger issued a warning.
         self.assertTrue(self._client._logger.warning.called)
 
+    def test_open_file_sftp_exception(self):
+        """
+        Test the case the open_file fails due to an error
+        while opening the sftp session.
+
+        Args:
+        Returns:
+        Raises:
+        """
+        exception_text = 'test text for exception'
+        file_path = "/tmp/file"
+        mode = "w"
+
+        # Force open_sftp to raise an exception
+        (self._paramiko_client_class_mock
+         .return_value
+         .open_sftp
+         .side_effect) = Exception(exception_text)
+
+        with self.assertRaises(ConnectionError) as assert_raises_contex:
+            self._client.login(host_name=HOST_NAME, port=PORT,
+                               user=USERNAME, passwd=PASSWORD)
+            self._client.open_file(file_path, mode)
+
+        self.assertEqual(str(assert_raises_contex.exception.__cause__),
+                         exception_text)
+
+        # The failure to open a file due to a error in the sftp session
+        # should not close the ssh connection.
+        self.assertIsNot(self._client._ssh_client, None)
+        self.assertIs(self._client._sftp_conn, None)
 
 if __name__ == '__main__':
     unittest_main()

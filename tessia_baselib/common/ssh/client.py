@@ -239,6 +239,33 @@ class SshClient(object):
         return other_ssh_client
     # _make_ssh_client()
 
+    def _open_sftp_session(self):
+        """
+        Open a sftp session if it is not open yet.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            ConnectionError: If there is an error while creating the session.
+        """
+        # Verify if there is an open sftp session.
+        if self._sftp_conn is not None:
+            return
+
+        # It is not obligatory to close the ssh connection if the sftp session
+        # fails to open.
+        try:
+            sftp_conn = self._ssh_client.open_sftp()
+        except Exception as exc:
+            raise ConnectionError(str(exc)) from exc
+
+        self._sftp_conn = sftp_conn
+    # _open_sftp_session()
+
     def _pull_to_file(self, source_file_path, target_file_path,
                       write_mode):
         """
@@ -416,6 +443,7 @@ class SshClient(object):
 
         """
         self._assert_connected()
+        self._open_sftp_session()
 
         # perform sanity check
         try:
@@ -507,15 +535,8 @@ class SshClient(object):
             # the underlying implementation
             raise ConnectionError(str(exc)) from exc
 
-        try:
-            sftp_conn = ssh_client.open_sftp()
-        except Exception as exc:
-            ssh_client.close()
-            raise ConnectionError(str(exc)) from exc
-
         # store instance values
         self._ssh_client = ssh_client
-        self._sftp_conn = sftp_conn
 
         self._private_key_path = private_key_path
         self._timeout = timeout
@@ -546,8 +567,10 @@ class SshClient(object):
         # connection
         self._logger.debug('closing connection')
 
-        self._sftp_conn.close()
-        self._sftp_conn = None
+        # A sftp session could not be open
+        if self._sftp_conn is not None:
+            self._sftp_conn.close()
+            self._sftp_conn = None
 
         self._ssh_client.close()
         self._ssh_client = None
@@ -569,6 +592,7 @@ class SshClient(object):
         """
 
         self._assert_connected()
+        self._open_sftp_session()
 
         return self._sftp_conn.open(file_path, mode)
     # open_file()
@@ -653,6 +677,7 @@ class SshClient(object):
             None
         """
         self._assert_connected()
+        self._open_sftp_session()
 
         # try to open a file descriptor to file
         try:
