@@ -15,13 +15,14 @@
 """
 S3270PipeConnector unittest
 """
-# pylint: disable=no-member,attribute-defined-outside-init,no-self-use
+# pylint: disable=no-member,attribute-defined-outside-init,no-self-use,line-too-long
 #
 # IMPORTS
 #
 from unittest.mock import patch, Mock
 from unittest import TestCase
 from tessia_baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
+from subprocess import TimeoutExpired
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -56,9 +57,6 @@ class TestS3270PipeConnector(TestCase):
         self.mock_rv.stdout.fileno.return_value = 5
         self.mock_rv.stdin.fileno.return_value = 4
 
-        #[
-        #    "L U U N N 4 24 80 0 0 0x0 -\n", "ok\n"
-        #]
         self.mock_popen.return_value = self.mock_rv
 
         self.poll_patcher = patch('select.epoll', autospec=True)
@@ -160,8 +158,6 @@ class TestS3270PipeConnector(TestCase):
 
         # simple command execution
         s3270_connector.quit()
-        #self.assertEqual('ok', status)
-        #self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
     # test_quit_command()
 
     def test_stdin_not_ready(self):
@@ -294,5 +290,55 @@ class TestS3270PipeConnector(TestCase):
         # simple command execution
         self.assertRaises(TimeoutError, s3270_connector.run, "Clear")
     # test_command_read_timeout()
+
+    def test_terminate_command(self):
+        """
+        Exercise a normal execution of a command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # create new instance of s3270 connector using Pipes
+        s3270_connector = S3270PipeConnector()
+
+        # simple command execution
+        s3270_connector.terminate()
+    # test_terminate_command()
+
+    def test_terminate_timeout_command(self):
+        """
+        Exercise a normal execution of a command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+
+        self.mock_communicate = Mock()
+        self.mock_communicate.communicate.side_effect = TimeoutExpired("cmd", 60)
+
+        self.mock_popen.return_value = self.mock_communicate
+
+        # create new instance of s3270 connector using Pipes
+        s3270_connector = S3270PipeConnector()
+
+        # simple command execution
+        self.assertRaises(
+            TimeoutExpired,
+            s3270_connector.terminate,
+            "timeout=60"
+        )
+    # test_terminate_timeout_command()
 
 # TestS3270PipeConnector

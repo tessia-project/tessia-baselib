@@ -905,6 +905,27 @@ class TestS3270(TestCase):
         self.assertRaises(TimeoutError, s3270.string, 'ascii')
     # test_string_timeout()
 
+    def test_terminate_ok(self):
+        """
+        Exercise terminate  command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        s3270.terminate()
+        self.assertIsNone(s3270._s3270)
+    # test_terminate_ok()
+
     def test_transfer_ok(self):
         """
         Exercise a normal transfer command
