@@ -420,10 +420,41 @@ dict = {'a': 2, 'b': 3}
     # now you easily know that CONSTANT_B is defined in moduleB
     print(CONSTANT_B)
 ```
-# Avoid instance creation during module loading
+## Avoid instance creation during module loading
 
-- Defining objects at module loading time might be a convenient when a singleton-like approach is wanted, but might become a problem when mocking during unit testing.
-- 
+- Creating objects or connections just once upon the first module loading might be convenient when a singleton-like approach is wanted, but is a problem when mocking during unit testing.
+- As an alternative, you can use a delayed access approach with property decorators.
+
+### Noncompliant example
+
+```python
+def connect():
+    ...
+    return session
+
+db_session = connect()
+```
+
+### Compliant example
+```python
+class DbConnection(object):
+    def __init__(self):
+        ...
+        self._conn = None
+    ...
+
+    @property
+    def session(self):
+        if self._conn is None:
+            self._conn = self._connect()
+        return self._conn
+    ...
+# DbConnection
+
+# for unit tests db._conn can be set to None which forces a new connection to
+# be created
+db = DbConnection()
+```
 
 # Naming conventions
 
@@ -860,7 +891,7 @@ class TestMyModule(TestCase):
 
 - **Rationale:** avoid code duplication.
 - It's very common to use the same patches/mocks in different testcase methods in the same unit test which leads to duplicated code. Try to group the patching/mocking in the setUp method and when necessary set the specific mock behavior in the testcase method.
-- When doing patching in the setUp do not forget to stop the patching after the testcase method finishes by either calling addCleanup and providing the patcher.stop or calling patcher.stop in tearDown method.
+- When doing patching in the setUp do not forget to stop the patching after the testcase method finishes by calling addCleanup and providing the patcher.stop method.
 
 ### Noncompliant example
 
