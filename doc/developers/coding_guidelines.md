@@ -27,6 +27,7 @@ limitations under the License.
     - [Sort methods and functions by name](#sort-methods-and-functions-by-name)
     - [Sort imports by name and type](#sort-imports-by-name-and-type)
     - [Never import using a wildcard](#never-import-using-a-wildcard)
+    - [Avoid instance creation during module loading](#avoid-instance-creation-during-module-loading)
 - [Naming conventions](#naming-conventions)
     - [Class names](#class-names)
     - [Other names](#other-names)
@@ -41,6 +42,10 @@ limitations under the License.
     - [Do not use 'else' after an 'if' that always returns](#do-not-use-else-after-an-if-that-always-returns)
     - [If an 'else' always returns make it be the 'if' by inverting the condition](#if-an-else-always-returns-make-it-be-the-if-by-inverting-the-condition)
 - [Exception handling](#exception-handling)
+- [Unit Tests](#unit-tests)
+    - [Do not turn off pylint verification in your tests](#do-not-turn-off-pylint-verification-in-your-tests)
+    - [Group patching and mocking under setUp](#group-patching-and-mocking-under-setup)
+    - [Add a comment to each action of the testcase](#add-a-comment-to-each-action-of-the-testcase)
 - [TODO markers](#todo-markers)
 - [Misc guidelines](#misc-guidelines)
 
@@ -414,6 +419,41 @@ dict = {'a': 2, 'b': 3}
 
     # now you easily know that CONSTANT_B is defined in moduleB
     print(CONSTANT_B)
+```
+## Avoid instance creation during module loading
+
+- Creating objects or connections just once upon the first module loading might be convenient when a singleton-like approach is wanted, but is a problem when mocking during unit testing.
+- As an alternative, you can use a delayed access approach with property decorators.
+
+### Noncompliant example
+
+```python
+def connect():
+    ...
+    return session
+
+db_session = connect()
+```
+
+### Compliant example
+```python
+class DbConnection(object):
+    def __init__(self):
+        ...
+        self._conn = None
+    ...
+
+    @property
+    def session(self):
+        if self._conn is None:
+            self._conn = self._connect()
+        return self._conn
+    ...
+# DbConnection
+
+# for unit tests db._conn can be set to None which forces a new connection to
+# be created
+db = DbConnection()
 ```
 
 # Naming conventions
@@ -798,10 +838,139 @@ class Calculator(object):
    - You might need to do some cleanup (e.g. closing files). In these cases you can also catch ```BaseException```, but remember to re-raise it. However, prefer using context managers (```with``` keyword) or ```try...finally``` instead.
 - If you need to substitute an exception by raising another exception inside of an ```except``` block, use the construct ```raise X from Y```. This way, the ```__cause__``` attribute in X will be set to Y, and the original exception will be known.
 
+# Unit tests
+
+## Do not turn off pylint verification in your tests
+
+- **Rationale:** avoid creating code not compliant with guidelines.
+- Although for unit tests some special behaviors apply (like accessing protected variables), you should not turn off pylint verification completely as it will skip other rules that should otherwise be enforced (i.e. variable naming, line too long).
+- Instead, you can skip pylint verification in a local basis (i.e. add the `pylint disable` directive in front of the statement) or if it applies to many cases you can use the statement in a broader scope (method, class or even module) but only for the rule in question.
+- If the exception is so common that also applies to other tests/modules consider adding the directive to the pylintrc file.
+
+### Noncompliant examples
+
+```python
+# pylint:skip-file
+"""
+Test for module foo
+"""
+...
+class TestModuleFoo(TestCase):
+    ...
+```
+
+```python
+...
+#
+# CODE
+#
+# pylint: disable=all
+class TestMyModule(TestCase):
+...
+```
+
+### Compliant example
+
+```python
+#
+# CODE
+#
+class TestMyModule(TestCase):
+    ...
+    def test_attribute_foo(self):
+        ...
+        self.assertIs(
+            self.object_bar.attribute_foo, None) # pylint: disable=no-member
+        )
+    # test_attribute_foo()
+    ...
+# TestMyModule
+```
+
+## Group patching and mocking under setUp
+
+- **Rationale:** avoid code duplication.
+- It's very common to use the same patches/mocks in different testcase methods in the same unit test which leads to duplicated code. Try to group the patching/mocking in the setUp method and when necessary set the specific mock behavior in the testcase method.
+- When doing patching in the setUp do not forget to stop the patching after the testcase method finishes by calling addCleanup and providing the patcher.stop method.
+
+### Noncompliant example
+
+```python
+    @mock.patch("module_foo.object_foo", autospec=True)
+    @mock.patch("module_x.module_bar.object_bar", autospec=True)
+    @mock.patch("module_y.module_z.object_y", autospec=True)
+    def test_success(self, mock_object_y, mock_object_bar, mock_object_foo):
+        ...
+        mock_object_foo.return_value = 5
+        mock_object_bar.side_effect = ['success', 'success']
+        mock_object_y.return_value = sentinel.ret_object_y
+        ...
+        # behavior verification
+        mock_object_foo.assert_called_with()
+        ...
+    ...
+
+    @mock.patch("module_foo.object_foo", autospec=True)
+    @mock.patch("module_x.module_bar.object_bar", autospec=True)
+    @mock.patch("module_y.module_z.object_y", autospec=True)
+    def test_fail(self, mock_object_y, mock_object_bar, mock_object_foo):
+        ...
+        mock_object_foo.return_value = 5
+        mock_object_bar.side_effect = ['success', 'failed']
+        mock_object_y.return_value = sentinel.ret_object_y
+        ...
+        # behavior verification
+        mock_object_foo.assert_called_with()
+        ...
+```
+
+### Compliant example
+
+```python
+    def setUp(self):
+        """
+        Prepare necessary objects before executing each testcase
+        """
+        patcher = patch("module_foo.object_foo", autospec=True)
+        self._mock_object_foo = patcher.start()
+        self.addCleanup(patcher.stop)
+        self._mock_object_foo.return_value = 5
+
+        patcher = patch("module_x.module_bar.object_bar", autospec=True)
+        self._mock_object_bar = patcher.start()
+        self.addCleanup(patcher.stop)
+        self._mock_object_bar.side_effect = ['success', 'success']
+
+        patcher = patch("module_y.module_z.object_y", autospec=True)
+        self._mock_object_y = patcher.start()
+        self.addCleanup(patcher.stop)
+        self._mock_object_y.return_value = sentinel.ret_object_y
+
+    # setUp()
+
+    def test_success(self):
+        ...
+        # behavior verification
+        self._mock_object_foo.assert_called_with()
+        ...
+
+    def test_fail(self):
+        ...
+        self._mock_object_bar.side_effect = ['success', 'failed']
+        ...
+        # behavior verification
+        self._mock_object_foo.assert_called_with()
+        ...
+```
+## Add a comment to each action of the testcase
+
+- **Rationale:** make test code easier to understand and maintain.
+- Like for normal code it's important to add comments explaining the purpose of a logical block in a testcase so that it's immediate clear what the test is doing.
+
 # TODO markers
 
+- **Rationale:**make sure we can easily search for any TODOs left.
 - Only use the marker TODO when marking code sections for improvement.
-- **Rationale**: make sure we can easily search for any TODOs left.
 
 # Misc guidelines
 
