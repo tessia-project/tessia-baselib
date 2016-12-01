@@ -254,7 +254,13 @@ class HypervisorKvm(HypervisorBase):
             raise RuntimeError("Domain {} is not "
                                "running".format(guest_name))
 
-        virsh.reset(guest_name)
+        # We cannot use "virsh reset" here since it won't work if we do a
+        # network boot. This happens due to the fact that we redefine
+        # a running domain (we remove the kernel, initrd, and cmdline tags),
+        # and libvirt seems to still use the domain that was used in the start
+        # while performing the reset operation.
+        virsh.destroy(guest_name)
+        virsh.start(guest_name)
     # reboot()
 
     @validate_params
