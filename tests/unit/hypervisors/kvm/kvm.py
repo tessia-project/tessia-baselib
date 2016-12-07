@@ -221,7 +221,8 @@ class TestHypervisorKvm(unittest.TestCase):
         mock_virsh.return_value.is_running.return_value = True
         self._hyp.login()
         self._hyp.reboot(guest_name, parameters_stop)
-        mock_virsh.return_value.reset.assert_called_with(guest_name)
+        mock_virsh.return_value.destroy.assert_called_with(guest_name)
+        mock_virsh.return_value.start.assert_called_with(guest_name)
     # test_reboot()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.kvm.Virsh", spec_set=True)
