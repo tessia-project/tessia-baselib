@@ -1,21 +1,32 @@
 {
-  "properties": {
-    "kernel_url": {"type": "string",
-       "format": "uri"},
-    "initrd_url": {"type": "string",
-       "format": "uri"},
-    "cmdline": {"type": "string",
-       "maxLength": 4096},
-    "mac": {"type": "string",
-        "maxLength": 17},
-    "ip": {"type": "string",
-        "maxLength": 16},
-    "mask": {"type": "string",
-        "maxLength": 16},
-    "gateway": {"type": "string",
-        "maxLength": 16},
-    "device": {"type": "string",
-        "maxLength": 14}
+  "definitions": {
+    "scsi": {
+      "properties": {
+        "zfcp_devicenr": {"$ref": "../../common/entities/devicenr_type.json"},
+        "lun": {"type": "string"},
+        "wwpn": {"type": "string"}
+      },
+      "required": ["zfcp_devicenr", "lun", "wwpn"]
+    },
+    "dasd": {
+      "properties": {
+        "devicenr": {"$ref": "../../common/entities/devicenr_type.json"}
+      },
+      "required": ["devicenr"]
+    },
+    "network": {"$ref": "../entities/netboot_params_type.json"}
   },
-  "required": ["kernel_url", "initrd_url", "cmdline", "mac", "ip", "mask", "gateway", "device"]
+  "properties": {
+    "boot_method": {
+      "type": "string",
+      "enum": ["scsi", "dasd", "network"]
+    },
+   "oneOf": [
+      {"$ref": "#/definitions/scsi"},
+      {"$ref": "#/definitions/dasd"},
+      {"$ref": "#/definitions/network"}
+    ]
+  },
+  "type": "object",
+  "required": ["boot_method"]
 }

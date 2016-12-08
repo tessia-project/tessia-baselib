@@ -358,14 +358,15 @@ class HypervisorHmc(HypervisorBase):
 
         lpar.send_os_command("cio_ignore -r {}".format(channels))
         lpar.send_os_command(
-            "znetconf -a {} -o portname=osaport".format(ch_list[0])
+            "znetconf -a {} -o portname=osaport".format(
+                ch_list[0].replace("0.0.", ""))
         )
         lpar.send_os_command(
             "ifconfig enc{} hw ether {}".format(ch_list[0], mac_addr)
         )
         lpar.send_os_command(
             "ifconfig enc{} {} netmask {}".format(
-                ch_list[0], ip_addr, subnet_addr
+                ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr
             )
         )
         lpar.send_os_command("route add default gw {}".format(gw_addr))
