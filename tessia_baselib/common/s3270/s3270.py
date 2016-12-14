@@ -61,11 +61,14 @@ class S3270(object):
         self._s3270 = S3270PipeConnector()
     # __init__()
 
-    def ascii(self, timeout=60):
+    def ascii(self, param=None, timeout=60):
         """
         Send an Ascii command to s3270
 
         Args:
+            param (list): row,col,rows,cols
+                          row,col,length
+                          length
             timeout (int): how many seconds to wait for action to complete
 
         Returns:
@@ -75,8 +78,17 @@ class S3270(object):
             TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
+        cmd = "Ascii"
+        # add parameters to Ascii command
+        if param is not None and len(param) > 0:
+            cmd = "Ascii("
+            for item in param:
+                cmd += str(item)+","
+            # remove last ',' and add ')'
+            cmd = cmd[:-1]+")"
+
         try:
-            (status, output) = self._s3270.run('Ascii', timeout)
+            (status, output) = self._s3270.run(cmd, timeout)
         except TimeoutError:
             self._logger.exception('Timeout while executing Ascii:')
             raise
