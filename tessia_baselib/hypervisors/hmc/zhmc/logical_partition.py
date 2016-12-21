@@ -21,16 +21,12 @@ Logical Partition Abstraction
 #
 from datetime import timedelta
 from tessia_baselib.common.logger import get_logger
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 
 import time
 
 #
 # CONSTANTS AND DEFINITIONS
 #
-
-# default json request timeout (seconds)
-DEFAULT_JSON_REQUEST_TIMEOUT = 60
 
 #
 # CODE
@@ -88,7 +84,7 @@ class LogicalPartition(object):
         return properties
     # get_properties()
 
-    def activate(self, image_profile=None, force=False):
+    def activate(self, image_profile=None):
         """
         This method activates the lpar, putting it in a 'not-operating' status.
 
@@ -96,8 +92,6 @@ class LogicalPartition(object):
             image_profile (str): image activation profile name. If not set, HMC
                                  will use the profile present in the parameter
                                  'next-activation-profile'
-            force (bool): when true we have the right to force activation if
-                          the partition is in "operating" status
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -108,30 +102,26 @@ class LogicalPartition(object):
         """
 
         param = dict()
-
-        if force:
-            param['force'] = force
+        param['force'] = True
 
         if image_profile is not None:
             param['activation-profile-name'] = image_profile
 
         job = self._issue_operation(
             "activate",
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT,
             arg_dict=param
         )
 
         return job
     # activate()
 
-    def deactivate(self, force=False):
+    def deactivate(self):
         """
         This method deactivates the lpar, putting it in a 'not-activated'
         status.
 
         Args:
-            force (bool): when true we have the right to force deactivation
-                          if the partition is in "operating" status
+            None
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -142,28 +132,23 @@ class LogicalPartition(object):
         """
 
         param = dict()
-
-        if force:
-            param['force'] = force
+        param['force'] = True
 
         job = self._issue_operation(
             "deactivate",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # deactivate()
 
-    def load(self, load_address, force=True):
+    def load(self, load_address):
         """
         This method is used to perform the operation of initial program load,
         or just load for short.
 
         Args:
             load_address (str): disk address to perform the IPL.
-            force (bool): when true we have the right to force ipl if the
-                          partition is in "operating" status
 
         Returns:
             dict: a dictionary that contains what the hmc returns after
@@ -176,20 +161,17 @@ class LogicalPartition(object):
         param = dict()
 
         param['load-address'] = load_address
-
-        if force:
-            param['force'] = force
+        param['force'] = True
 
         job = self._issue_operation(
             "load",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # load()
 
-    def scsi_load(self, load_address, wwpn, lun, force=False):
+    def scsi_load(self, load_address, wwpn, lun):
         """
         This method is used to perform the operation of initial program load,
         or just load for short, from a SCSI device.
@@ -200,8 +182,6 @@ class LogicalPartition(object):
                         be used for this operation, in hexadecimal.
             lun (str): hexadecimal logical unit number to be used for the SCSI
                        Load.
-            force (bool): when true we have the right to force ipl if the
-                          partition is in "operating" status
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -215,18 +195,41 @@ class LogicalPartition(object):
         param['load-address'] = load_address
         param['world-wide-port-name'] = wwpn
         param['logical-unit-number'] = lun
-
-        if force:
-            param['force'] = force
+        param['force'] = True
 
         job = self._issue_operation(
             "scsi-load",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # scsi_load()
+
+    def send_os_command(self, command):
+        """
+        This method is used to perform the operation of initial program load,
+        or just load for short, from a SCSI device.
+
+        Args:
+            command (str): linux command
+
+        Returns:
+            dict: contains what the hmc returns after executing the operation,
+                  plus some info regarding the time needed to fulfill it
+
+        Raises:
+            None
+        """
+        param = dict()
+        param['operating-system-command-text'] = command
+
+        job = self._issue_operation(
+            "send-os-cmd",
+            arg_dict=param
+        )
+
+        return job
+    # send_os_command()
 
     def stop(self):
         """
@@ -244,15 +247,12 @@ class LogicalPartition(object):
             None
         """
 
-        job = self._issue_operation(
-            "stop",
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
-        )
+        job = self._issue_operation("stop")
 
         return job
     # stop()
 
-    def reset_clear(self, force=False):
+    def reset_clear(self):
         """
         This method is used to perform the 'reset-clear' operation on a LPAR.
         The Reset Clear operation initializes system or logical partition by
@@ -272,20 +272,17 @@ class LogicalPartition(object):
             None
         """
         param = dict()
-
-        if force:
-            param['force'] = force
+        param['force'] = True
 
         job = self._issue_operation(
             "reset-clear",
-            arg_dict=param,
-            timeout=DEFAULT_JSON_REQUEST_TIMEOUT
+            arg_dict=param
         )
 
         return job
     # reset_clear()
 
-    def _issue_operation(self, operation, timeout, arg_dict=None):
+    def _issue_operation(self, operation, arg_dict=None):
         """
         Auxiliary method.
         Its role is to start the execution of the basic operations of an
@@ -296,8 +293,6 @@ class LogicalPartition(object):
         Args:
             operation (str): name of the operation we want to issue, in
                              compliance with the Web Services documentation.
-            timeout (int): how long we should wait for the asynchronous
-                           operation to finish before raising an error.
             arg_dict (dict) : argument dictionary will take the place of the
                               body in the POST request if provided
 
@@ -308,40 +303,20 @@ class LogicalPartition(object):
         Raises:
             ZHmcError: in case of timeout
         """
-        start_status = self.status
+        start_time = time.time()
 
         action = self.uri + "/operations/" + operation
 
-        response = self._hmc.session.json_request(
+        self._hmc.session.json_request(
             "POST",
             action,
             body=arg_dict
         )
 
-        start_time = time.time()
-        timeout_time = start_time + timeout
-        while time.time() <= timeout_time:
-            job = self._hmc.session.json_request(
-                "GET",
-                response['job-uri']
-            )
-            if job['status'] != 'running':
-                break
-            time.sleep(1)
-
-        if job['status'] == 'running':
-            raise ZHmcError(
-                'Timeout value has been exceeded during ' + operation
-            )
-
-        self.status = self.get_properties()['status']
-        end_status = self.status
         end_time = time.time()
         human_uptime = timedelta(seconds=int(end_time - start_time))
 
         jdict = dict()
-        jdict['status-start'] = start_status
-        jdict['status-end'] = end_status
         jdict['time-start'] = start_time
         jdict['time-end'] = end_time
         jdict['duration-formatted'] = str(human_uptime)

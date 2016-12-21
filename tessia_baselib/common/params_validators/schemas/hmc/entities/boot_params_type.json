@@ -1,32 +1,32 @@
 {
-    "definitions": {
-        "scsi_disk_type": {
-            "properties": {
-                "iface_devicenr": {"type": "string"},
-                "lun": {"type": "string"},
-                "wwpn": {"type": "string"}
-            },
-            "required": ["iface_devicenr", "lun", "wwpn"]
-        },
-        "dasd_disk_type": {
-            "properties": {
-                "devicenr": {
-                    "$ref": "../../common/entities/devicenr_type.json"
-                }
-            },
-            "required": ["devicenr"]
-        }
+  "definitions": {
+    "scsi": {
+      "properties": {
+        "zfcp_devicenr": {"$ref": "../../common/entities/devicenr_type.json"},
+        "lun": {"type": "string"},
+        "wwpn": {"type": "string"}
+      },
+      "required": ["zfcp_devicenr", "lun", "wwpn"]
     },
-    "type": "object",
-    "properties": {
-        "boot_method": {
-            "type": "string",
-            "enum": ["scsi", "dasd"]
-        }
+    "dasd": {
+      "properties": {
+        "devicenr": {"$ref": "../../common/entities/devicenr_type.json"}
+      },
+      "required": ["devicenr"]
     },
-    "required": ["boot_method"],
-    "oneOf": [
-        {"$ref": "#/definitions/dasd_disk_type"},
-        {"$ref": "#/definitions/scsi_disk_type"}
+    "network": {"$ref": "../entities/netboot_params_type.json"}
+  },
+  "properties": {
+    "boot_method": {
+      "type": "string",
+      "enum": ["scsi", "dasd", "network"]
+    },
+   "oneOf": [
+      {"$ref": "#/definitions/scsi"},
+      {"$ref": "#/definitions/dasd"},
+      {"$ref": "#/definitions/network"}
     ]
+  },
+  "type": "object",
+  "required": ["boot_method"]
 }

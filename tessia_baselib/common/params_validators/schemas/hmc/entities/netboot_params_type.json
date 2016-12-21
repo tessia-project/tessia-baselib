@@ -1,0 +1,21 @@
+{
+  "properties": {
+    "kernel_url": {"type": "string",
+       "format": "uri"},
+    "initrd_url": {"type": "string",
+       "format": "uri"},
+    "cmdline": {"type": "string",
+       "maxLength": 4096},
+    "mac": {"type": "string",
+        "maxLength": 17},
+    "ip": {"type": "string",
+        "maxLength": 16},
+    "mask": {"type": "string",
+        "maxLength": 16},
+    "gateway": {"type": "string",
+        "maxLength": 16},
+    "device": {"type": "string",
+        "maxLength": 14}
+  },
+  "required": ["kernel_url", "initrd_url", "cmdline", "mac", "ip", "mask", "gateway", "device"]
+}
