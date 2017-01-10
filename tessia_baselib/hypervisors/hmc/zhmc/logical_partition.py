@@ -21,6 +21,7 @@ Logical Partition Abstraction
 #
 from datetime import timedelta
 from tessia_baselib.common.logger import get_logger
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 
 import time
 
@@ -142,33 +143,46 @@ class LogicalPartition(object):
         return job
     # deactivate()
 
-    def load(self, load_address):
+    def load(self, load_address, timeout=30):
         """
         This method is used to perform the operation of initial program load,
         or just load for short.
 
         Args:
             load_address (str): disk address to perform the IPL.
+            timeout (int): how much time to wait for job completion, a value
+                equal or less than 0 means to operate asynchronously
 
         Returns:
-            dict: a dictionary that contains what the hmc returns after
-                  executing the operation, plus some info regarding the time
-                  needed to fulfill it
+            None
 
         Raises:
-            None
+            ZHmcRequestError: if timed out while waiting for job completion
         """
         param = dict()
 
         param['load-address'] = load_address
         param['force'] = True
 
-        job = self._issue_operation(
+        load_resp = self._issue_operation(
             "load",
             arg_dict=param
         )
 
-        return job
+        # asynchronous operation: do not wait for job completion
+        if timeout <= 0:
+            return
+
+        timeout_date = time.time() + timeout
+        while True:
+            time.sleep(1)
+            job_dict = self._hmc.session.json_request(
+                "GET", load_resp['job-uri'])
+            if job_dict['status'] == 'complete':
+                break
+            elif time.time() >= timeout_date:
+                raise ZHmcRequestError(
+                    'Timed out while waiting for load job completion')
     # load()
 
     def scsi_load(self, load_address, wwpn, lun):
@@ -307,7 +321,7 @@ class LogicalPartition(object):
 
         action = self.uri + "/operations/" + operation
 
-        self._hmc.session.json_request(
+        job_dict = self._hmc.session.json_request(
             "POST",
             action,
             body=arg_dict
@@ -316,11 +330,10 @@ class LogicalPartition(object):
         end_time = time.time()
         human_uptime = timedelta(seconds=int(end_time - start_time))
 
-        jdict = dict()
-        jdict['time-start'] = start_time
-        jdict['time-end'] = end_time
-        jdict['duration-formatted'] = str(human_uptime)
+        job_dict['time-start'] = start_time
+        job_dict['time-end'] = end_time
+        job_dict['duration-formatted'] = str(human_uptime)
 
-        return jdict
+        return job_dict
     # _issue_operation()
 # LogicalPartition

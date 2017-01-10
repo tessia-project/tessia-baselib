@@ -23,9 +23,11 @@ from datetime import timedelta
 from contextlib import suppress
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 import time
 import requests
+import warnings
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -68,6 +70,8 @@ class HmcApiSession(object):
         Raises:
             None
         """
+        # suppress warnings from urllib3 related to cert validation
+        warnings.filterwarnings('ignore', category=InsecureRequestWarning)
 
         self._logger = get_logger(__name__)
 
@@ -220,21 +224,22 @@ class HmcApiSession(object):
         human_uptime = timedelta(seconds=int(end_time - start_time))
 
         self._logger.debug(
-            "HTTP Request start_time='%s' end_time='%s' duration='%s' "
-            "method='%s' URI='%s' header='%s' response='%s'",
+            "HTTP Request\n start_time='%s'\n end_time='%s'\n duration='%s' "
+            "method='%s'\n URI='%s'\n header='%s'\n response_status='%s'\n "
+            "response_body='%s'",
             start_time,
             end_time,
             human_uptime,
             method,
             uri,
             format(headers),
-            response
+            response.status_code,
+            response.text
         )
 
-        return_body = dict()
         # 204 means no body: return empty response
         if response.status_code == 204:
-            return return_body
+            return dict()
 
         try:
             return_body = response.json()
