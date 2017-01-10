@@ -1,4 +1,12 @@
 {
+    "oneOf": [
+        {
+            "$ref": "../../common/entities/dasd_disk_type.json"
+        },
+        {
+            "$ref": "../../common/entities/scsi_disk_type.json"
+        }
+    ],
     "properties": {
         "disk_type": {
             "enum": [
@@ -13,22 +21,14 @@
                     "type": "string"
                 }
             },
-            "type": "object",
             "required": [
                 "libvirt"
-            ]
+            ],
+            "type": "object"
         }
     },
-    "oneOf": [
-        {
-            "$ref": "../../common/entities/dasd_disk_type.json"
-        },
-        {
-            "$ref": "../../common/entities/scsi_disk_type.json"
-        }
-    ],
-    "type": "object",
     "required": [
         "disk_type"
-    ]
+    ],
+    "type": "object"
 }

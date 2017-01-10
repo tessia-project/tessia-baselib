@@ -1,7 +1,11 @@
 {
-  "type": "object",
-  "properties": {
-    "cpc_name": {"$ref": "../entities/cpc_name_type.json"}
-  },
-  "required": ["cpc_name"]
+    "properties": {
+        "cpc_name": {
+            "$ref": "../entities/cpc_name_type.json"
+        }
+    },
+    "required": [
+        "cpc_name"
+    ],
+    "type": "object"
 }

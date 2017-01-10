@@ -1,46 +1,46 @@
 {
     "definitions": {
         "adapter": {
-            "required": [
-                "devno",
-                "wwpns"
-            ],
-            "type": "object",
             "properties": {
                 "devno": {
                     "$ref": "../../common/entities/devicenr_type.json"
                 },
                 "wwpns": {
-                    "type": "array",
                     "items": {
-                        "type": "string",
-                        "pattern": "^[a-f0-9]{16}$"
-                    }
+                        "pattern": "^[a-f0-9]{16}$",
+                        "type": "string"
+                    },
+                    "type": "array"
                 }
-            }
+            },
+            "required": [
+                "devno",
+                "wwpns"
+            ],
+            "type": "object"
         }
     },
     "properties": {
         "specs": {
             "properties": {
                 "adapters": {
-                    "type": "array",
                     "items": {
                         "$ref": "#/definitions/adapter"
-                    }
+                    },
+                    "type": "array"
                 },
                 "multipath": {
                     "type": "boolean"
                 }
             },
-            "type": "object",
             "required": [
                 "adapters"
-            ]
+            ],
+            "type": "object"
         },
         "volume_id": {
-            "type": "string",
-            "pattern": "^[a-f0-9]{16}$"
+            "pattern": "^[a-f0-9]{16}$",
+            "type": "string"
         }
     },
     "required": [

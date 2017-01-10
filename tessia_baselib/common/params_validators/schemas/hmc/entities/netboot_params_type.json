@@ -1,21 +1,46 @@
 {
-  "properties": {
-    "kernel_url": {"type": "string",
-       "format": "uri"},
-    "initrd_url": {"type": "string",
-       "format": "uri"},
-    "cmdline": {"type": "string",
-       "maxLength": 4096},
-    "mac": {"type": "string",
-        "maxLength": 17},
-    "ip": {"type": "string",
-        "maxLength": 16},
-    "mask": {"type": "string",
-        "maxLength": 16},
-    "gateway": {"type": "string",
-        "maxLength": 16},
-    "device": {"type": "string",
-        "maxLength": 14}
-  },
-  "required": ["kernel_url", "initrd_url", "cmdline", "mac", "ip", "mask", "gateway", "device"]
+    "properties": {
+        "cmdline": {
+            "maxLength": 4096,
+            "type": "string"
+        },
+        "device": {
+            "maxLength": 14,
+            "type": "string"
+        },
+        "gateway": {
+            "maxLength": 16,
+            "type": "string"
+        },
+        "initrd_url": {
+            "format": "uri",
+            "type": "string"
+        },
+        "ip": {
+            "maxLength": 16,
+            "type": "string"
+        },
+        "kernel_url": {
+            "format": "uri",
+            "type": "string"
+        },
+        "mac": {
+            "maxLength": 17,
+            "type": "string"
+        },
+        "mask": {
+            "maxLength": 16,
+            "type": "string"
+        }
+    },
+    "required": [
+        "kernel_url",
+        "initrd_url",
+        "cmdline",
+        "mac",
+        "ip",
+        "mask",
+        "gateway",
+        "device"
+    ]
 }
