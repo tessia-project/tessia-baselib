@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-S3270 exceptions classes
+S3270 package exceptions classes
 """
 #
 # IMPORTS
@@ -33,3 +33,10 @@ class S3270StatusError(Exception):
     """
     pass
 # S3270StatusError
+
+class ZvmMessageError(Exception):
+    """
+    Exception used by terminal when a code from a system message is found.
+    """
+    pass
+# ZvmMessageError
