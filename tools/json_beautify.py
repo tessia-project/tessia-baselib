@@ -39,12 +39,14 @@ def main():
         sys.exit(1)
 
     file_path = sys.argv[1]
-    content = open(file_path, 'r').read().strip()
+    with open(file_path, 'r') as file_fd:
+        content = file_fd.read().strip()
     if len(content) == 0:
         return 0
     result = json.dumps(
         json.loads(content), sort_keys=True, indent=4)
-    open(file_path, 'w').write(result)
+    with open(file_path, 'w') as file_fd:
+        file_fd.write(result)
 
     return 0
 # main()
