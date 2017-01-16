@@ -1,32 +1,60 @@
 {
-  "definitions": {
-    "scsi": {
-      "properties": {
-        "zfcp_devicenr": {"$ref": "../../common/entities/devicenr_type.json"},
-        "lun": {"type": "string"},
-        "wwpn": {"type": "string"}
-      },
-      "required": ["zfcp_devicenr", "lun", "wwpn"]
+    "definitions": {
+        "dasd": {
+            "properties": {
+                "devicenr": {
+                    "$ref": "../../common/entities/devicenr_type.json"
+                }
+            },
+            "required": [
+                "devicenr"
+            ]
+        },
+        "network": {
+            "$ref": "../entities/netboot_params_type.json"
+        },
+        "scsi": {
+            "properties": {
+                "lun": {
+                    "type": "string"
+                },
+                "wwpn": {
+                    "type": "string"
+                },
+                "zfcp_devicenr": {
+                    "$ref": "../../common/entities/devicenr_type.json"
+                }
+            },
+            "required": [
+                "zfcp_devicenr",
+                "lun",
+                "wwpn"
+            ]
+        }
     },
-    "dasd": {
-      "properties": {
-        "devicenr": {"$ref": "../../common/entities/devicenr_type.json"}
-      },
-      "required": ["devicenr"]
+    "properties": {
+        "boot_method": {
+            "enum": [
+                "scsi",
+                "dasd",
+                "network"
+            ],
+            "type": "string"
+        },
+        "oneOf": [
+            {
+                "$ref": "#/definitions/scsi"
+            },
+            {
+                "$ref": "#/definitions/dasd"
+            },
+            {
+                "$ref": "#/definitions/network"
+            }
+        ]
     },
-    "network": {"$ref": "../entities/netboot_params_type.json"}
-  },
-  "properties": {
-    "boot_method": {
-      "type": "string",
-      "enum": ["scsi", "dasd", "network"]
-    },
-   "oneOf": [
-      {"$ref": "#/definitions/scsi"},
-      {"$ref": "#/definitions/dasd"},
-      {"$ref": "#/definitions/network"}
-    ]
-  },
-  "type": "object",
-  "required": ["boot_method"]
+    "required": [
+        "boot_method"
+    ],
+    "type": "object"
 }

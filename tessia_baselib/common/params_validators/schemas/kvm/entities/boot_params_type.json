@@ -1,16 +1,15 @@
 {
-    "type": "object",
     "properties": {
-        "initrd_uri": {
-            "type": "string",
-            "format": "uri"
-        },
-        "kernel_uri": {
-            "type": "string",
-            "format": "uri"
-        },
         "cmdline": {
             "maxLength": 4096,
+            "type": "string"
+        },
+        "initrd_uri": {
+            "format": "uri",
+            "type": "string"
+        },
+        "kernel_uri": {
+            "format": "uri",
             "type": "string"
         }
     },
@@ -18,5 +17,6 @@
         "kernel_uri",
         "initrd_uri",
         "cmdline"
-    ]
+    ],
+    "type": "object"
 }
