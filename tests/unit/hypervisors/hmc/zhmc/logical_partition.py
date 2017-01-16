@@ -299,9 +299,9 @@ class TestLogicalPartition(TestCase):
 
     # test_load_sync_timeout()
 
-    def test_scsi_load(self):
+    def test_scsi_load_async(self):
         """
-        Test if scsi_load() method work as expected.
+        Test if scsi_load() method work as expected in async mode (no timeout)
 
         Args:
             None
@@ -318,7 +318,8 @@ class TestLogicalPartition(TestCase):
         self.lpar.scsi_load(
             'dummy_address',
             'dummy_wwpn',
-            'dummy_lun'
+            'dummy_lun',
+            timeout=0
         )
 
         session.json_request.assert_called_with(
@@ -331,7 +332,99 @@ class TestLogicalPartition(TestCase):
                 'force': True
             }
         )
-    # test_scsi_load()
+    # test_scsi_load_async()
+
+    def test_scsi_load_sync(self):
+        """
+        Test if scsi_load() method work as expected with normal timeout
+        (synchronous).
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+
+        self._mock_hmc.session.json_request.side_effect = [
+            # response to POST /api/operations/load
+            {"job-uri": "/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {"status": "running"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {
+                "status": "complete",
+                "job-status-code": 204,
+                "job-reason-code": 0
+            },
+        ]
+        self.lpar.scsi_load(
+            'dummy_address',
+            'dummy_wwpn',
+            'dummy_lun'
+        )
+
+        # validate behavior
+        self._mock_hmc.session.json_request.assert_has_calls([
+            mock.call(
+                'POST',
+                self.lpar_uri + '/operations/scsi-load',
+                body={
+                    'load-address': 'dummy_address',
+                    'world-wide-port-name': 'dummy_wwpn',
+                    'logical-unit-number': 'dummy_lun',
+                    'force': True
+                }
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+        ])
+
+    # test_scsi_load_sync()
+
+    def test_scsi_load_sync_timeout(self):
+        """
+        Test if scsi_load() method correctly raises exception when a timeout
+        occurs.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        with self.assertRaisesRegex(
+            ZHmcRequestError,
+            'Timed out while waiting for load job completion'):
+            self.lpar.scsi_load(
+                'dummy_address',
+                'dummy_wwpn',
+                'dummy_lun')
+
+        session = self.lpar._hmc.session
+        session.json_request.assert_any_call(
+            'POST',
+            self.lpar_uri + '/operations/scsi-load',
+            body={
+                'load-address': 'dummy_address',
+                'world-wide-port-name': 'dummy_wwpn',
+                'logical-unit-number': 'dummy_lun',
+                'force': True
+            }
+        )
+    # test_scsi_load_sync_timeout()
 
     def test_stop(self):
         """

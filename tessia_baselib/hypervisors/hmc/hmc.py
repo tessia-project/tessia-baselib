@@ -274,12 +274,13 @@ class HypervisorHmc(HypervisorBase):
             lpar.scsi_load(
                 boot_params['zfcp_devicenr'],
                 boot_params['wwpn'],
-                boot_params['lun']
+                boot_params['lun'],
+                timeout=0
             )
 
         # perform load of a DASD disk
         elif boot_params['boot_method'] == 'dasd':
-            lpar.load(boot_params['devicenr'])
+            lpar.load(boot_params['devicenr'], timeout=0)
 
         # perform a simulated network boot
         else:
@@ -297,7 +298,7 @@ class HypervisorHmc(HypervisorBase):
                     'No auxiliary disk configured for CPC {}'.format(cpc_name))
 
             # load and wait operation to finish
-            lpar.load(disk_id)
+            lpar.load(disk_id, timeout=NETBOOT_LOAD_TIMEOUT)
             timeout = time.time() + NETBOOT_LOAD_TIMEOUT
             while lpar.get_properties()['status'] != 'operating':
                 if time.time() >= timeout:

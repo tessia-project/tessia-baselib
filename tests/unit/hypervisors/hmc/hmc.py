@@ -217,7 +217,7 @@ class TestHypervisorHmc(TestCase):
 
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         mock_lpar.activate.assert_called_with()
-        mock_lpar.load.assert_called_with('9999')
+        mock_lpar.load.assert_called_with('9999', timeout=0)
 
         # test in case of operation error
         mock_lpar.load.side_effect = ZHmcError('Error')
@@ -248,7 +248,8 @@ class TestHypervisorHmc(TestCase):
         mock_lpar.status = 'not-activated'
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         mock_lpar.activate.assert_called_with()
-        mock_lpar.scsi_load.assert_called_with('1234', '4321', '1324')
+        mock_lpar.scsi_load.assert_called_with(
+            '1234', '4321', '1324', timeout=0)
     # test_start()
 
     def test_stop(self):
@@ -377,7 +378,8 @@ class TestHypervisorHmc(TestCase):
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
 
         # verify behavior
-        mock_lpar.load.assert_called_with('FFFF')
+        mock_lpar.load.assert_called_with(
+            'FFFF', timeout=hmc.NETBOOT_LOAD_TIMEOUT)
 
         boot_params = parameters.get('boot_params')
 
