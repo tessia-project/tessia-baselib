@@ -211,9 +211,9 @@ class TestLogicalPartition(TestCase):
             AssertionError: if validation fails
         """
 
-        self.lpar.load('dummy_address', timeout=0)
+        self.lpar.load('dummy_address')
 
-        self._mock_hmc.session.json_request.assert_called_with(
+        self._mock_hmc.session.json_request.assert_called_once_with(
             'POST',
             self.lpar_uri + '/operations/load',
             body={'load-address': 'dummy_address', 'force': True}
@@ -247,7 +247,7 @@ class TestLogicalPartition(TestCase):
                 "job-reason-code": 0
             },
         ]
-        self.lpar.load('dummy_address')
+        self.lpar.load('dummy_address', timeout=30)
 
         self._mock_hmc.session.json_request.assert_has_calls([
             mock.call(
@@ -285,7 +285,7 @@ class TestLogicalPartition(TestCase):
         with self.assertRaisesRegex(
             ZHmcRequestError,
             'Timed out while waiting for load job completion'):
-            self.lpar.load('dummy_address')
+            self.lpar.load('dummy_address', timeout=30)
 
         session = self.lpar._hmc.session
         session.json_request.assert_any_call(
@@ -319,10 +319,9 @@ class TestLogicalPartition(TestCase):
             'dummy_address',
             'dummy_wwpn',
             'dummy_lun',
-            timeout=0
         )
 
-        session.json_request.assert_called_with(
+        session.json_request.assert_called_once_with(
             'POST',
             self.lpar_uri + '/operations/scsi-load',
             body={
@@ -364,7 +363,8 @@ class TestLogicalPartition(TestCase):
         self.lpar.scsi_load(
             'dummy_address',
             'dummy_wwpn',
-            'dummy_lun'
+            'dummy_lun',
+            timeout=30
         )
 
         # validate behavior
@@ -411,7 +411,9 @@ class TestLogicalPartition(TestCase):
             self.lpar.scsi_load(
                 'dummy_address',
                 'dummy_wwpn',
-                'dummy_lun')
+                'dummy_lun',
+                timeout=30
+            )
 
         session = self.lpar._hmc.session
         session.json_request.assert_any_call(

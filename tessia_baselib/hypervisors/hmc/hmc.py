@@ -275,12 +275,11 @@ class HypervisorHmc(HypervisorBase):
                 boot_params['zfcp_devicenr'],
                 boot_params['wwpn'],
                 boot_params['lun'],
-                timeout=0
             )
 
         # perform load of a DASD disk
         elif boot_params['boot_method'] == 'dasd':
-            lpar.load(boot_params['devicenr'], timeout=0)
+            lpar.load(boot_params['devicenr'])
 
         # perform a simulated network boot
         else:

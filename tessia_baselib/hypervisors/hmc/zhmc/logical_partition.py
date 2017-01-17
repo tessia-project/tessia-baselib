@@ -169,15 +169,15 @@ class LogicalPartition(object):
         return job
     # deactivate()
 
-    def load(self, load_address, timeout=30):
+    def load(self, load_address, timeout=0):
         """
         This method is used to perform the operation of initial program load,
         or just load for short.
 
         Args:
             load_address (str): disk address to perform the IPL.
-            timeout (int): how much time to wait for job completion, a value
-                equal or less than 0 means to operate asynchronously
+            timeout (int): how long to wait for job completion, a value equal
+                or less than 0 means to operate asynchronously (the default)
 
         Returns:
             dict: containing key 'job-uri' to retrieve job status
@@ -200,7 +200,7 @@ class LogicalPartition(object):
         return load_resp
     # load()
 
-    def scsi_load(self, load_address, wwpn, lun, timeout=30):
+    def scsi_load(self, load_address, wwpn, lun, timeout=0):
         """
         This method is used to perform the operation of initial program load,
         or just load for short, from a SCSI device.
@@ -211,8 +211,8 @@ class LogicalPartition(object):
                         be used for this operation, in hexadecimal.
             lun (str): hexadecimal logical unit number to be used for the SCSI
                        Load.
-            timeout (int): how much time to wait for job completion, a value
-                equal or less than 0 means to operate asynchronously
+            timeout (int): how long to wait for job completion, a value equal
+                or less than 0 means to operate asynchronously (the default)
 
         Returns:
             dict: containing key 'job-uri' to retrieve job status

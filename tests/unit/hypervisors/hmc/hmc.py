@@ -217,7 +217,7 @@ class TestHypervisorHmc(TestCase):
 
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         mock_lpar.activate.assert_called_with()
-        mock_lpar.load.assert_called_with('9999', timeout=0)
+        mock_lpar.load.assert_called_with('9999')
 
         # test in case of operation error
         mock_lpar.load.side_effect = ZHmcError('Error')
@@ -249,7 +249,7 @@ class TestHypervisorHmc(TestCase):
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         mock_lpar.activate.assert_called_with()
         mock_lpar.scsi_load.assert_called_with(
-            '1234', '4321', '1324', timeout=0)
+            '1234', '4321', '1324')
     # test_start()
 
     def test_stop(self):
