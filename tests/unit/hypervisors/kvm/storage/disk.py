@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 IBM Corp.
+# Copyright 2017 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ Test module for disk_base module
 # IMPORTS
 #
 from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.hypervisors.kvm.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 
@@ -134,7 +134,7 @@ class TestDisk(TestCase):
         self.assertIs(system_attrs.get("libvirt"), disk.to_xml())
     # test_to_xml_with_libvirt_xml()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk.open",
                 create=True)
     def test_to_xml_read_template(self, mock_open):
         """
@@ -157,7 +157,7 @@ class TestDisk(TestCase):
             boot_tag="")
     # test_to_xml_reading_template()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk.open",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk.open",
                 create=True)
     def test_to_xml_read_template_with_boot_tag(self, mock_open):
         """

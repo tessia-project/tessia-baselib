@@ -19,8 +19,8 @@ Module for GuestKvm class
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.kvm.disk_dasd import DiskDasd
-from tessia_baselib.hypervisors.kvm.disk_scsi import DiskScsi
+from tessia_baselib.hypervisors.kvm.storage.disk_dasd import DiskDasd
+from tessia_baselib.hypervisors.kvm.storage.disk_fcp import DiskFcp
 from tessia_baselib.hypervisors.kvm.iface import Iface
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
@@ -33,7 +33,7 @@ import uuid
 #
 DISK_TYPEMAP = {
     "DASD": DiskDasd,
-    "SCSI": DiskScsi
+    "FCP": DiskFcp
 }
 
 TEMPLATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),

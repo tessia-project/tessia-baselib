@@ -20,7 +20,7 @@ Test module for the guest module.
 # IMPORTS
 #
 from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.hypervisors.kvm.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
 from tessia_baselib.hypervisors.kvm.guest import GuestKvm
 from tessia_baselib.hypervisors.kvm.guest import create_disk
 from tessia_baselib.hypervisors.kvm.iface import Iface
@@ -42,15 +42,15 @@ class TestCreateDisk(TestCase):
     Class that provides the unit tests for the create_disk factory method.
     """
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.DISK_TYPEMAP", spec_set=True)
-    def test_create_disk_scsi(self, mock_disk_typemap):
+    def test_create_disk_fcp(self, mock_disk_typemap):
         """
         Test the factory method create_disk for the regular usage.
         """
-        parameters = {"disk_type": "SCSI"}
+        parameters = {"disk_type": "FCP"}
         mock_disk = mock.Mock(spec_set=DiskBase)
 
         mock_disk_typemap.__getitem__.return_value = mock_disk
-        mock_disk_typemap.keys.return_value = ["SCSI", "DASD"]
+        mock_disk_typemap.keys.return_value = ["FCP", "DASD"]
         # Exercise the software
         disk = create_disk(parameters, sentinel.target_dev_mngr,
                            sentinel.cmd_channel)
@@ -59,7 +59,7 @@ class TestCreateDisk(TestCase):
                                      sentinel.target_dev_mngr,
                                      sentinel.cmd_channel)
         self.assertIs(disk, mock_disk.return_value)
-    # test_create_disk_scsi()
+    # test_create_disk_fcp()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.DISK_TYPEMAP", spec_set=True)
     def test_create_disk_unknow_fails(self, mock_disk_typemap):
@@ -68,7 +68,7 @@ class TestCreateDisk(TestCase):
         disk_type is unknown.
         """
         parameters = {"disk_type": "OTHER_DISK_TYPE"}
-        mock_disk_typemap.keys.return_value = ["SCSI", "DASD"]
+        mock_disk_typemap.keys.return_value = ["FCP", "DASD"]
         self.assertRaisesRegex(RuntimeError, "Invalid or unknown",
                                create_disk, parameters,
                                sentinel.target_dev_mngr, sentinel.cmd_channel)

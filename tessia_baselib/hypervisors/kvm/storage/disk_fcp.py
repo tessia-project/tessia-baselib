@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 IBM Corp.
+# Copyright 2017 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
 # limitations under the License.
 
 """
-Module for DiskScsi class.
+Module for DiskFcp class.
 """
 #
 # IMPORTS
 #
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
-from tessia_baselib.hypervisors.kvm.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
 from time import sleep
 
 #
@@ -32,9 +32,9 @@ FCP_DEVPATH = '/dev/disk/by-path/ccw-{}-zfcp-{}:{}'
 #
 # CODE
 #
-class DiskScsi(DiskBase):
+class DiskFcp(DiskBase):
     """
-    This class is an abstraction for a SCSI disk.
+    This class is an abstraction for a FCP-SCSI disk.
     """
     def __init__(self, parameters, target_dev_mngr, cmd_channel):
         """
@@ -71,7 +71,7 @@ class DiskScsi(DiskBase):
             for i in range(0, len(adapter['wwpns'])):
                 adapter['wwpns'][i] = '0x{}'.format(adapter['wwpns'][i])
 
-        self._logger.debug("Creating DiskScsi "
+        self._logger.debug("Creating DiskFcp "
                            "lun=%s adapters=%s", self._lun, self._adapters)
     # __init__()
 
@@ -546,4 +546,4 @@ class DiskScsi(DiskBase):
         else:
             self._disable_multipath()
     # activate()
-# DiskScsi
+# DiskFcp

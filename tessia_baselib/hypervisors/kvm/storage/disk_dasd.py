@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 IBM Corp.
+# Copyright 2017 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ Module for class DiskDasd
 #
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
-from tessia_baselib.hypervisors.kvm.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
 
 #
 # CONSTANTS AND DEFINITIONS

@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 IBM Corp.
+# Copyright 2017 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ Test module for disk_dasd module.
 # IMPORTS
 #
 from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.hypervisors.kvm.disk import DiskBase
-from tessia_baselib.hypervisors.kvm.disk_dasd import DiskDasd
+from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage.disk_dasd import DiskDasd
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 from unittest import mock
@@ -73,9 +73,9 @@ class TestDiskDasd(TestCase):
                          PARAMS_DASD.get("volume_id"))
     # test_init()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk_dasd.DiskBase",
                 autospec=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk_dasd.timer",
                 autospec=True)
     @mock.patch.object(DiskBase, "_enable_device")
     def test_activate(self, mock_enable_device, mock_timer, *args, **kwargs):
@@ -99,10 +99,10 @@ class TestDiskDasd(TestCase):
         self.assertEqual(disk._source_dev, DASD_DEVPATH + disk._devicenr)
     # test_activate()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.DiskBase",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk_dasd.DiskBase",
                 autospec=True)
     @mock.patch.object(DiskBase, "_enable_device")
-    @mock.patch("tessia_baselib.hypervisors.kvm.disk_dasd.timer",
+    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk_dasd.timer",
                 autospec=True)
     def test_already_activated(self, mock_timer, *args, **kwargs):
         """

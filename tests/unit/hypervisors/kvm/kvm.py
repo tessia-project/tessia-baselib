@@ -39,8 +39,8 @@ IFACE = {
     </interface>'''
     }
 }
-DISK_SCSI = {
-    "disk_type": "SCSI",
+DISK_FCP = {
+    "disk_type": "FCP",
     "volume_id": "1024400000000000",
     "boot_device": True,
     "specs": {
@@ -56,11 +56,11 @@ DISK_DASD = {
     "volume_id": "3961",
 }
 START_PARAMETERS = {
-    "storage_volumes" : [DISK_SCSI, DISK_DASD],
+    "storage_volumes" : [DISK_FCP, DISK_DASD],
     "ifaces" : [IFACE]
 }
 START_PARAMETERS_NETBOOT = {
-    "storage_volumes" : [DISK_SCSI, DISK_DASD],
+    "storage_volumes" : [DISK_FCP, DISK_DASD],
     "ifaces" : [IFACE],
     "parameters": {
         "boot_method": "network",

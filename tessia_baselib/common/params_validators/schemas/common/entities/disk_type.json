@@ -4,13 +4,13 @@
             "$ref": "../../common/entities/dasd_disk_type.json"
         },
         {
-            "$ref": "../../common/entities/scsi_disk_type.json"
+            "$ref": "../../common/entities/fcp_disk_type.json"
         }
     ],
     "properties": {
         "disk_type": {
             "enum": [
-                "SCSI",
+                "FCP",
                 "DASD"
             ],
             "type": "string"
