@@ -36,7 +36,9 @@ import subprocess
 #
 
 # timeout in seconds before the netboot operation is considered failed
-NETBOOT_LOAD_TIMEOUT = 30 # seconds
+# TODO: compute the timeout based on the amount of storage memory (i.e. 1TB
+# LPAR will take a long time to load)
+NETBOOT_LOAD_TIMEOUT = 60 # seconds
 # user and password for the auxiliary image
 # TODO: move this to conf file
 NETBOOT_USER = "root"
