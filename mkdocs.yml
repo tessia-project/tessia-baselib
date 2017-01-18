@@ -1,7 +1,7 @@
 # directory where doc files are located
-docs_dir: .
+docs_dir: doc
 # where to store output files
-site_dir: ../build/html
+site_dir: build/html
 site_favicon: img/favicon.ico
 # enable permalinks for each header
 markdown_extensions:

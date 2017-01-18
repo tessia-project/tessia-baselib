@@ -29,11 +29,16 @@ from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from tessia_baselib.common.params_validators.utils import validate_params
 
 import time
+import subprocess
+
 #
 # CONSTANTS AND DEFINITIONS
 #
 
+# timeout in seconds before the netboot operation is considered failed
 NETBOOT_LOAD_TIMEOUT = 30 # seconds
+# user and password for the auxiliary image
+# TODO: move this to conf file
 NETBOOT_USER = "root"
 NETBOOT_PASSWORD = "somepasswd"
 
@@ -187,7 +192,7 @@ class HypervisorHmc(HypervisorBase):
         if self._session is None:
             raise ZHmcError("You need to login first")
 
-        cpc = self._session.get_cpc(parameters.get('cpc_name'))
+        cpc = self._session.get_cpc(parameters['cpc_name'])
         lpar = cpc.get_lpar(guest_name)
         # Profiles have the same name as the LPAR's
         image_profile = cpc.get_image_profile(guest_name)
@@ -198,6 +203,7 @@ class HypervisorHmc(HypervisorBase):
         args['mem'] = memory
 
         try:
+            # update the profile parameters if necessary
             update = self._update_resources(args, image_profile)
 
             # image profile updated: we need to activate the LPAR again so
@@ -205,73 +211,7 @@ class HypervisorHmc(HypervisorBase):
             if update or lpar.status == 'not-activated':
                 lpar.activate()
 
-            if parameters.get('boot_params').get('boot_method') == 'scsi':
-                # SCSI Load
-                lpar.scsi_load(
-                    parameters.get('boot_params').get('zfcp_devicenr'),
-                    parameters.get('boot_params').get('wwpn'),
-                    parameters.get('boot_params').get('lun')
-                )
-            elif parameters.get('boot_params').get('boot_method') == 'dasd':
-                # DASD Load
-                lpar.load(parameters.get('boot_params').get('devicenr'))
-            else:
-                # Network
-                # The netboot is performed using a a custom ramdisk.
-                # Once the ramdisk is loaded, we configure the network
-                # using the SEND_OS_CMD, connect throught SSH, copy the files
-                # to the host and execute the kexec to load the kernel the user
-                # specified in the parameters.
-                # The HMC API does not support Boot From Removable Media
-                # like in the UI, so this is a workaround.
-
-                # retrieve the netboot disk
-                disks = CONF.get_config()['netdisks']
-
-                # load and wait operation to finish
-                lpar.load(disks[cpc.name])
-
-                start = time.time()
-                timeout = start + NETBOOT_LOAD_TIMEOUT
-                while lpar.get_properties()['status'] != 'operating' and \
-                      start <= timeout:
-                    time.sleep(1)
-                    start += 1
-                if start >= timeout:
-                    raise Exception(
-                        "Problem while performing load on netboot disk"
-                    )
-
-                time.sleep(5) # wait 5 seconds to make sure prompt is ready
-
-                # enable ramdisk network
-                self._setup_ramdisk_network(
-                    parameters.get('boot_params'), lpar
-                )
-
-                # FIXME
-                # There is a a very known issue that happens once in a while
-                # that causes LPAR's to be unreachable in the network until a
-                # ping is performed (probably to update some arp table or so).
-                # Once this issue is fixed, remove this.
-                lpar.send_os_command(
-                    "ping -c 1 {}".format(
-                        parameters.get('boot_params').get('gateway')
-                    )
-                )
-
-                guest = GuestLinux(
-                    lpar.name,
-                    parameters.get('boot_params').get('ip'),
-                    NETBOOT_USER,
-                    NETBOOT_PASSWORD,
-                    {}
-                )
-
-                guest.login()
-                self._execute_kexec(guest, parameters.get('boot_params'))
-                guest.logoff()
-
+            self._load(cpc.name, lpar, parameters['boot_params'])
         except Exception as exc:
             self._logger.debug(
                 'An error ocurred during start, info:', exc_info=True)
@@ -302,19 +242,87 @@ class HypervisorHmc(HypervisorBase):
         initrd = boot_params.get('initrd_url')
 
         # copy files to ramdisk
-        guest.push_file(kernel, "/root/kernel")
-        guest.push_file(initrd, "/root/initrd")
+        guest.push_file(kernel, "/tmp/kernel")
+        guest.push_file(initrd, "/tmp/initrd")
 
         session = guest.open_session()
 
-        # execute kexec and ignore the return since it won't be
-        # possible to read it
+        # Execute kexec and ignore the return since it won't be possible to
+        # read it. Also use nohup to prevent a race condition where the ssh
+        # connection dies too fast before the command is processed.
         session.run(
-            "kexec kernel --initrd=initrd --command-line='{}'".format(
-                cmdline
-            ), ignore_ret=True
-        )
+            "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
+            "&>/tmp/kexec.log".format(cmdline), ignore_ret=True)
     #_execute_kexec()
+
+    def _load(self, cpc_name, lpar, boot_params):
+        """
+        Perform the load operation on a profile according to the specified
+        method.
+
+        Args:
+            cpc_name (str): name of cpc containing LPAR
+            lpar (LogicalPartition): profile instance
+            boot_params (dict): options as specified in json schema
+
+        Raises:
+            RuntimeError: for netboot method, in case of load timeout or no aux
+                disk configured
+        """
+        # perform load of a SCSI disk
+        if boot_params['boot_method'] == 'scsi':
+            lpar.scsi_load(
+                boot_params['zfcp_devicenr'],
+                boot_params['wwpn'],
+                boot_params['lun'],
+            )
+
+        # perform load of a DASD disk
+        elif boot_params['boot_method'] == 'dasd':
+            lpar.load(boot_params['devicenr'])
+
+        # perform a simulated network boot
+        else:
+            # The HMC API does not support Boot From Removable Media
+            # like in the UI, so the netboot is performed using a custom
+            # ramdisk. Once it is loaded, we configure the network using
+            # the SEND_OS_CMD, connect throught SSH, copy the kernel and
+            # initrd to the host and perform a kexec to load the
+            # downloaded kernel.
+
+            try:
+                disk_id = CONF.get_config()['netdisks'][cpc_name]
+            except KeyError:
+                raise RuntimeError(
+                    'No auxiliary disk configured for CPC {}'.format(cpc_name))
+
+            # load and wait operation to finish
+            lpar.load(disk_id, timeout=NETBOOT_LOAD_TIMEOUT)
+            timeout = time.time() + NETBOOT_LOAD_TIMEOUT
+            while lpar.get_properties()['status'] != 'operating':
+                if time.time() >= timeout:
+                    raise RuntimeError(
+                        "Timed out while performing load of auxiliary system"
+                    )
+                time.sleep(1)
+
+            # enable ramdisk network
+            self._setup_ramdisk_network(boot_params, lpar)
+
+            # network is up; open a ssh session to the system
+            guest = GuestLinux(
+                lpar.name,
+                boot_params['ip'],
+                NETBOOT_USER,
+                NETBOOT_PASSWORD,
+                {}
+            )
+
+            guest.login()
+            # perform the kexec to the new kernel
+            self._execute_kexec(guest, boot_params)
+            guest.logoff()
+    # _load()
 
     def _setup_ramdisk_network(self, boot_params, lpar):
         """
@@ -329,48 +337,71 @@ class HypervisorHmc(HypervisorBase):
             None
 
         Raises:
-            None
+            RuntimeError: in case of timeout while waiting for network to come
+                          up
         """
         self._logger.debug(
             "Setting up ramdisk network: args='%s'", boot_params
         )
 
+        mac_addr = boot_params['mac']
+        ip_addr = boot_params['ip']
+        subnet_addr = boot_params['mask']
+        gw_addr = boot_params['gateway']
+        channel = boot_params['device']
 
-        mac_addr = boot_params.get('mac')
-        ip_addr = boot_params.get('ip')
-        subnet_addr = boot_params.get('mask')
-        gw_addr = boot_params.get('gateway')
-        channel = boot_params.get('device')
-
-        ch_list = list()
         if channel.find(',') != -1:
             ch_list = channel.split(',')
         else:
-            ch_list.append(channel)
-            ch_list.append(hex(int(channel, 16)+1).strip("0x"))
-            ch_list.append(hex(int(channel, 16)+2).strip("0x"))
+            ch_list = [channel]
+            ch_list.append(hex(int(channel, 16)+1).lstrip("0x"))
+            ch_list.append(hex(int(channel, 16)+2).lstrip("0x"))
 
-        channels = ','.join(ch_list)
+        net_cmds = [
+            # make the osa channels available
+            "cio_ignore -r {} && \\".format(','.join(ch_list)),
+            # activate the osa card
+            "znetconf -a {} -o portname=osaport && \\".format(
+                ch_list[0].replace("0.0.", "")),
+            # set mac address for network interface
+            "ifconfig enc{} hw ether {} && \\".format(ch_list[0], mac_addr),
+            # set ip address and network mask
+            "ifconfig enc{} {} netmask {} && \\".format(
+                ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr),
+            # set default gateway
+            "route add default gw {} && \\".format(gw_addr),
+            # TODO: There is a a very known issue that happens once in a while
+            # that causes LPAR's to be unreachable in the network until a
+            # ping is performed (probably to update some arp table or so).
+            # Once this issue is fixed, remove this.
+            "ping -c 1 {}".format(gw_addr),
+        ]
+        timeout = time.time() + NETBOOT_LOAD_TIMEOUT
+        while True:
+            # the api has a limit of 200 chars per call so we need to split the
+            # commands in smaller pieces
+            lpar.send_os_command(NETBOOT_USER)
+            lpar.send_os_command(NETBOOT_PASSWORD)
+            for cmd in net_cmds:
+                lpar.send_os_command(cmd)
+            # verify if system is reachable
+            try:
+                subprocess.run(
+                    'ping -c 1 -w 5 ' + ip_addr, shell=True, check=True,
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except subprocess.CalledProcessError:
+                pass
+            # network is up: commands succeeded
+            else:
+                break
 
-        # login into the system
-        lpar.send_os_command(NETBOOT_USER)
-        lpar.send_os_command(NETBOOT_PASSWORD)
+            if time.time() >= timeout:
+                raise RuntimeError(
+                    "Timed out while waiting for network on auxiliary system"
+                )
+            time.sleep(5)
 
-        lpar.send_os_command("cio_ignore -r {}".format(channels))
-        lpar.send_os_command(
-            "znetconf -a {} -o portname=osaport".format(
-                ch_list[0].replace("0.0.", ""))
-        )
-        lpar.send_os_command(
-            "ifconfig enc{} hw ether {}".format(ch_list[0], mac_addr)
-        )
-        lpar.send_os_command(
-            "ifconfig enc{} {} netmask {}".format(
-                ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr
-            )
-        )
-        lpar.send_os_command("route add default gw {}".format(gw_addr))
-    # _setup_ramdisk_network
+    # _setup_ramdisk_network()
 
     def _calculate_number_cpus(self, total_cpus, ifl_cpus):
         """

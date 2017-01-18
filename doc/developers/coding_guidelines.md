@@ -78,50 +78,50 @@ This document defines the project's coding guidelines so that we can spend less 
 ### Noncompliant example
 
 ```python
-    BUFFER_SIZE = 4096
+BUFFER_SIZE = 4096
 
-    import os
-    from package_b.module_b import object_b
-    import sys
+import os
+from package_b.module_b import object_b
+import sys
 
-    from module_a import object_a
+from module_a import object_a
 
-    TEMPLATES_DIR = '/opt/templates'
+TEMPLATES_DIR = '/opt/templates'
 
-    def do_something():
-    ...
+def do_something():
+...
 ```
 ### Compliant example
 
 ```python
-    """
-    This module does this and that.
+"""
+This module does this and that.
 
-    Some more detailed info about the module here.
-    """
+Some more detailed info about the module here.
+"""
 
-    #
-    # IMPORTS
-    #
-    from module_a import object_a
-    from package_b.module_b import object_b
+#
+# IMPORTS
+#
+from module_a import object_a
+from package_b.module_b import object_b
 
-    import os
-    import sys
+import os
+import sys
 
-    #
-    # CONSTANTS AND DEFINITIONS
-    #
-    BUFFER_SIZE = 4096
-    TEMPLATES_DIR = '/opt/templates'
+#
+# CONSTANTS AND DEFINITIONS
+#
+BUFFER_SIZE = 4096
+TEMPLATES_DIR = '/opt/templates'
 
-    #
-    # CODE
-    #
+#
+# CODE
+#
 
 
-    def do_something():
-    ...
+def do_something():
+...
 ```
 
 ## Do not mix classes and functions in the same file
@@ -141,11 +141,11 @@ This document defines the project's coding guidelines so that we can spend less 
     - For classes, write the class name.
 
 ```python
-   class MyClass():
-       def foo(self, bar):
-           ...
-       # foo()
-   # MyClass
+class MyClass():
+    def foo(self, bar):
+        ...
+    # foo()
+# MyClass
 ```
 
 ## Break lines at column 79
@@ -303,57 +303,57 @@ dict = {'a': 2, 'b': 3}
 ### Noncompliant example
 
 ```python
-    class SomeClass(object):
+class SomeClass(object):
 
-        def method_b(self):
-            ...
-        # method_b
+    def method_b(self):
+        ...
+    # method_b
 
-        def _private_b(self):
-            ...
-        # _private_b
+    def _private_b(self):
+        ...
+    # _private_b
 
-        def method_a(self):
-            ...
-        # method_a
+    def method_a(self):
+        ...
+    # method_a
 
-        def method_c(self):
-            ...
-        # method_c
+    def method_c(self):
+        ...
+    # method_c
 
-        def _private_a(self):
-            ...
-        # _private_a
+    def _private_a(self):
+        ...
+    # _private_a
 
-    # SomeClass
+# SomeClass
 ```
 
 ### Compliant example
 
 ```python
-    class SomeClass(object):
+class SomeClass(object):
 
-        def _private_a(self):
-            ...
-        # _private_a
+    def _private_a(self):
+        ...
+    # _private_a
 
-        def _private_b(self):
-            ...
-        # _private_b
+    def _private_b(self):
+        ...
+    # _private_b
 
-        def method_a(self):
-            ...
-        # method_a
+    def method_a(self):
+        ...
+    # method_a
 
-        def method_b(self):
-            ...
-        # method_b
+    def method_b(self):
+        ...
+    # method_b
 
-        def method_c(self):
-            ...
-        # method_c
+    def method_c(self):
+        ...
+    # method_c
 
-    # SomeClass
+# SomeClass
 ```
 
 ## Sort imports by name and type
@@ -368,25 +368,25 @@ dict = {'a': 2, 'b': 3}
 ### Noncompliant example
 
 ```python
-    import module_c
-    from package_a.module_b import object_g
-    from module_a import object_a
-    import module_d, module_e
-    from module_b import object_d, object_e
-    from package_a.module_b import object_f
+import module_c
+from package_a.module_b import object_g
+from module_a import object_a
+import module_d, module_e
+from module_b import object_d, object_e
+from package_a.module_b import object_f
 ```
 
 ### Compliant example
 
 ```python
-    from module_a import object_a
-    from module_b import object_d, object_e
-    from package_a.module_b import object_f
-    from package_a.module_b import object_g
+from module_a import object_a
+from module_b import object_d, object_e
+from package_a.module_b import object_f
+from package_a.module_b import object_g
 
-    import module_c
-    import module_d
-    import module_e
+import module_c
+import module_d
+import module_e
 ```
 
 ## Never import using a wildcard
@@ -398,27 +398,27 @@ dict = {'a': 2, 'b': 3}
 ### Noncompliant example
 
 ```python
-    from module_a import *
-    from module_b import *
+from module_a import *
+from module_b import *
 
-    # can you tell where someVariable has been defined?
-    print(CONSTANT_A)
+# can you tell where someVariable has been defined?
+print(CONSTANT_A)
 
-    # can you tell where otherVariable has been defined?
-    print(CONSTANT_B)
+# can you tell where otherVariable has been defined?
+print(CONSTANT_B)
 ```
 
 ### Compliant example
 
 ```python
-    from module_a import CONSTANT_A
-    from module_b import CONSTANT_B
+from module_a import CONSTANT_A
+from module_b import CONSTANT_B
 
-    # now you easily know that CONSTANT_A is defined in moduleA
-    print(CONSTANT_A)
+# now you easily know that CONSTANT_A is defined in moduleA
+print(CONSTANT_A)
 
-    # now you easily know that CONSTANT_B is defined in moduleB
-    print(CONSTANT_B)
+# now you easily know that CONSTANT_B is defined in moduleB
+print(CONSTANT_B)
 ```
 ## Avoid instance creation during module loading
 
@@ -471,21 +471,21 @@ db = DbConnection()
 ### Noncompliant examples
 
 ```python
-    class someClass:
-        ...
+class someClass:
+    ...
 
-    class Some_Class:
-        ...
+class Some_Class:
+    ...
 
-    class SOME_CLASS:
-        ...
+class SOME_CLASS:
+    ...
 ```
 
 ### Compliant example
 
 ```python
-    class SomeClass:
-        ...
+class SomeClass:
+    ...
 ```
 
 ## Other names
@@ -501,6 +501,7 @@ db = DbConnection()
     LocalVariable = 123
     LOCAL_VARIABLE = 123
 
+    ...
     def someMethod(myself):
 ```
 
@@ -510,6 +511,7 @@ db = DbConnection()
     local_variable = 123
     some_other_variable = 'Error message'
 
+    ...
     def some_method(self):
 ```
 

@@ -22,6 +22,7 @@ Unit test for the logical_partition module
 from unittest import mock
 from unittest import TestCase
 from tessia_baselib.hypervisors.hmc.zhmc import logical_partition
+from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -49,12 +50,27 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        self.hmc_object = mock.Mock()
+        # mock the time functions to skip waiting for sleeps
+        self._patcher_time = mock.patch.object(
+            logical_partition, 'time', autospec=True)
+        self._mock_time = self._patcher_time.start()
+        self.addCleanup(self._patcher_time.stop)
+        def time_generator():
+            """Generator for increasing time counter"""
+            start = 1.1
+            while True:
+                start += 1.111
+                yield start
+        get_time = time_generator()
+        self._mock_time.time.side_effect = lambda: next(get_time)
+
+        self._mock_hmc = mock.MagicMock()
         self.lpar_name = 'dummy_name'
-        self.lpar_uri = 'dummy.domain.com'
+        self.lpar_uri = (
+            '/api/logical-partitions/6f8dc862-c945-3abc-8773-f82846e7f476')
         self.lpar_status = 'dummy_status'
         self.lpar = logical_partition.LogicalPartition(
-            self.hmc_object,
+            self._mock_hmc,
             self.lpar_name,
             self.lpar_uri,
             self.lpar_status
@@ -69,7 +85,7 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        self.assertEqual(self.hmc_object, self.lpar._hmc)
+        self.assertEqual(self._mock_hmc, self.lpar._hmc)
         self.assertEqual(self.lpar_name, self.lpar.name)
         self.assertEqual(self.lpar_uri, self.lpar.uri)
         self.assertEqual(self.lpar_status, self.lpar.status)
@@ -122,7 +138,7 @@ class TestLogicalPartition(TestCase):
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             'POST',
-            'dummy.domain.com/operations/send-os-cmd',
+            self.lpar_uri + '/operations/send-os-cmd',
             body={
                 'operating-system-command-text': 'some_command'
             }
@@ -148,7 +164,7 @@ class TestLogicalPartition(TestCase):
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             'POST',
-            'dummy.domain.com/operations/activate',
+            self.lpar_uri + '/operations/activate',
             body={
                 'activation-profile-name': 'dummy_profile',
                 'force': True
@@ -173,7 +189,7 @@ class TestLogicalPartition(TestCase):
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             'POST',
-            'dummy.domain.com/operations/deactivate',
+            self.lpar_uri + '/operations/deactivate',
             body={
                 'force': True
             }
@@ -181,9 +197,9 @@ class TestLogicalPartition(TestCase):
 
     # test_deactivate()
 
-    def test_load(self):
+    def test_load_async(self):
         """
-        Test if load() method work as expected.
+        Test if load() method work as expected in async mode (no timeout)
 
         Args:
             None
@@ -197,21 +213,95 @@ class TestLogicalPartition(TestCase):
 
         self.lpar.load('dummy_address')
 
-        session = self.lpar._hmc.session
-        session.json_request.assert_called_with(
+        self._mock_hmc.session.json_request.assert_called_once_with(
             'POST',
-            'dummy.domain.com/operations/load',
+            self.lpar_uri + '/operations/load',
+            body={'load-address': 'dummy_address', 'force': True}
+        )
+    # test_load_async()
+
+    def test_load_sync(self):
+        """
+        Test if load() method work as expected with normal timeout
+        (synchronous).
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+
+        self._mock_hmc.session.json_request.side_effect = [
+            # response to POST /api/operations/load
+            {"job-uri": "/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {"status": "running"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {
+                "status": "complete",
+                "job-status-code": 204,
+                "job-reason-code": 0
+            },
+        ]
+        self.lpar.load('dummy_address', timeout=30)
+
+        self._mock_hmc.session.json_request.assert_has_calls([
+            mock.call(
+                'POST',
+                self.lpar_uri + '/operations/load',
+                body={'load-address': 'dummy_address', 'force': True}
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+        ])
+
+    # test_load_sync()
+
+    def test_load_sync_timeout(self):
+        """
+        Test if load() method correctly raises exception when a timeout
+        occurs.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+
+        with self.assertRaisesRegex(
+            ZHmcRequestError,
+            'Timed out while waiting for load job completion'):
+            self.lpar.load('dummy_address', timeout=30)
+
+        session = self.lpar._hmc.session
+        session.json_request.assert_any_call(
+            'POST',
+            self.lpar_uri + '/operations/load',
             body={
                 'load-address': 'dummy_address',
                 'force': True
             }
         )
 
-    # test_load()
+    # test_load_sync_timeout()
 
-    def test_scsi_load(self):
+    def test_scsi_load_async(self):
         """
-        Test if scsi_load() method work as expected.
+        Test if scsi_load() method work as expected in async mode (no timeout)
 
         Args:
             None
@@ -228,12 +318,12 @@ class TestLogicalPartition(TestCase):
         self.lpar.scsi_load(
             'dummy_address',
             'dummy_wwpn',
-            'dummy_lun'
+            'dummy_lun',
         )
 
-        session.json_request.assert_called_with(
+        session.json_request.assert_called_once_with(
             'POST',
-            'dummy.domain.com/operations/scsi-load',
+            self.lpar_uri + '/operations/scsi-load',
             body={
                 'load-address': 'dummy_address',
                 'world-wide-port-name': 'dummy_wwpn',
@@ -241,7 +331,102 @@ class TestLogicalPartition(TestCase):
                 'force': True
             }
         )
-    # test_scsi_load()
+    # test_scsi_load_async()
+
+    def test_scsi_load_sync(self):
+        """
+        Test if scsi_load() method work as expected with normal timeout
+        (synchronous).
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+
+        self._mock_hmc.session.json_request.side_effect = [
+            # response to POST /api/operations/load
+            {"job-uri": "/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {"status": "running"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {
+                "status": "complete",
+                "job-status-code": 204,
+                "job-reason-code": 0
+            },
+        ]
+        self.lpar.scsi_load(
+            'dummy_address',
+            'dummy_wwpn',
+            'dummy_lun',
+            timeout=30
+        )
+
+        # validate behavior
+        self._mock_hmc.session.json_request.assert_has_calls([
+            mock.call(
+                'POST',
+                self.lpar_uri + '/operations/scsi-load',
+                body={
+                    'load-address': 'dummy_address',
+                    'world-wide-port-name': 'dummy_wwpn',
+                    'logical-unit-number': 'dummy_lun',
+                    'force': True
+                }
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+        ])
+
+    # test_scsi_load_sync()
+
+    def test_scsi_load_sync_timeout(self):
+        """
+        Test if scsi_load() method correctly raises exception when a timeout
+        occurs.
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        with self.assertRaisesRegex(
+            ZHmcRequestError,
+            'Timed out while waiting for load job completion'):
+            self.lpar.scsi_load(
+                'dummy_address',
+                'dummy_wwpn',
+                'dummy_lun',
+                timeout=30
+            )
+
+        session = self.lpar._hmc.session
+        session.json_request.assert_any_call(
+            'POST',
+            self.lpar_uri + '/operations/scsi-load',
+            body={
+                'load-address': 'dummy_address',
+                'world-wide-port-name': 'dummy_wwpn',
+                'logical-unit-number': 'dummy_lun',
+                'force': True
+            }
+        )
+    # test_scsi_load_sync_timeout()
 
     def test_stop(self):
         """
@@ -259,7 +444,7 @@ class TestLogicalPartition(TestCase):
         self.lpar.stop()
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
-            "POST", "dummy.domain.com/operations/stop", body=None
+            "POST", self.lpar_uri + "/operations/stop", body=None
         )
     # test_stop()
 
@@ -280,7 +465,7 @@ class TestLogicalPartition(TestCase):
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             "POST",
-            "dummy.domain.com/operations/reset-clear",
+            self.lpar_uri + "/operations/reset-clear",
             body={
                 "force": True
             }
