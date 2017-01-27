@@ -1,33 +1,25 @@
-<domain type='kvm'>
+<domain type='kvm' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
     <name>{name}</name>
     <uuid>{uuid}</uuid>
     <memory unit='MiB'>{memory}</memory>
     <currentMemory unit='MiB'>{memory}</currentMemory>
     <vcpu placement='static'>{cpu}</vcpu>
     <os>
-	<type arch='s390x' machine='s390-ccw-virtio'>hvm</type>
+        <type arch='s390x' machine='s390-ccw-virtio'>hvm</type>
     </os>
     <clock offset='utc'/>
     <on_poweroff>destroy</on_poweroff>
     <on_reboot>restart</on_reboot>
     <on_crash>destroy</on_crash>
     <devices>
-	<emulator>/usr/bin/qemu-kvm</emulator>
-        {disks}
-	<controller type='virtio-serial' index='0'>
-	    <alias name='virtio-serial0'/>
-	    <address type='ccw' cssid='0xfe' ssid='0x2' devno='0xc158'/>
-	</controller>
-	{ifaces}
-	<console type='pty' tty='/dev/pts/1'>
-	    <source path='/dev/pts/1'/>
-	    <target type='virtio' port='0'/>
-	    <alias name='console0'/>
-	</console>
-	<memballoon model='virtio'>
-	    <alias name='balloon0'/>
-	    <address type='ccw' cssid='0xfe' ssid='0x3' devno='0xba00'/>
-	</memballoon>
-	<panic model='s390'/>
+        <emulator>/usr/bin/qemu-kvm</emulator>
+      {disks}
+      {ifaces}
+    <console type='pty'>
+      <target type='sclp' port='0'/>
+    </console>
+    <memballoon model='virtio'>
+      <address type='ccw' cssid='0xfe' ssid='0x3' devno='0xffba'/>
+    </memballoon>
     </devices>
 </domain>

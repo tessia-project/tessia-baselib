@@ -195,6 +195,7 @@ class HypervisorHmc(HypervisorBase):
             raise ZHmcError("You need to login first")
 
         cpc = self._session.get_cpc(parameters['cpc_name'])
+        guest_name = guest_name.upper()
         lpar = cpc.get_lpar(guest_name)
         # Profiles have the same name as the LPAR's
         image_profile = cpc.get_image_profile(guest_name)

@@ -34,17 +34,14 @@ class DiskDasd(DiskBase):
     """
     This class is an abstraction for a dasd disk.
     """
-    def __init__(self, parameters, target_dev_mngr, cmd_channel):
+    def __init__(self, parameters, target_dev_mngr, host_conn):
         """
         Constructor
 
         Args:
             parameters (dict):  Disk parameters as defined in the json schema.
             target_dev_mngr (object): Instance of TargetDeviceManager.
-            cmd_channel (object): An object that provides a method in the
-                                  format "run(self, cmd, timeout=120):".
-                                  This method is used to perform commands in
-                                  the host ir order to handledisk operations.
+            host_conn (GuestLinux): instance
 
         Returns:
             None
@@ -52,7 +49,7 @@ class DiskDasd(DiskBase):
         Raises:
             None
         """
-        super().__init__(parameters, target_dev_mngr, cmd_channel)
+        super().__init__(parameters, target_dev_mngr, host_conn)
 
         self._logger = get_logger(__name__)
 

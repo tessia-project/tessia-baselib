@@ -34,18 +34,14 @@ class DiskBase(object):
     """
     Base class for all type of physical disks.
     """
-    def __init__(self, parameters, target_dev_mngr, cmd_channel):
+    def __init__(self, parameters, target_dev_mngr, host_conn):
         """
         Constructor. Initialize instance variables.
 
         Args:
             parameters (dict): Disk parameters as defined in the json schema.
             target_dev_mngr (TargetDeviceManager): object instance
-            cmd_channel (object): any object that provides a method in the
-                                  format "run(cmd, timeout=120)" and returns
-                                  a tuple (exit_code, output). This method is
-                                  is used to perform commands in the host in
-                                  order to handle disk operations.
+            host_conn (GuestLinux): instance connected to linux host
 
         Returns:
             None
@@ -54,14 +50,16 @@ class DiskBase(object):
             None
         """
         self._parameters = parameters
+        # useful to uniquely identify the instance
+        self.volume_id = self._parameters['volume_id']
 
         # xml device definition
         self._libvirt_xml = None
         # template used to create the xml device definition
         with open(TEMPLATE_FILE, "r") as template_fd:
             self._xml_template = template_fd.read()
-        # shell object to run commands on hypervisor
-        self._cmd_channel = cmd_channel
+        # shell object to run commands on hypervisor, each disk gets its own
+        self._cmd_channel = host_conn.open_session()
 
         # the _source_dev variable is set by the concrete classes
         self._source_dev = None

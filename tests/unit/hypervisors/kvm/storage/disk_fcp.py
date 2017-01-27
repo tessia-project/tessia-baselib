@@ -19,7 +19,8 @@ Test module for disk_fcp module
 #
 # IMPORTS
 #
-from tessia_baselib.common.ssh.shell import SshShell
+from tessia_baselib.guests.linux.linux import GuestLinux
+from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
 from tessia_baselib.hypervisors.kvm.storage import disk_fcp
 from tessia_baselib.hypervisors.kvm.storage.disk_fcp import DiskFcp
 from tessia_baselib.hypervisors.kvm.target_device_manager \
@@ -33,7 +34,7 @@ import copy
 # CONSTANTS AND DEFINITIONS
 #
 PARAMS_FCP = {
-    "disk_type": "FCP",
+    "type": "FCP",
     "volume_id": "1024400000000000",
     "boot_device": True,
     "specs": {
@@ -60,39 +61,33 @@ class TestDiskFcp(TestCase):
         Create the mock objects used in the initialization of the DiskFcp.
         """
         self._mock_tgt_dv_mngr = mock.Mock(spec=TargetDeviceManager)
-        self._mock_ssh_shell = mock.Mock(spec=SshShell)
+        self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
+        self._mock_session = mock.Mock(spec_set=GuestSessionLinux)
+        self._mock_host_conn.open_session.return_value = self._mock_session
 
         # mock timer
-        self.patcher_timer = mock.patch.object(
+        patcher = mock.patch.object(
             disk_fcp, 'timer', autospec=True)
-        self.mock_timer = self.patcher_timer.start()
+        self.mock_timer = patcher.start()
+        self.addCleanup(patcher.stop)
 
         # mock _enable_device method
         DiskFcp._enable_device = mock.Mock()
         self.mock_enable_device = DiskFcp._enable_device
 
         # mock sleep function
-        self.patcher_sleep = mock.patch.object(
+        patcher = mock.patch.object(
             disk_fcp, 'sleep', autospec=True)
-        self.patcher_sleep.start()
+        patcher.start()
+        self.addCleanup(patcher.stop)
     # setUp()
-
-    def tearDown(self):
-        """
-        Stop patching the mocks. Before each test setUp will be executed and
-        the patch created again.
-        """
-        self.patcher_timer.stop()
-        #self.patcher_disk_base.stop()
-        self.patcher_sleep.stop()
-    # tearDown()
 
     def _create_disk(self, parameters):
         """
         Auxiliary method to create a disk using the mock objects.
         """
         return DiskFcp(parameters, self._mock_tgt_dv_mngr,
-                       self._mock_ssh_shell)
+                       self._mock_host_conn)
     # _create_disk()
 
     def test_init(self):
@@ -119,7 +114,7 @@ class TestDiskFcp(TestCase):
         # The following table contais all the return values of the
         # run method, resulting from the execution of shell commands
         # to handle the disk operations.
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             # for zfcp interface 0.0.1800
             #PATH 1
@@ -177,7 +172,7 @@ class TestDiskFcp(TestCase):
         Test the activation of the disk using the port_rescan sysfs interface
         for the wwpns.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
@@ -230,7 +225,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case that a lun fails to be activated.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
@@ -247,7 +242,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case that a lun fails to be activated.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
@@ -267,7 +262,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case that a lun fails to be add.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
@@ -288,7 +283,7 @@ class TestDiskFcp(TestCase):
         Test the case in which two paths don't belong to the same multipath
         name.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
@@ -334,7 +329,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case that a path does not belong to a multipath name.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
@@ -379,7 +374,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case in which the device mapper is not available.
         """
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #(0, ""), # _enable_lun_paths _enable_device
             #(0, ""),
@@ -429,7 +424,7 @@ class TestDiskFcp(TestCase):
         """
         params_fcp_no_multipath = copy.deepcopy(PARAMS_FCP)
         params_fcp_no_multipath.get("specs")["multipath"] = False
-        self._mock_ssh_shell.run.side_effect = [
+        self._mock_session.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #(0, ""), # _enable_lun_paths _enable_device
             #(0, ""),
@@ -472,7 +467,7 @@ class TestDiskFcp(TestCase):
         Test the case that the zfcp module fails to be loaded.
         """
         disk = self._create_disk(PARAMS_FCP)
-        self._mock_ssh_shell.run.side_effect = [(1, "")]
+        self._mock_session.run.side_effect = [(1, "")]
         self.assertRaisesRegex(RuntimeError, "Unable to load fcp",
                                disk.activate)
     # test_activate_fail_fcp()

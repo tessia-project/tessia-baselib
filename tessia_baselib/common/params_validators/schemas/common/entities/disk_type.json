@@ -8,7 +8,7 @@
         }
     ],
     "properties": {
-        "disk_type": {
+        "type": {
             "enum": [
                 "FCP",
                 "DASD"
@@ -28,7 +28,7 @@
         }
     },
     "required": [
-        "disk_type"
+        "type"
     ],
     "type": "object"
 }
