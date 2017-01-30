@@ -37,7 +37,9 @@ IFACE = {
         <model type="virtio"/>
         <address type="ccw" cssid="0xfe" ssid="0x0" devno="0xf500"/>
     </interface>'''
-    }
+    },
+    'mac_address': '02:57:52:01:ff:01',
+    'type': 'MACVTAP'
 }
 DISK_FCP = {
     "type": "FCP",
