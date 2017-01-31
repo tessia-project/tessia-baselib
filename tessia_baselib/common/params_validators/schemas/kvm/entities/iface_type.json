@@ -1,19 +1,46 @@
 {
     "properties": {
         "attributes": {
-            "properties": {
-                "libvirt": {
-                    "type": "string"
+            "oneOf": [
+                {
+                    "properties": {
+                        "libvirt": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "libvirt"
+                    ],
+                    "type": "object"
+                },
+                {
+                    "properties": {
+                        "hostiface": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "hostiface"
+                    ],
+                    "type": "object"
                 }
-            },
-            "required": [
-                "libvirt"
+            ]
+        },
+        "mac_address": {
+            "pattern": "^([a-fA-F0-9]{2}:){5}([a-fA-F0-9]){2}",
+            "type": "string"
+        },
+        "type": {
+            "enum": [
+                "MACVTAP"
             ],
-            "type": "object"
+            "type": "string"
         }
     },
     "required": [
-        "attributes"
+        "attributes",
+        "mac_address",
+        "type"
     ],
     "type": "object"
 }

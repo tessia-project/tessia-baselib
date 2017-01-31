@@ -76,11 +76,9 @@ class HypervisorKvm(HypervisorBase):
             str(self.parameters)
         )
 
-        # a KVM hypervisor is also a linux guest, so we establish connection
-        # with it using the GuestLinux class.
-        self._host_cnn = GuestLinux(system_name, host_name, user,
-                                    passwd, parameters)
-        self._host_session = None
+        # instantiated during login time
+        self._host_conn = None
+        self._virsh = None
     # __init__()
 
     def _test_logged_in(self):
@@ -97,7 +95,7 @@ class HypervisorKvm(HypervisorBase):
         Raises:
             RuntimeError: if it is not logged in the system.
         """
-        if self._host_session is None:
+        if self._host_conn is None:
             raise RuntimeError("You must login first")
     # _test_logged_in()
 
@@ -124,14 +122,18 @@ class HypervisorKvm(HypervisorBase):
             str(self.parameters)
         )
 
-        if self._host_session is not None:
+        if self._host_conn is not None:
             self._logger.warning(
                 "Login called with connection already active:"
                 " dropping previous connection object"
             )
 
-        self._host_cnn.login(timeout)
-        self._host_session = self._host_cnn.open_session()
+        # a KVM hypervisor is also a linux guest, so we establish connection
+        # with it using the GuestLinux class.
+        self._host_conn = GuestLinux(
+            self.name, self.host_name, self.user, self.passwd, self.parameters)
+        self._host_conn.login(timeout)
+        self._virsh = Virsh(self._host_conn)
     # login()
 
     def logoff(self):
@@ -151,9 +153,10 @@ class HypervisorKvm(HypervisorBase):
 
         self._logger.debug("performing LOGOFF HypervisorKVM")
 
-        self._host_session.close()
-        self._host_cnn.logoff()
-        self._host_session = None
+        self._virsh.close()
+        self._virsh = None
+        self._host_conn.logoff()
+        self._host_conn = None
     # logoff()
 
     @validate_params
@@ -182,14 +185,12 @@ class HypervisorKvm(HypervisorBase):
             "cpu=%s memory=%s parameters=%s", guest_name, cpu, memory,
             str(parameters))
 
-        virsh = Virsh(self._host_cnn, self._host_session)
-
         # vm is already running: stop it
-        if virsh.is_running(guest_name):
-            virsh.destroy(guest_name)
+        if self._virsh.is_running(guest_name):
+            self._virsh.destroy(guest_name)
 
         guest_kvm = GuestKvm(guest_name, cpu, memory,
-                             parameters, self._host_session)
+                             parameters, self._host_conn)
         # Activate all hardware
         guest_kvm.activate()
 
@@ -200,25 +201,25 @@ class HypervisorKvm(HypervisorBase):
 
         # domain already defined in libvirt: remove it to avoid error when
         # trying to re-define
-        if virsh.is_defined(guest_name):
-            virsh.undefine(guest_name)
+        if self._virsh.is_defined(guest_name):
+            self._virsh.undefine(guest_name)
 
         # network boot: define a temporary domain xml using kernel/initrd
         # to boot
         if is_netboot:
-            virsh.define_netboot(
+            self._virsh.define_netboot(
                 domain_xml,
                 parameters["parameters"]["boot_options"])
         # no netboot: use the final domain xml
         else:
-            virsh.define(domain_xml)
+            self._virsh.define(domain_xml)
 
-        virsh.start(guest_name)
+        self._virsh.start(guest_name)
 
         # netboot performed: re-define domain to remove temporary boot tag
         if is_netboot:
-            virsh.define(domain_xml)
-            virsh.clean_tmp_dir()
+            self._virsh.define(domain_xml)
+            self._virsh.clean_tmp_dir()
     # start()
 
     @validate_params
@@ -244,13 +245,11 @@ class HypervisorKvm(HypervisorBase):
             "performing REBOOT HypervisorKVM: guest_name=%s "
             "parameters=%s", guest_name, str(parameters))
 
-        virsh = Virsh(self._host_cnn, self._host_session)
-
-        if not virsh.is_defined(guest_name):
+        if not self._virsh.is_defined(guest_name):
             raise RuntimeError("Domain {} is not "
                                "defined".format(guest_name))
 
-        if not virsh.is_running(guest_name):
+        if not self._virsh.is_running(guest_name):
             raise RuntimeError("Domain {} is not "
                                "running".format(guest_name))
 
@@ -259,8 +258,8 @@ class HypervisorKvm(HypervisorBase):
         # a running domain (we remove the kernel, initrd, and cmdline tags),
         # and libvirt seems to still use the domain that was used in the start
         # while performing the reset operation.
-        virsh.destroy(guest_name)
-        virsh.start(guest_name)
+        self._virsh.destroy(guest_name)
+        self._virsh.start(guest_name)
     # reboot()
 
     @validate_params
@@ -286,16 +285,14 @@ class HypervisorKvm(HypervisorBase):
             "performing STOP HypervisorKVM: guest_name=%s "
             "parameters=%s", guest_name, str(parameters))
 
-        virsh = Virsh(self._host_cnn, self._host_session)
-
-        if not virsh.is_defined(guest_name):
+        if not self._virsh.is_defined(guest_name):
             raise RuntimeError("Domain {} is not "
                                "defined".format(guest_name))
 
-        if not virsh.is_running(guest_name):
+        if not self._virsh.is_running(guest_name):
             raise RuntimeError("Domain {} is not "
                                "running".format(guest_name))
 
-        virsh.destroy(guest_name)
+        self._virsh.destroy(guest_name)
     # stop()
 # HypervisorKvm

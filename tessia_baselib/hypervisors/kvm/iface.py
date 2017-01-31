@@ -19,10 +19,13 @@ Module for Iface class
 #
 # IMPORTS
 #
+import os
 
 #
 # CONSTANTS AND DEFINITIONS
 #
+TEMPLATE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "resources/{}_template.xml")
 
 #
 # CODE
@@ -45,15 +48,32 @@ class Iface(object):
             None
 
         Raises:
-            None
+            ValueError: in case an invalid network type is specified
         """
         self._parameters = parameters
 
         attributes = self._parameters.get("attributes")
         self._libvirt_xml = attributes.get("libvirt")
+        if self._libvirt_xml is not None:
+            target_dev_mngr.update_devno_blacklist(self._libvirt_xml)
+            return
 
-        target_dev_mngr.update_devno_blacklist(self._libvirt_xml)
-    # __init__
+        template_path = TEMPLATE_FILE.format(self._parameters['type'].lower())
+        if not os.path.exists(template_path):
+            raise ValueError('Unknown interface type {}'.format(
+                self._parameters['type']))
+
+        with open(template_path, "r") as template_fd:
+            xml_template = template_fd.read()
+
+        devno = target_dev_mngr.get_valid_devno()
+
+        self._libvirt_xml = xml_template.format(
+            mac=self._parameters['mac_address'],
+            hostiface=attributes['hostiface'],
+            devno=devno
+        )
+    # __init__()
 
     def to_xml(self):
         """

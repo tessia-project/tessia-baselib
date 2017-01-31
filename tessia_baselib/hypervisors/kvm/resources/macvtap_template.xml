@@ -1,0 +1,6 @@
+       <interface type="direct">
+         <mac address="{mac}"/>
+         <source dev="{hostiface}" mode="bridge"/>
+         <model type="virtio"/>
+         <address type="ccw" cssid="0xfe" ssid="0x0" devno="{devno}"/>
+       </interface>

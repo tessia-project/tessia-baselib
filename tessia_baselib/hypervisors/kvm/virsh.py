@@ -40,14 +40,12 @@ class Virsh(object):
     This class provides a wrapper for the virsh commands that are executed in
     the hypervisor.
     """
-    def __init__(self, host_cnn, cmd_channel):
+    def __init__(self, host_cnn):
         """
         Class constructor. Initialize object variables and logging.
 
         Args:
-            cmd_channel An object that provides a method in the format
-                        "run(cmd, timeout=120)". This method is used
-                        to perform commands in the hypervisor.
+            host_cnn (GuestLinux): instance connected to linux host
 
         Returns:
             None
@@ -55,9 +53,9 @@ class Virsh(object):
         Raises:
             None
         """
-        self._cmd_channel = cmd_channel
+        self._logger = get_logger(__name__)
         self._host_cnn = host_cnn
-        self._logger = self._logger = get_logger(__name__)
+        self._cmd_channel = self._host_cnn.open_session()
 
         # temporary directory to hold working files (domain xml, kernel,
         # initrd)
@@ -171,6 +169,16 @@ class Virsh(object):
         self._tmp_dir = None
 
     # clean_tmp_dir()
+
+    def close(self):
+        """
+        Perform cleanup and close the shell session.
+        """
+        self.clean_tmp_dir()
+        self._cmd_channel.close()
+        self._cmd_channel = None
+        self._host_cnn = None
+    # close()
 
     def define_netboot(self, domain_xml, boot_params):
         """

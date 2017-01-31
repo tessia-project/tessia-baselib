@@ -645,8 +645,9 @@ class SshClient(object):
         # put stdout and stderr in same stream
         channel.set_combine_stderr(True)
 
-        # use -s to make the shell read from stdin
-        shell_cmd = '{} -s'.format(shell_path)
+        # use -s to make the shell read from stdin and -l to make it a login
+        # shell so that .profile is loaded
+        shell_cmd = '{} -s -l'.format(shell_path)
         # directory specified: chroot to it
         if chroot_dir:
             shell_cmd = 'chroot %s %s' % (chroot_dir, shell_cmd)

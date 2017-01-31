@@ -55,9 +55,11 @@ iface = {
         <address type="ccw" cssid="0xfe" ssid="0x0" devno="0xf500"/>
         </interface>'''
     }
+    "mac_address": "02:57:52:01:ff:01",
+    "type": "MACVTAP",
 }
 disk_scsi = {
-    "disk_type": "SCSI",
+    "type": "FCP",
     "volume_id": "1024400000000000",
     "boot_device": True,
     "specs": {
@@ -70,7 +72,7 @@ disk_scsi = {
 }
 
 disk_dasd = {
-    "disk_type": "DASD",
+    "type": "DASD",
     "volume_id": "3961",
 }
 
@@ -114,9 +116,11 @@ iface = {
         <address type="ccw" cssid="0xfe" ssid="0x0" devno="0xf500"/>
         </interface>'''
     }
+    "mac_address": "02:57:52:01:ff:01",
+    "type": "MACVTAP",
 }
 disk_scsi = {
-    "disk_type": "SCSI",
+    "type": "FCP",
     "volume_id": "1024400000000000",
     "specs": {
         "multipath": True,
@@ -127,7 +131,7 @@ disk_scsi = {
     }
 }
 disk_dasd = {
-    "disk_type": "DASD",
+    "type": "DASD",
     "volume_id": "3961",
 }
 guest_parameters = {
