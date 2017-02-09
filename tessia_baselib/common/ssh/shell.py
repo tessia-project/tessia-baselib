@@ -66,6 +66,13 @@ class SshShell(object):
         # store socket object
         self.socket = socket_obj
 
+        # do an initial read to prevent a problem where we issue the command
+        # too fast and the remote side shows the prompt later beneath it,
+        # causing our expect algorithm to fail.
+        self.prompt = '\n'
+        self._write('\n')
+        self._read()
+
         # the main problem with doing 'expect work' is to detect when the
         # output is really over. Usually this is done by waiting the prompt but
         # this can generate false positives. In order to avoid that and

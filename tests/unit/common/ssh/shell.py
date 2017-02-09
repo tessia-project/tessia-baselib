@@ -92,7 +92,8 @@ class TestSshShell(TestCase):
         # set output of recv so that the first call to _read
         # and the call to run 'locale charmap' in the SshShell constructor work
         self._dummy_socket.recv.side_effect = (
-            [self._make_output('', 'output')]
+            [self._make_output('', '\n')]
+            + [self._make_output('', 'output')]
             + self._build_regular_run_output('locale charmap', 'UTF-8')
         )
 
@@ -550,7 +551,8 @@ class TestSshShell(TestCase):
             bad_charmap = 'UTF-9'
 
             self._dummy_socket.recv.side_effect = (
-                [self._make_output('', 'output')]
+                [self._make_output('', '\n')]
+                + [self._make_output('', 'output')]
                 + self._build_regular_run_output('locale charmap', bad_charmap)
             )
 
@@ -584,7 +586,8 @@ class TestSshShell(TestCase):
             'tessia_baselib.common.ssh.shell.get_logger') as get_logger_mock:
 
             self._dummy_socket.recv.side_effect = (
-                [self._make_output('', 'output')]
+                [self._make_output('', '\n')]
+                + [self._make_output('', 'output')]
                 + self._build_regular_run_output('locale charmap', 'UTF-8', 1)
             )
 
