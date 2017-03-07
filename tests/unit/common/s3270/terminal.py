@@ -15,7 +15,7 @@
 """
 Terminal unittest
 """
-# pylint: disable=no-member
+# pylint: disable=no-member,attribute-defined-outside-init
 #
 # IMPORTS
 #
@@ -123,6 +123,13 @@ class TestTerminal(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
+        # set s3270 output
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: VM READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+
         # create new instance of terminal
         terminal = Terminal()
 
@@ -194,6 +201,12 @@ class TestTerminal(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
+        # set s3270 output
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: CP READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
         # create new instance of terminal
         terminal = Terminal()
 
@@ -231,9 +244,9 @@ class TestTerminal(TestCase):
          .string.assert_any_call("l user here"))
     # test_login_here()
 
-    def test_parse_output_placeholder(self):
+    def test_logoff_disconnect(self):
         """
-        Placeholder for _parse_output
+        Exercise a normal disconnect command
 
         Args:
             None
@@ -244,12 +257,241 @@ class TestTerminal(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
+        # set s3270 output
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: VM READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+
         # create new instance of terminal
         terminal = Terminal()
 
         # simple command execution
-        self.assertRaises(NotImplementedError, terminal._parse_output, "text")
-    # test_parse_output_placeholder()
+        output = terminal.login("hostname.com", "user", "password")
+        output = terminal.logoff()
+
+        self.assertIs(output, True)
+    # test_logoff_disconnect()
+
+    def test_logoff_ok(self):
+        """
+        Exercise a normal logoff command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: VM READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        output = terminal.login("hostname.com", "user", "password")
+        output = terminal.logoff({"logoff":True})
+
+        self.assertIs(output, True)
+    # test_logoff_ok()
+
+    def test_logoff_bad_parameter(self):
+        """
+        Exercise a normal logoff command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+            'data: \n     \nok\n',
+        ]
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: VM READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        output = terminal.login("hostname.com", "user", "password")
+        output = terminal.logoff({"disconnect":True})
+
+        self.assertIs(output, False)
+    # test_logoff_bad_parameter()
+
+    def test_send_cmd_cms(self):
+        """
+        Exercise send_cmd with a CMS command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+        ]
+
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: \nU F U C(hostname.com) \nok\n', # middle of login method
+            'data: \nU F U C(hostname.com) \nok\n', # _check_status at login
+            'data: \nU F U C(hostname.com) \nok\n', # end of login method
+            'data: MORE...             \nU F U C(hostname.com) \nok\n',
+            'data: HOLDING             \nU F U C(hostname.com) \nok\n',
+            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
+
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        terminal.login("hostname.com", "user", "password")
+
+        cmd_output = terminal.send_cmd("profile", wait_for="Ready;")
+        content = " MORE...             \n HOLDING             \n"\
+                  " profile\n Ready;\n"
+        self.assertEqual(content, cmd_output[0])
+    # test_send_cmd_cms()
+
+    def test_send_cmd_cms_with_timeout(self):
+        """
+        Exercise send_cmd with a CMS command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+        ]
+
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: \nU F U C(hostname.com) \nok\n', # middle of login method
+            'data: \nU F U C(hostname.com) \nok\n', # _check_status at login
+            'data: \nU F U C(hostname.com) \nok\n', # end of login method
+            'data: MORE...             \nU F U C(hostname.com) \nok\n',
+            'data: HOLDING             \nU F U C(hostname.com) \nok\n',
+            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
+
+        ]
+
+        self.time_patcher = patch('time.time', autospec=True)
+        self.mock_time = self.time_patcher.start()
+        self.addCleanup(self.time_patcher.stop)
+
+        self.mock_time.side_effect = [
+            1475010078.6838996,
+            1475010111.7996376,
+            1475010511.7996376,
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        terminal.login("hostname.com", "user", "password")
+
+        cmd_output = terminal.send_cmd("profile", wait_for="Ready;")
+        self.assertIs(cmd_output[1], True)
+    # test_send_cmd_cms_with_timeout()
+
+    def test_send_cmd_cp(self):
+        """
+        Exercise send_cmd with a CP command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+        ]
+
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        terminal.login("hostname.com", "user", "password")
+
+        cmd_output = terminal.send_cmd("profile", True)
+        self.assertEqual(' profile\n Ready;\n', cmd_output[0])
+    # test_send_cmd_cp()
+
+    def test_send_cmd_without_connection(self):
+        """
+        Exercise send_cmd without a conneciton to host
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+        ]
+
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: \nU F U C(hostname.com) \nok\n',
+            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        self.assertRaises(RuntimeError, terminal.send_cmd,
+                          'profile', True)
+    # test_send_cmd_without_connection()
 
 
 

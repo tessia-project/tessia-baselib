@@ -18,6 +18,8 @@ Terminal module
 #
 # IMPORTS
 #
+import time
+
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.s3270.exceptions import ZvmMessageError
 from tessia_baselib.common.s3270.s3270 import S3270
@@ -91,15 +93,41 @@ class Terminal(object):
         return None
     # _check_output()
 
+    def _check_status(self, output=''):
+        """
+        Look at CP status area for current status.
+
+        Args:
+            output (str): output to be checked
+
+        Returns:
+            str: current status in CP status area
+
+        Raises:
+            None
+        """
+        # if an output text is passed as argument, look for status there
+        if len(output) > 0:
+            status = output[-21:-14]
+        else:
+            # look at status area
+            status = self._s3270.ascii([42, 60, 7])
+            # format output to have just the status
+            status = self._format_output(status, strip=True).strip()
+
+        # return the current status found
+        return status
+    # _check_status()
+
     @staticmethod
-    def _format_output(text, full=False):
+    def _format_output(text, strip=False):
         """
         Format the text to remove s3270 tags, s3270 flags,
         status line and blank lines.
 
         Args:
             text (str): text to be formated
-            full (bool): remove blank lines
+            strip (bool): whether to remove blank lines
 
         Returns:
             str: formated output
@@ -121,8 +149,8 @@ class Terminal(object):
                     line.startswith('L U U')
                 ):
                 continue
-            # remove blank lines when set to full parse
-            if full:
+            # remove blank lines when strip is specified
+            if strip:
                 if line.strip():
                     output += line+'\n'
             else:
@@ -132,7 +160,7 @@ class Terminal(object):
 
     def _is_connected(self):
         """
-        check if current object is connected to a host by quering the host
+        Check if current object is connected to a host by quering the host
         attribute. When there is a connection opened, query will return the
         hostname. When there is not a connection opened, query will return
         an empty string.
@@ -141,7 +169,7 @@ class Terminal(object):
             None
 
         Returns:
-            bool: if connected to a host, False otherwise
+            bool: True if connected to a host, False otherwise
 
         Raises:
             None
@@ -154,7 +182,7 @@ class Terminal(object):
         output = self._s3270.query()
 
         # remove unnecessary data
-        output = self._format_output(output, full=True)
+        output = self._format_output(output, strip=True)
 
         # check if object has a connection
         if self.host_name in output:
@@ -162,21 +190,88 @@ class Terminal(object):
         return False
     #_is_connected()
 
-    def _parse_output(self, text, wait_for=''):
+    def _is_output_full(self, output=''):
         """
-        Parse the text to implement terminal scrolling.
+        Look for page full status in CP status area.
 
         Args:
-            text (str): text to be parsed
-            wait_for (str): string to stop parsing
-
-        Returns:
+            output (str): output to be checked
             None
 
+        Returns:
+            bool: True if output is full
+
         Raises:
-            NotImplementedError: to be implemented
+            None
         """
-        raise NotImplementedError()
+        # valid status for a full output
+        cp_status = [
+            "MORE...",
+            "HOLDING"
+        ]
+
+        # look at status area
+        status = self._check_status(output)
+
+        # if output is full return True
+        if status in cp_status:
+            return True
+        return False
+    # _is_output_full()
+
+    def _parse_output(self, wait_for='', timeout=60):
+        """
+        Parse the output looking for 'wait_for'.
+
+        Args:
+            wait_for (str): string to stop parsing
+            timeout (int): how many seconds to wait for action to complete
+
+        Returns:
+            tuple: (str, bool) str: full output until 'wait_for' was found or
+                                    timeout occurred
+                               bool: True if time expired
+
+        Raises:
+            None
+        """
+        time_expired = False
+        output = ""
+
+        if len(wait_for) > 0:
+            # variable for wait_for control
+            found = False
+            # define the timeout limit
+            timeout = time.time() + timeout
+
+            # while wait_for not found on current_output
+            while not found and not time_expired:
+                # read the current information on terminal
+                current_output = self._s3270.ascii()
+                # remove unnecessary data
+                current_output = self._format_output(
+                    current_output, strip=True)
+
+                # terminal is full: clear it
+                if self._is_output_full(current_output):
+                    # append current information to the output
+                    output += current_output
+                    self._s3270.clear()
+
+                # 'wait_for' found: set variable to stop processing
+                if wait_for in current_output:
+                    # append current information to the output
+                    output += current_output
+                    found = True
+
+                # check if we reached a timeout
+                if time.time() > timeout:
+                    time_expired = True
+        else:
+            output = self._s3270.ascii()
+            output = self._format_output(output, strip=True)
+
+        return (output, time_expired)
     # _parse_output()
 
     def connect(self, host_name, timeout=60):
@@ -208,6 +303,40 @@ class Terminal(object):
         self._s3270.connect(self.host_name, timeout)
     # connect()
 
+    def send_cmd(self, cmd, use_cp=False, wait_for=''):
+        """
+        Issue a command on zVM.
+
+        Args:
+            cmd (str): command to be executed
+            use_cp (bool): whether the command should be executed on CP
+            wait_for (str): process until wait_for is found
+
+        Returns:
+            str: command output
+
+        Raises:
+            RuntimeError: if connection to the host was lost
+        """
+        if not self._is_connected():
+            raise RuntimeError('Connection to host lost.')
+
+        # make sure we have a clear screen for output
+        self._s3270.clear()
+        # put command on input line
+        if use_cp:
+            self._s3270.string("#cp "+cmd)
+        else:
+            self._s3270.string(cmd)
+        # issue the command
+        self._s3270.enter()
+
+        # read output of command issued
+        output = self._parse_output(wait_for)
+
+        return output
+    # send_cmd()
+
     def login(self, host_name, user, password, parameters=None, timeout=60):
         """
         Execute a login to the user id using the credentials provided.
@@ -220,7 +349,7 @@ class Terminal(object):
             timeout (int): how many seconds to wait for action to complete
 
         Returns:
-            str: output of run command
+            str: output of login
 
         Raises:
             TimeoutError: if we have a timeout on connector
@@ -256,6 +385,49 @@ class Terminal(object):
         if err_message:
             raise ZvmMessageError(err_message)
 
+        # look for vm or cp read status in CP status area.
+        status = self._check_status()
+
+        # try to set the machine on running status
+        if status == "CP READ":
+            self._s3270.string("begin")
+            self._s3270.enter()
+
+        if status == "VM READ":
+            self._s3270.enter()
+
+        # read full output and format to return
+        output = self._s3270.ascii()
         output = self._format_output(output, True)
         return output
     # login()
+
+    def logoff(self, parameters=None):
+        """
+        Close the connection with the user depending on the parameter passed.
+
+        Args:
+            parameters (dict): dictionary with additional logoff parameters
+
+        Returns:
+            bool: True if connection was closed, False otherwise
+
+        Raises:
+            TimeoutError: if we have a timeout on connector
+        """
+        # logoff process
+        self._s3270.clear()
+        if parameters:
+            if parameters.get("logoff"):
+                self._s3270.string("#cp logoff")
+        else:
+            self._s3270.string("#cp disconnect")
+        self._s3270.enter()
+
+        # check if connection was closed
+        if not self._is_connected():
+            return True
+
+        # connection was not closed
+        return False
+    # logoff()
