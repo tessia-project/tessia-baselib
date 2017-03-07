@@ -13,15 +13,16 @@
 # limitations under the License.
 
 """
-Terminal unittest
+Test module for zvm hypervisor
 """
-# pylint: disable=no-member,attribute-defined-outside-init
+
 #
 # IMPORTS
 #
-from unittest.mock import patch
-from unittest import TestCase
 from tessia_baselib.hypervisors.zvm.zvm import HypervisorZvm
+from unittest import TestCase
+from unittest.mock import patch
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -50,11 +51,11 @@ class TestHypervisorZvm(TestCase):
         self.terminal_patcher = patch(
             'tessia_baselib.hypervisors.zvm.zvm.Terminal',
             autospec=True)
-        self.mock_terminal = self.terminal_patcher.start()
+        self._mock_terminal = self.terminal_patcher.start()
         self.addCleanup(self.terminal_patcher.stop)
 
         # set s3270 output
-        self.mock_terminal.return_value.login.return_value = 'ok\n'
+        self._mock_terminal.return_value.login.return_value = 'ok\n'
     # setUp()
 
     def test_login_ok(self):
@@ -81,7 +82,7 @@ class TestHypervisorZvm(TestCase):
 
         # simple command execution
         hyp.login()
-        self.mock_terminal.return_value.login.assert_called_once_with(
+        self._mock_terminal.return_value.login.assert_called_once_with(
             "hostname.com",
             "user",
             "password",
@@ -115,7 +116,7 @@ class TestHypervisorZvm(TestCase):
         # simple command execution
         hyp.login()
         hyp.logoff()
-        self.mock_terminal.return_value.logoff.assert_called_once_with()
+        self._mock_terminal.return_value.logoff.assert_called_once_with()
     # test_logoff_ok()
 
     def test_logoff_failed(self):
@@ -131,7 +132,7 @@ class TestHypervisorZvm(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
-        self.mock_terminal.return_value.logoff.return_value = False
+        self._mock_terminal.return_value.logoff.return_value = False
         # create new instance of terminal
         hyp = HypervisorZvm(
             "hostname",
@@ -201,7 +202,7 @@ class TestHypervisorZvm(TestCase):
         # simple command execution
         hyp.login()
         hyp.stop("hostname", None)
-        self.mock_terminal.return_value.logoff.assert_called_once_with(
+        self._mock_terminal.return_value.logoff.assert_called_once_with(
             parameters={'logoff': True})
     # test_stop_ok()
 
@@ -218,7 +219,7 @@ class TestHypervisorZvm(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
-        self.mock_terminal.return_value.logoff.return_value = False
+        self._mock_terminal.return_value.logoff.return_value = False
         # create new instance of terminal
         hyp = HypervisorZvm(
             "hostname",
