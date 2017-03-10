@@ -120,6 +120,28 @@ class Terminal(object):
     # _check_status()
 
     @staticmethod
+    def _cleanup_status_line(output):
+        """
+        Cleanup last line and status line from output
+
+        Args:
+            output (str): output to be cleaned
+
+        Returns:
+            str: output without status line
+
+        Raises:
+            None
+        """
+        # remove last bank line
+        output = output.rstrip('\n')
+        # remove MORE... or HOLDING line
+        output = output[:output.rfind('\n')+1]
+
+        return output
+    # _clenaup_status_line()
+
+    @staticmethod
     def _format_output(text, strip=False):
         """
         Format the text to remove s3270 tags, s3270 flags,
@@ -255,13 +277,13 @@ class Terminal(object):
                 # terminal is full: clear it
                 if self._is_output_full(current_output):
                     # append current information to the output
-                    output += current_output
+                    output += self._cleanup_status_line(current_output)
                     self._s3270.clear()
 
                 # 'wait_for' found: set variable to stop processing
                 if wait_for in current_output:
                     # append current information to the output
-                    output += current_output
+                    output += self._cleanup_status_line(current_output)
                     found = True
 
                 # check if we reached a timeout
@@ -270,6 +292,7 @@ class Terminal(object):
         else:
             output = self._s3270.ascii()
             output = self._format_output(output, strip=True)
+            output = self._cleanup_status_line(output)
 
         return (output, time_expired)
     # _parse_output()
@@ -399,6 +422,7 @@ class Terminal(object):
         # read full output and format to return
         output = self._s3270.ascii()
         output = self._format_output(output, True)
+        output = self._cleanup_status_line(output)
         return output
     # login()
 
