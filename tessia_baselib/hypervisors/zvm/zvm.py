@@ -123,7 +123,7 @@ class HypervisorZvm(HypervisorBase):
         """
         self._logger.debug("performing LOGOFF HypervisorZvm")
 
-        if not self._terminal.logoff():
+        if not self._terminal.disconnect():
             self._logger.debug("Logoff failed.")
             raise RuntimeError("Could not logoff from guest.")
     # logoff()
@@ -174,7 +174,7 @@ class HypervisorZvm(HypervisorBase):
         self._terminal.send_cmd("system clear", True)
 
         # logoff from guest
-        if not self._terminal.logoff(parameters={"logoff":True}):
+        if not self._terminal.logoff():
             self._logger.debug("Stop failed.")
             raise RuntimeError("Could not stop guest.")
     # stop()
