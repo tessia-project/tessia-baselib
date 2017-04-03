@@ -36,8 +36,6 @@ import os
 os.environ['SKIP_GENERATE_AUTHORS'] = '1'
 # do not generate ChangeLog file
 os.environ['SKIP_WRITE_GIT_CHANGELOG'] = '1'
-# do not include everything in tarball
-os.environ['SKIP_GIT_SDIST'] = '1'
 
 # entry point to setup actions
 setup(
