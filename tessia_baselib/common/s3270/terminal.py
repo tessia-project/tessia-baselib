@@ -326,6 +326,32 @@ class Terminal(object):
         self._s3270.connect(self.host_name, timeout)
     # connect()
 
+    def disconnect(self):
+        """
+        Disconnect from user.
+
+        Args:
+            None
+
+        Returns:
+            bool: True if connection was closed, False otherwise
+
+        Raises:
+            TimeoutError: if we have a timeout on connector
+        """
+        # disconnect process
+        self._s3270.clear()
+        self._s3270.string("#cp disconnect")
+        self._s3270.enter()
+
+        # check if connection was closed
+        if not self._is_connected():
+            return True
+
+        # connection was not closed
+        return False
+    # disconnect()
+
     def send_cmd(self, cmd, use_cp=False, wait_for=''):
         """
         Issue a command on zVM.
@@ -426,12 +452,12 @@ class Terminal(object):
         return output
     # login()
 
-    def logoff(self, parameters=None):
+    def logoff(self):
         """
-        Close the connection with the user depending on the parameter passed.
+        Logoff from user.
 
         Args:
-            parameters (dict): dictionary with additional logoff parameters
+            None
 
         Returns:
             bool: True if connection was closed, False otherwise
@@ -441,11 +467,7 @@ class Terminal(object):
         """
         # logoff process
         self._s3270.clear()
-        if parameters:
-            if parameters.get("logoff"):
-                self._s3270.string("#cp logoff")
-        else:
-            self._s3270.string("#cp disconnect")
+        self._s3270.string("#cp logoff")
         self._s3270.enter()
 
         # check if connection was closed

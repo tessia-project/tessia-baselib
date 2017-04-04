@@ -245,7 +245,7 @@ class TestTerminal(TestCase):
          .string.assert_any_call("l user here"))
     # test_login_here()
 
-    def test_logoff_disconnect(self):
+    def test_disconnect_ok(self):
         """
         Exercise a normal disconnect command
 
@@ -270,10 +270,44 @@ class TestTerminal(TestCase):
 
         # simple command execution
         output = terminal.login("hostname.com", "user", "password")
-        output = terminal.logoff()
+        output = terminal.disconnect()
 
         self.assertIs(output, True)
-    # test_logoff_disconnect()
+    # test_disconnect_ok()
+
+    def test_disconnect_with_problem(self):
+        """
+        Exercise a disconnect that fails keeping connected
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # set s3270 output
+        self.mock_s3270.return_value.ascii.side_effect = [
+            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: VM READ\nok\n',
+            'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        ]
+
+        # create new instance of terminal
+        terminal = Terminal()
+
+        # simple command execution
+        output = terminal.login("hostname.com", "user", "password")
+        output = terminal.disconnect()
+
+        self.assertIs(output, False)
+    # test_disconnect_with_problem()
 
     def test_logoff_ok(self):
         """
@@ -300,14 +334,14 @@ class TestTerminal(TestCase):
 
         # simple command execution
         output = terminal.login("hostname.com", "user", "password")
-        output = terminal.logoff({"logoff":True})
+        output = terminal.logoff()
 
         self.assertIs(output, True)
     # test_logoff_ok()
 
-    def test_logoff_bad_parameter(self):
+    def test_logoff_with_problem(self):
         """
-        Exercise a normal logoff command
+        Exercise a logoff that fails keeping connected
 
         Args:
             None
@@ -319,14 +353,14 @@ class TestTerminal(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
-            'data: \n     \nok\n',
-        ]
         self.mock_s3270.return_value.ascii.side_effect = [
             'data: ok\nU F U C(hostname.com) \nok\n',
             'data: VM READ\nok\n',
             'data: ok\nU F U C(hostname.com) \nok\n',
+        ]
+        # set s3270 output
+        self.mock_s3270.return_value.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
         ]
 
         # create new instance of terminal
@@ -334,10 +368,10 @@ class TestTerminal(TestCase):
 
         # simple command execution
         output = terminal.login("hostname.com", "user", "password")
-        output = terminal.logoff({"disconnect":True})
+        output = terminal.logoff()
 
         self.assertIs(output, False)
-    # test_logoff_bad_parameter()
+    # test_logoff_with_problem()
 
     def test_send_cmd_cms(self):
         """
@@ -380,7 +414,7 @@ class TestTerminal(TestCase):
 
     def test_send_cmd_cms_with_timeout(self):
         """
-        Exercise send_cmd with a CMS command
+        Exercise send_cmd with a CMS command when a timeout occurs
 
         Args:
             None
@@ -492,7 +526,5 @@ class TestTerminal(TestCase):
         self.assertRaises(RuntimeError, terminal.send_cmd,
                           'profile', True)
     # test_send_cmd_without_connection()
-
-
 
 # TestTerminal

@@ -116,7 +116,7 @@ class TestHypervisorZvm(TestCase):
         # simple command execution
         hyp.login()
         hyp.logoff()
-        self._mock_terminal.return_value.logoff.assert_called_once_with()
+        self._mock_terminal.return_value.disconnect.assert_called_once_with()
     # test_logoff_ok()
 
     def test_logoff_failed(self):
@@ -132,7 +132,7 @@ class TestHypervisorZvm(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
-        self._mock_terminal.return_value.logoff.return_value = False
+        self._mock_terminal.return_value.disconnect.return_value = False
         # create new instance of terminal
         hyp = HypervisorZvm(
             "hostname",
@@ -202,8 +202,7 @@ class TestHypervisorZvm(TestCase):
         # simple command execution
         hyp.login()
         hyp.stop("hostname", None)
-        self._mock_terminal.return_value.logoff.assert_called_once_with(
-            parameters={'logoff': True})
+        self._mock_terminal.return_value.logoff.assert_called_once_with()
     # test_stop_ok()
 
     def test_stop_failed(self):
