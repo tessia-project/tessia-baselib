@@ -55,7 +55,8 @@ class TestTerminal(TestCase):
         self.addCleanup(self.s3270_patcher.stop)
 
         # set s3270 output
-        self.mock_s3270.return_value.ascii.return_value = 'data: ok\n   \nok\n'
+        (self.mock_s3270.return_value
+         .ascii.return_value) = 'data: ok\ndata: RUNNING\n'
     # setUp()
 
     def test_connect_ok(self):
@@ -127,7 +128,7 @@ class TestTerminal(TestCase):
         self.mock_s3270.return_value.ascii.side_effect = [
             'data: ok\nU F U C(hostname.com) \nok\n',
             'data: VM READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: ok\ndata: RUNNING\nU F U C(hostname.com) \nok\n',
         ]
 
         # create new instance of terminal
@@ -177,7 +178,7 @@ class TestTerminal(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         (self.mock_s3270.return_value
-         .ascii.return_value) = 'data: ok\nL U U\nok\n'
+         .ascii.return_value) = 'data: ok\ndata: RUNNING\nL U U\nok\n'
 
         # create new instance of terminal
         terminal = Terminal()
@@ -205,7 +206,7 @@ class TestTerminal(TestCase):
         self.mock_s3270.return_value.ascii.side_effect = [
             'data: ok\nU F U C(hostname.com) \nok\n',
             'data: CP READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
+            'data: ok\ndata: RUNNING\nU F U C(hostname.com) \nok\n',
         ]
         # create new instance of terminal
         terminal = Terminal()
@@ -373,8 +374,7 @@ class TestTerminal(TestCase):
         terminal.login("hostname.com", "user", "password")
 
         cmd_output = terminal.send_cmd("profile", wait_for="Ready;")
-        content = " MORE...             \n HOLDING             \n"\
-                  " profile\n Ready;\n"
+        content = " profile\n"
         self.assertEqual(content, cmd_output[0])
     # test_send_cmd_cms()
 
@@ -458,7 +458,7 @@ class TestTerminal(TestCase):
         terminal.login("hostname.com", "user", "password")
 
         cmd_output = terminal.send_cmd("profile", True)
-        self.assertEqual(' profile\n Ready;\n', cmd_output[0])
+        self.assertEqual(' profile\n', cmd_output[0])
     # test_send_cmd_cp()
 
     def test_send_cmd_without_connection(self):

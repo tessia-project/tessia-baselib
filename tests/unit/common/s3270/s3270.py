@@ -87,6 +87,27 @@ class TestS3270(TestCase):
         self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
     # test_ascii_ok()
 
+    def test_ascii_with_parameters(self):
+        """
+        Exercise a normal ascii command
+
+        Args:
+            None
+
+        Returns:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        # create new instance of s3270
+        s3270 = S3270()
+
+        # simple command execution
+        output = s3270.ascii(' ')
+        self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
+    # test_ascii_ok()
+
     def test_ascii_error(self):
         """
         Exercise an ascii command returning error
