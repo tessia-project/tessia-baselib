@@ -354,6 +354,22 @@ class TestSshShell(TestCase):
         self.assertEqual(self._shell.socket.send.call_count,
                          expected_send_call_count)
 
+    def test_run_escape_chars(self):
+        """
+        Test a call to run when it receives character escape sequences
+        in the echo of the command.
+        """
+        expected_output = 'dummy_output'
+        self._shell.socket.recv.side_effect = (
+            self._make_output('', 'garbage'),
+            self._make_output('dummy_cmd', 'dummy_output'),
+            self._make_output('\x1b[6n{}'.format(self.STATUS_COMMAND), 0))
+
+        status, output = self._shell.run('dummy_cmd')
+
+        self.assertIsInstance(status, int)
+        self.assertEqual(output, expected_output + '\n')
+
     def test_run_no_newline(self):
         """
         Test a call to run that has to append
