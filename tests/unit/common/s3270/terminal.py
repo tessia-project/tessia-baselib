@@ -276,7 +276,7 @@ class TestTerminal(TestCase):
 
     def test_disconnect_with_problem(self):
         """
-        Exercise a normal disconnect command
+        Exercise a disconnect that fails keeping connected
 
         Args:
             None
@@ -340,7 +340,7 @@ class TestTerminal(TestCase):
 
     def test_logoff_with_problem(self):
         """
-        Exercise a normal logoff command
+        Exercise a logoff that fails keeping connected
 
         Args:
             None
@@ -414,7 +414,7 @@ class TestTerminal(TestCase):
 
     def test_send_cmd_cms_with_timeout(self):
         """
-        Exercise send_cmd with a CMS command
+        Exercise send_cmd with a CMS command when a timeout occurs
 
         Args:
             None
@@ -526,7 +526,5 @@ class TestTerminal(TestCase):
         self.assertRaises(RuntimeError, terminal.send_cmd,
                           'profile', True)
     # test_send_cmd_without_connection()
-
-
 
 # TestTerminal
