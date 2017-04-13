@@ -13,8 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 -->
-![build status](https://gitlab.com/tessia-project/tessia_baselib/badges/master/build.svg)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
-
-[![coverage report](https://gitlab.com/tessia-project/tessia_baselib/badges/master/coverage.svg?job=unittest)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
-
+# What is it?
 A tool to manage the communication with various types of hypervisors and guest systems in order to perform actions like activate, deactivate, hotplug resources, and others.
+
+# Status
+
+- CI (build/lint/unittest): [![build status](https://gitlab.com/tessia-project/tessia_baselib/badges/master/build.svg)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
+
+- Code coverage: [![coverage report](https://gitlab.com/tessia-project/tessia_baselib/badges/master/coverage.svg?job=unittest)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
