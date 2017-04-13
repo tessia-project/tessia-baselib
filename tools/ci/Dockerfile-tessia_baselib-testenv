@@ -1,6 +1,0 @@
-# Build an image with the checked out source of tessia_baselib
-# available in /var/tessia_baselib so we can run tests from it.
-FROM tessia_baselib-base:latest
-CMD ["mkdir", "/var/tessia_baselib"]
-COPY [".", "/var/tessia_baselib"]
-WORKDIR /var/tessia_baselib

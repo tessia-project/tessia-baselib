@@ -1,26 +1,66 @@
 variables:
   GIT_STRATEGY: clone
+  # replace by CI_COMMIT_REF_SLUG when gitlab gets updated to 9.0+
+  COMMIT_REF: $CI_BUILD_REF_SLUG
+  # replace by CI_COMMIT_SHA when gitlab gets updated to 9.0+
+  COMMIT_SHA: $CI_BUILD_REF
 
 stages:
-  - prepare
-  - unit_tests
-  - pylint
+  - build
+  - lint
+  - unittest
+  - deploy
+  - cleanup
 
-# First build a docker image with the checked-out sources from a previously built
-# base image with all the requirements installed. Having these two images is a
-# temporary solution until the dev server has access to pip and the requirements
-# can be installed every time.
-prepare:
-  stage: prepare
-  script:
-    - docker build -f tools/ci/Dockerfile-tessia_baselib-testenv -t tessia_baselib-testenv:latest --no-cache .
+before_script:
+  - echo $COMMIT_REF
 
-unit_tests:
-  stage: unit_tests
+build:
+  stage: build
   script:
-    - docker run tessia_baselib-testenv:latest tools/run_tests.py
+    - git bundle create tools/ci/docker/assets/tessia_baselib.git HEAD
+    - docker build --force-rm -f tools/ci/docker/Dockerfile -t tessia_baselib:${COMMIT_REF} tools/ci/docker
 
-pylint:
-  stage: pylint
+lint:
+  stage: lint
   script:
-    - docker run tessia_baselib-testenv:latest tools/run_pylint.py
+    - docker run -t --rm --name tessia_baselib.${COMMIT_REF} --entrypoint /assets/tessia_baselib/tools/run_pylint.py tessia_baselib:${COMMIT_REF}
+
+unittest:
+  stage: unittest
+  script:
+    - docker run -t --rm --name tessia_baselib.${COMMIT_REF} --entrypoint /assets/tessia_baselib/tools/run_tests.py tessia_baselib:${COMMIT_REF}
+
+# job used to push new versions of the library for consumption (as an gitlab artifact)
+# should run whenever a new tag (new release) is created.
+deploy:
+  stage: deploy
+  script:
+    - tar zcvf tessia_baselib-${COMMIT_REF}.tgz --exclude=tools/ci/docker/assets/tessia_baselib.git *
+  artifacts:
+    paths:
+      - tessia_baselib-${COMMIT_REF}.tgz
+  only:
+    - tags
+
+deploy_snapshot:
+  stage: deploy
+  script:
+    - echo ${COMMIT_SHA:0:7}
+    - tar zcvf tessia_baselib-master_${COMMIT_SHA:0:7}.tgz --exclude=tools/ci/docker/assets/tessia_baselib.git *
+  artifacts:
+    paths:
+      - tessia_baselib-master_${COMMIT_SHA:0:7}.tgz
+  only:
+    - master
+  when: manual
+
+# do housekeeping on docker
+cleanup:
+  stage: cleanup
+  when: always
+  script:
+    - docker rm -v $(docker ps -a -q -f "ancestor=tessia_baselib.${COMMIT_REF}") || true
+    - docker rmi $(docker images -a -q -f "dangling=true") || true
+    # use --no-prune to keep the cache for subsequent builds
+    - docker rmi --no-prune tessia_baselib:${COMMIT_REF}
