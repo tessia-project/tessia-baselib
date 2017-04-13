@@ -30,10 +30,11 @@ unittest:
   stage: unittest
   script:
     - docker run -t --rm --name tessia_baselib.${COMMIT_REF} --entrypoint /assets/tessia_baselib/tools/run_tests.py tessia_baselib:${COMMIT_REF}
+  coverage: '/^TOTAL.*\s+(\d+\%)$/'
 
 # job used to push new versions of the library for consumption (as an gitlab artifact)
 # should run whenever a new tag (new release) is created.
-deploy:
+release:
   stage: deploy
   script:
     - tar zcvf tessia_baselib-${COMMIT_REF}.tgz --exclude=tools/ci/docker/assets/tessia_baselib.git *
@@ -43,7 +44,7 @@ deploy:
   only:
     - tags
 
-deploy_snapshot:
+snapshot:
   stage: deploy
   script:
     - echo ${COMMIT_SHA:0:7}
@@ -51,8 +52,8 @@ deploy_snapshot:
   artifacts:
     paths:
       - tessia_baselib-master_${COMMIT_SHA:0:7}.tgz
-  only:
-    - master
+  #only:
+  #  - master
   when: manual
 
 # do housekeeping on docker
