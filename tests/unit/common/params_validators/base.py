@@ -46,9 +46,6 @@ class TestBaseParamsValidator(unittest.TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -119,9 +116,6 @@ class TestBaseParamsValidator(unittest.TestCase):
             mock_json (Mock): Mock for the json module.
             mock_open (Mock): Mock for the builtin open function.
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -150,9 +144,6 @@ class TestBaseParamsValidator(unittest.TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -169,9 +160,6 @@ class TestBaseParamsValidator(unittest.TestCase):
 
         Args:
             mock_open (Mock): Mock for the builtin open function.
-
-        Returns:
-            None
 
         Raises:
             None

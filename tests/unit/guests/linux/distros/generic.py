@@ -48,9 +48,6 @@ class TestDistroGeneric(TestCase):
             kwargs: any keyword arguments which to be forwarded to parent
                     constructor
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -77,9 +74,6 @@ class TestDistroGeneric(TestCase):
         package manager type (apt-get, yum, zypper, etc.) to be tested.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -215,9 +209,6 @@ class TestDistroGeneric(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -239,9 +230,6 @@ class TestDistroGeneric(TestCase):
         Verify if installPackages correctly works for a yum based system
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -267,9 +255,6 @@ class TestDistroGeneric(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -291,9 +276,6 @@ class TestDistroGeneric(TestCase):
         Verify if the detection routine works correctly
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

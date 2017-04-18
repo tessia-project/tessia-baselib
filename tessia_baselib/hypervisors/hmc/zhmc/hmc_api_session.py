@@ -64,9 +64,6 @@ class HmcApiSession(object):
             port (int): post to connect to HMC
             timeout (int): connection timeout
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -96,9 +93,6 @@ class HmcApiSession(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -118,9 +112,6 @@ class HmcApiSession(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -138,9 +129,6 @@ class HmcApiSession(object):
 
         Args:
             response (requests.Response): http response from requests lib
-
-        Returns:
-            None
 
         Raises:
             ZHmcRequestError: if request fails

@@ -43,9 +43,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -89,9 +86,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -114,9 +108,6 @@ class TestS3270PipeConnector(TestCase):
         Exercise a normal execution of a command reading partial output
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -147,9 +138,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -165,9 +153,6 @@ class TestS3270PipeConnector(TestCase):
         Exercise when stdin is not ready
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -197,9 +182,6 @@ class TestS3270PipeConnector(TestCase):
         Exercise when stdout is not ready
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -235,9 +217,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -271,9 +250,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -298,9 +274,6 @@ class TestS3270PipeConnector(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -316,9 +289,6 @@ class TestS3270PipeConnector(TestCase):
         Exercise a normal execution of a command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

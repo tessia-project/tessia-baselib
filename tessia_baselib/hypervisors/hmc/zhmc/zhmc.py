@@ -53,9 +53,6 @@ class ZHmc(object):
             port (int): network port
             timeout (int): connection timeout
 
-        Returns:
-            None
-
         Raises:
             None
         """

@@ -57,9 +57,6 @@ class SshClient(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -82,11 +79,9 @@ class SshClient(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
-            IOError: if login has not been successfully called on this object.
+            OSError: see IOError
+            IOError: if login has not been successfully called on this object
         """
         # connection not active: fail operation
         if self._ssh_client is None:
@@ -107,7 +102,7 @@ class SshClient(object):
         Raises:
             ValueError: if the path is empty
         """
-        if len(quoted_path) == 0:
+        if not quoted_path:
             raise ValueError('Empty file path in url')
 
         return urllib.parse.unquote(quoted_path,
@@ -246,9 +241,6 @@ class SshClient(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             ConnectionError: If there is an error while creating the session.
         """
@@ -277,9 +269,6 @@ class SshClient(object):
             target_file_path (str): A file on this local host.
             write_mode (str): 'wb' or 'ab' for truncating or appending.
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -302,9 +291,6 @@ class SshClient(object):
                                        parsed from an ssh url, indicating the
                                        target file.
             write_mode (str): Either 'wb' or 'ab' for truncating or appending.
-
-        Returns:
-            None
 
         Raises:
             None
@@ -338,9 +324,6 @@ class SshClient(object):
             target_file_path (str): A path to the file on this ssh host.
             write_mode (str): Either 'wb' or 'ab' for truncating or appending.
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -370,10 +353,8 @@ class SshClient(object):
             target_file_path (str): A path to the file on this ssh host.
             write_mode (str): Either 'wb' or 'ab' for truncating or appending.
 
-        Returns:
-            None
-
         Raises:
+            OSError: see IOError
             IOError: If the source url reports a content-length and this
                      length does not match the copied length.
         """
@@ -416,9 +397,6 @@ class SshClient(object):
             target_file_path (str): A file on this ssh host.
             write_mode (str): 'wb' or 'ab' for truncating or appending.
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -435,9 +413,6 @@ class SshClient(object):
             file_path (str): file path on target system
             file_perms (int): integer containing the permission bits
                               (as defined by os.chmod)
-        Returns:
-            None
-
         Raises:
             ValueError: if permission is in a wrong format
 
@@ -475,9 +450,6 @@ class SshClient(object):
             private_key_path (str): directory path containing private keys to
                                     use
             timeout (int): how many seconds to wait for connection to complete
-
-        Returns:
-            None
 
         Raises:
             ConnectionError: if protocol or network error occurred
@@ -551,9 +523,6 @@ class SshClient(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -610,6 +579,7 @@ class SshClient(object):
             SshShell: object
 
         Raises:
+            OSError: see IOError
             IOError: if session cannot be opened
             FileNotFoundError: if chroot dir does not exist
             SshClientError: if shell cannot be started
@@ -714,9 +684,6 @@ class SshClient(object):
                               which could contain a '/' and must be quoted).
             write_mode (str): Either 'wb' or 'ab', for truncating and appending
                               to the target file, respectively.
-        Returns:
-            None
-
         Raises:
             AssertionError: if write_mode is invalid
             ValueError: if the url contains an unsupported scheme.
@@ -769,9 +736,6 @@ class SshClient(object):
                                     the source will be copied.
             write_mode (str): Either 'wb' or 'ab', for truncating and appending
                               to the target file, respectively.
-
-        Returns:
-            None
 
         Raises:
             ValueError: if the url contains an unsupported scheme.

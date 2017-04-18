@@ -44,9 +44,6 @@ class TestZHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -91,9 +88,6 @@ class TestZHmc(TestCase):
         Test if get_cpc() method work as expected.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

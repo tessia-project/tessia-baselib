@@ -43,9 +43,6 @@ class TestGuestLinux(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -96,9 +93,6 @@ class TestGuestLinux(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if session does not fail as expected
         """
@@ -120,7 +114,6 @@ class TestGuestLinux(TestCase):
         )
 
         # validate behavior when timeout occurs
-        # pylint: disable=redefined-variable-type
         mock_ssh_shell.run.side_effect = TimeoutError('dummy timeout error')
         self.assertRaisesRegex(
             TimeoutError,

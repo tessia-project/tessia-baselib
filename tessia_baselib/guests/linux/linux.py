@@ -56,9 +56,6 @@ class GuestLinux(GuestBase):
             passwd (str): password to login to system
             extensions (dict): values specific to each guest type
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -101,9 +98,6 @@ class GuestLinux(GuestBase):
                        {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
             extensions (dict): specific attributes depending on guest type
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: TODO
         """
@@ -117,9 +111,6 @@ class GuestLinux(GuestBase):
 
         Args:
             packages (list): package names to install
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: if action failed
@@ -136,9 +127,6 @@ class GuestLinux(GuestBase):
 
         Args:
             timeout (int): how many seconds to wait for connection
-
-        Returns:
-            None
 
         Raises:
             ConnectionError: if protocol or network error occurred
@@ -184,9 +172,6 @@ class GuestLinux(GuestBase):
         Close an active connection to the guest system
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -245,9 +230,6 @@ class GuestLinux(GuestBase):
         Stop a given guest by executing a shutdown command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

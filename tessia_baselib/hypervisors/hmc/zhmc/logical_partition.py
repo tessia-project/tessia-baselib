@@ -48,9 +48,6 @@ class LogicalPartition(object):
             lpar_uri (str): lpar uri
             lpar_status (str): current lpar status
 
-        Returns:
-            None
-
         Raises:
             None
         """

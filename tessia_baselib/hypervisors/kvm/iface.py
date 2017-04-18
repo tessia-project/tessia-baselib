@@ -44,9 +44,6 @@ class Iface(object):
                                json schema.
             target_dev_mngr (object):  Instance of TargetDeviceManager class.
 
-        Returns:
-            None
-
         Raises:
             ValueError: in case an invalid network type is specified
         """

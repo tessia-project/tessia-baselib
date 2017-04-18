@@ -175,7 +175,7 @@ class StoragePool(object):
                     continue
 
                 # task ended successfully: remove from map
-                if len(task['ret']) == 0:
+                if not task['ret']:
                     tasks.pop(vol_id)
                     continue
 
@@ -185,7 +185,7 @@ class StoragePool(object):
                     'Failed to activate disk {}'.format(vol_id)) from exc
 
             # all tasks completed: end loop
-            if len(tasks) == 0:
+            if not tasks:
                 break
         self._logger.info('Disk(s) activation completed')
     # activate()

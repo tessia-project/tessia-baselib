@@ -43,9 +43,6 @@ class GuestSessionLinux(GuestSessionBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -57,9 +54,6 @@ class GuestSessionLinux(GuestSessionBase):
         Close the session, no more communication is possible.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

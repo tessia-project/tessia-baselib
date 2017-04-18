@@ -67,9 +67,6 @@ class HypervisorHmc(HypervisorBase):
             passwd (str): password to login to HMC
             parameters (dict): values specific to each hypervisor type
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -106,9 +103,6 @@ class HypervisorHmc(HypervisorBase):
         Args:
             timeout (int): how long in seconds to wait for connection
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -144,9 +138,6 @@ class HypervisorHmc(HypervisorBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             ZHmcError: if the operation is performed without previous login
         """
@@ -175,9 +166,6 @@ class HypervisorHmc(HypervisorBase):
             cpu (int): number of CPU's to assign.
             memory (int): amount of memory to assign in megabytes.
             parameters (dict): contains the CPC name and boot type config
-
-        Returns:
-            None
 
         Raises:
             ZHmcError: if the operation is performed without previous login
@@ -229,9 +217,6 @@ class HypervisorHmc(HypervisorBase):
         Args:
             guest (GuestLinux): guest linux object
             boot_params (dict): dictionary with boot parameters
-
-        Returns:
-            None
 
         Raises:
             None
@@ -335,9 +320,6 @@ class HypervisorHmc(HypervisorBase):
         Args:
             boot_params (dict): dictionary with boot parameters
             lpar (LogicalPartition): logical partition object
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: in case of timeout while waiting for network to come
@@ -494,9 +476,6 @@ class HypervisorHmc(HypervisorBase):
             parameters (dict): content specific to each hypervisor type.
             In this case, the CPC name.
 
-        Returns:
-            None
-
         Raises:
             ZHmcError: if session is not created
                        if LPAR status is different from 'operating'
@@ -533,9 +512,6 @@ class HypervisorHmc(HypervisorBase):
             guest_name (str): target LPAR name.
             parameters (dict): content specific to each hypervisor type.
             In this case, the CPC name.
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError: as it needs implementation

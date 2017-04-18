@@ -52,9 +52,6 @@ class Guest(object):
                           constructor
             kwargs (dict): keyword arguments to forward to driver's constructor
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: in case guest_type is not supported
         """

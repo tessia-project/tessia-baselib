@@ -47,9 +47,6 @@ class Virsh(object):
         Args:
             host_cnn (GuestLinux): instance connected to linux host
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -139,9 +136,6 @@ class Virsh(object):
         Args:
             msg (str): message to used in Exception
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: always
         """
@@ -190,9 +184,6 @@ class Virsh(object):
                                 netboot, as described in the jsonschema
                                 kvm/entitites/boot_params_type.json.
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: In case there is an error while creating the
                           temporary files.
@@ -220,9 +211,6 @@ class Virsh(object):
 
         Args:
             domain_xml (str): String containing the domain xml.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: In case it is not possible to create a
@@ -263,9 +251,6 @@ class Virsh(object):
 
         Args:
             domain_name (str): Name of the domain to be destroyed.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: If the destroy command fails.
@@ -362,9 +347,6 @@ class Virsh(object):
         Args:
             domain_name (str): Name of the domain to be reset.
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: If the reset command fails.
         """
@@ -385,9 +367,6 @@ class Virsh(object):
         Args:
             domain_name (str): Name of the domain to be started.
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: If the start command fails.
         """
@@ -406,9 +385,6 @@ class Virsh(object):
 
         Args:
             domain_name (str): Name of the domain to be undefined.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: in case there is a error while executing the

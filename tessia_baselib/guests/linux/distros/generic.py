@@ -52,9 +52,6 @@ class DistroGeneric(object):
         Args:
             ssh_conn (SshClient): instance of SshClient
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -91,7 +88,7 @@ class DistroGeneric(object):
         """
         # confirm the kernel is named 'Linux'
         _, output = shell.run('uname -a')
-        if len(output) > 0 and output.split()[0].lower() == 'linux':
+        if output and output.split()[0].lower() == 'linux':
             return True
 
         return False
@@ -104,9 +101,6 @@ class DistroGeneric(object):
 
         Args:
             package_list (list): list of package names to install
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: if installation fails or no supported pkg manager is

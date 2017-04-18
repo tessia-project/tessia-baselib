@@ -44,9 +44,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -98,9 +95,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -126,9 +120,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -150,9 +141,6 @@ class TestLogicalPartition(TestCase):
         Test if activate() method work as expected.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -179,9 +167,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -204,9 +189,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -226,9 +208,6 @@ class TestLogicalPartition(TestCase):
         (synchronous).
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -275,9 +254,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -304,9 +280,6 @@ class TestLogicalPartition(TestCase):
         Test if scsi_load() method work as expected in async mode (no timeout)
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -339,9 +312,6 @@ class TestLogicalPartition(TestCase):
         (synchronous).
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -399,9 +369,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -435,9 +402,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -455,9 +419,6 @@ class TestLogicalPartition(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -471,3 +432,4 @@ class TestLogicalPartition(TestCase):
             }
         )
     # test_reset_clear()
+# TestLogicalPartition

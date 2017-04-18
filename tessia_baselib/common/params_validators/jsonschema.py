@@ -43,9 +43,6 @@ class JsonschemaValidator(BaseParamsValidator):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             ValueError: if the json schema loaded is not valid.
         """
@@ -61,9 +58,6 @@ class JsonschemaValidator(BaseParamsValidator):
         dependent of the chosen library that implement json schema validation.
         Args:
             parameters (dict): A dictionary that will be validated.
-
-        Returns:
-            None
 
         Raises:
             ValueError: If parameters fails to validate against the loaded json

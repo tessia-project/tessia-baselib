@@ -45,9 +45,6 @@ class DiskFcp(DiskBase):
             target_dev_mngr (TargetDeviceManager): object instance
             host_conn (GuestLinux): instance connected to linux host
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -77,9 +74,6 @@ class DiskFcp(DiskBase):
         Auxiliary method. Enable the zfcp module.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -190,9 +184,6 @@ class DiskFcp(DiskBase):
             devno (str): device number of the zfcp adapter.
             wwpn (str):  wwpn to be activated.
 
-        Returns:
-            None
-
         Raies:
             None
         """
@@ -229,9 +220,6 @@ class DiskFcp(DiskBase):
 
         Args:
             devno (str): Device number of the zfcp adapter.
-
-        Returns:
-            None
 
         Raises:
             None
@@ -270,9 +258,6 @@ class DiskFcp(DiskBase):
             devno (str): device number of the zfcp adapter.
             wwpn (str): worldwide port number used to access the device.
             lun (str): lun of the device.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: In case the LUN fails to be added to the wwpn.
@@ -318,9 +303,6 @@ class DiskFcp(DiskBase):
         Args:
             adapter (dict): A dictionary containing adapter devno and paths,
                             as specified in the json schema.
-
-        Returns:
-            None
 
         Raises:
             None.
@@ -395,7 +377,7 @@ class DiskFcp(DiskBase):
             ret, output = self._cmd_channel.run(cmd)
             output = output.strip()
 
-            if ret == 0 and len(output) > 0:
+            if ret == 0 and output:
                 return output
 
         return None
@@ -436,9 +418,6 @@ class DiskFcp(DiskBase):
         multipath map.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -502,9 +481,6 @@ class DiskFcp(DiskBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -524,9 +500,6 @@ class DiskFcp(DiskBase):
         the block device avaiable in the hypervisor operating system.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

@@ -51,9 +51,6 @@ class GuestKvm(object):
             parameters (dict):  Specific parameters for the gues
             host_conn (GuestLinux): instance connected to linux host
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -98,9 +95,6 @@ class GuestKvm(object):
         Activate all hardware that is used by the guest.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

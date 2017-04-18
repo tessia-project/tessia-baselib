@@ -54,9 +54,6 @@ class HypervisorZvm(HypervisorBase):
             parameters (dict): a dictionary containing values specific to each
                         hypervisor type
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -86,9 +83,6 @@ class HypervisorZvm(HypervisorBase):
         Args:
             timeout (int): how many seconds to wait for connection
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -115,9 +109,6 @@ class HypervisorZvm(HypervisorBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: In case of fail during logoff
         """
@@ -140,9 +131,6 @@ class HypervisorZvm(HypervisorBase):
             parameters (dict): A dictionary containing values specific to each
                                hypervisor type.
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -158,9 +146,6 @@ class HypervisorZvm(HypervisorBase):
             guest_name (str): Name of the guest as known by hypervisor
             parameters (dict): Dictionary with content specific to hypervisor
                                type.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: In case it is not logged in, or the domain is
@@ -186,9 +171,6 @@ class HypervisorZvm(HypervisorBase):
         Args:
             guest_name (str): name of the guest as known by hypervisor
             parameters (dict): content specific to hypervisor type
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError: as it has to be implemented by child class

@@ -44,9 +44,6 @@ class TestHmcApiSession(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -95,9 +92,6 @@ class TestHmcApiSession(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -134,9 +128,6 @@ class TestHmcApiSession(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -170,9 +161,6 @@ class TestHmcApiSession(TestCase):
         Test if json_request method work as expected.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

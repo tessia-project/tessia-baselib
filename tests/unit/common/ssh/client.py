@@ -17,10 +17,6 @@ Defines two TestCase classes for unit tests for the ssh
 client class.
 """
 
-# Since this is a test class we access some members in mocks
-# that would cause 'no-member' warnings to be issued.
-# pylint: disable=no-member
-
 #
 # IMPORTS
 #
@@ -84,9 +80,11 @@ class TestSshClientConnected(TestCase):
             autospec=True)
 
         # activate the patch
-        self._mocked_paramiko_client = patcher.start()
+        self._mock_paramiko_client = patcher.start()
         # ensure patch is reverted even if setUp throws an exception
         self.addCleanup(patcher.stop)
+        # reference to instantiated object
+        self._mock_ssh_client = self._mock_paramiko_client.return_value
 
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
@@ -105,23 +103,22 @@ class TestSshClientConnected(TestCase):
 
         # Create mocks for file descriptors returned by the
         # sftp open functions.
-        mocked_sftp_read_fd = mock.MagicMock(spec_set=paramiko.SFTPFile)
+        mock_sftp_read_fd = mock.MagicMock(spec_set=paramiko.SFTPFile)
 
-        (mocked_sftp_read_fd.__enter__
+        (mock_sftp_read_fd.__enter__
          .return_value) = mock.MagicMock(spec_set=paramiko.SFTPFile)
 
-        self._mocked_sftp_read_fd = (mocked_sftp_read_fd.__enter__
-                                     .return_value)
+        self._mock_sftp_read_fd = mock_sftp_read_fd.__enter__.return_value
 
-        mocked_sftp_write_fd = mock.MagicMock()
+        mock_sftp_write_fd = mock.MagicMock()
 
-        (mocked_sftp_write_fd.__enter__
+        (mock_sftp_write_fd.__enter__
          .return_value) = mock.MagicMock(spec_set=paramiko.SFTPFile)
 
-        self._mocked_sftp_write_fd = (mocked_sftp_write_fd.__enter__
-                                      .return_value)
+        self._mock_sftp_write_fd = (
+            mock_sftp_write_fd.__enter__.return_value)
 
-        def mocked_sftp_open(*args):
+        def mock_sftp_open(*args):
             """
             A function to return the correct file descriptor
             mock depending on which mode is passed to the
@@ -129,19 +126,18 @@ class TestSshClientConnected(TestCase):
             """
             mode = args[1]
             if mode == 'rb':
-                return mocked_sftp_read_fd
+                return mock_sftp_read_fd
             elif mode == 'wb' or mode == 'ab':
-                return mocked_sftp_write_fd
+                return mock_sftp_write_fd
             else:
                 raise ValueError
 
 
-        self._mocked_sftp_open = (self._mocked_paramiko_client.return_value
-                                  .open_sftp.return_value
-                                  .open)
+        self._mock_sftp_conn = self._mock_ssh_client.open_sftp.return_value
+        self._mock_sftp_open = self._mock_sftp_conn.open
 
         # Set the sftp open function to the one defined above.
-        self._mocked_sftp_open.side_effect = mocked_sftp_open
+        self._mock_sftp_open.side_effect = mock_sftp_open
 
         self._client.login(host_name=HOST_NAME, port=PORT,
                            user=USERNAME, passwd=PASSWORD)
@@ -166,9 +162,6 @@ class TestSshClientConnected(TestCase):
             length (bool): A boolean indicating wether the url should report
                            a content-length for checking.
             request_mock (Mock): provided by patch decorator
-
-        Returns:
-            None
 
         Raises:
             AssertionError in case some validation failed
@@ -199,7 +192,7 @@ class TestSshClientConnected(TestCase):
             else:
                 source_fd.info.return_value.get.return_value = None
 
-        target_fd = self._mocked_sftp_write_fd
+        target_fd = self._mock_sftp_write_fd
 
         source_fd.read.side_effect = read_data
 
@@ -209,7 +202,7 @@ class TestSshClientConnected(TestCase):
         # open function with the target path in write mode.
         request_mock.urlopen.assert_called_once_with(url)
 
-        self._mocked_sftp_open.assert_called_once_with(
+        self._mock_sftp_open.assert_called_once_with(
             target_path, 'wb')
 
         # Check that we wrote what we read.
@@ -254,11 +247,11 @@ class TestSshClientConnected(TestCase):
 
         # The sftp open function mock will be the same for both ssh
         # hosts, since we use the same module for both.
-        source_open = self._mocked_sftp_open
+        source_open = self._mock_sftp_open
         target_open = source_open
 
-        source_fd = self._mocked_sftp_read_fd
-        target_fd = self._mocked_sftp_write_fd
+        source_fd = self._mock_sftp_read_fd
+        target_fd = self._mock_sftp_write_fd
 
         read_data = [b'ab', b'cde', b'']
 
@@ -310,8 +303,7 @@ class TestSshClientConnected(TestCase):
         # should raise no exceptions for a valid permission field
         self._client.change_file_permissions('/fake/path', stat.S_IRUSR)
 
-        self.assertEqual(self._client._sftp_conn.chmod.call_count,
-                         1)
+        self.assertEqual(self._mock_sftp_conn.chmod.call_count, 1)
 
     def test_change_file_perms_invalid(self):
         """
@@ -328,8 +320,7 @@ class TestSshClientConnected(TestCase):
             self._client.change_file_permissions('/fake/path', 0o10000)
 
         # chmod shouldn't have been called with the bad permission field
-        self.assertEqual(self._client._sftp_conn.chmod.call_count,
-                         0)
+        self.assertEqual(self._mock_sftp_conn.chmod.call_count, 0)
 
     def test_open_shell(self):
         """
@@ -381,7 +372,7 @@ class TestSshClientConnected(TestCase):
 
         exception_text = 'test text for exception'
 
-        (self._client._ssh_client
+        (self._mock_ssh_client
          .get_transport.return_value
          .open_session.return_value
          .exec_command.side_effect) = paramiko.SSHException(exception_text)
@@ -438,7 +429,7 @@ class TestSshClientConnected(TestCase):
         Raises:
         """
 
-        # Mock our sell class to simplify this test, since the shell
+        # Mock our shell class to simplify this test, since the shell
         # will try to run some initial commands.
         with mock.patch('tessia_baselib.common.ssh.client.SshShell',
                         autospec=True):
@@ -448,7 +439,7 @@ class TestSshClientConnected(TestCase):
             chroot_dir = 'some_dir'
             self._client.open_shell(chroot_dir=chroot_dir)
 
-            exec_command_mock = (self._client._ssh_client
+            exec_command_mock = (self._mock_ssh_client
                                  .get_transport.return_value
                                  .open_session.return_value
                                  .exec_command)
@@ -490,7 +481,7 @@ class TestSshClientConnected(TestCase):
 
         # Force the open (file) call of sftp to raise a
         # FileNotFoundError exception.
-        (self._client._ssh_client.open_sftp.
+        (self._mock_ssh_client.open_sftp.
          return_value.file.side_effect) = FileNotFoundError('lolilol')
 
         self.assertFalse(self._client.path_exists('lol'))
@@ -539,7 +530,7 @@ class TestSshClientConnected(TestCase):
         url = 'file://{}'.format(urllib.parse.quote(target_path))
 
         # Read from sftp.
-        source_fd = self._mocked_sftp_read_fd
+        source_fd = self._mock_sftp_read_fd
 
         # For writing to a local file, the file descriptor is expected
         # to be a BufferedWriter, otherwise an assertion in the tested class
@@ -563,7 +554,7 @@ class TestSshClientConnected(TestCase):
         # Since we are pulling, the sftp open function should have been
         # called in read mode, and the builtin open function in write
         # mode.
-        self._mocked_sftp_open.assert_called_once_with(source_path, 'rb')
+        self._mock_sftp_open.assert_called_once_with(source_path, 'rb')
 
         open_mock.assert_called_once_with(target_path, 'wb')
 
@@ -604,7 +595,7 @@ class TestSshClientConnected(TestCase):
         # Reset the connect mock, since it was already used once to
         # log in self._client and we want to check how it is called
         # to log in the second ssh client in the ssh url.
-        self._mocked_paramiko_client.return_value.connect.reset_mock()
+        self._mock_ssh_client.connect.reset_mock()
 
         # Pass the unquoted target_path, so that _test_transfer_ssh_ssh
         # checks if 'open_file' is called on the unquoted path as it should.
@@ -617,8 +608,7 @@ class TestSshClientConnected(TestCase):
                            'password': password_unquoted,
                            'port': 22}
 
-        connect_kwargs = (self._mocked_paramiko_client
-                          .return_value.connect.call_args[1])
+        connect_kwargs = self._mock_ssh_client.connect.call_args[1]
 
         # Check if the unquoted username, password, hostname
         # and the default port 22 were used to connect to the ssh host.
@@ -686,14 +676,13 @@ class TestSshClientConnected(TestCase):
         # Reset the connect mock, since it was already used once to
         # log in self._client and we want to check how it is called
         # to log in the second ssh client in the ssh url.
-        self._mocked_paramiko_client.return_value.connect.reset_mock()
+        self._mock_ssh_client.connect.reset_mock()
 
         self._test_transfer_ssh_ssh(self._client.pull_file, source_path,
                                     url, source_path, target_path)
 
         # Test that the port we passed in the url was used to open
-        used_port = (self._mocked_paramiko_client
-                     .return_value.connect.call_args[1]['port'])
+        used_port = self._mock_ssh_client.connect.call_args[1]['port']
 
         self.assertEqual(used_port, port)
 
@@ -730,7 +719,7 @@ class TestSshClientConnected(TestCase):
 
         source_fd = open_mock.return_value.__enter__.return_value
 
-        target_fd = self._mocked_sftp_write_fd
+        target_fd = self._mock_sftp_write_fd
 
         source_fd.read.side_effect = read_data
 
@@ -744,7 +733,7 @@ class TestSshClientConnected(TestCase):
         # write mode.
         open_mock.assert_called_once_with(source_path, 'rb')
 
-        self._mocked_sftp_open.assert_called_once_with(target_path, 'wb')
+        self._mock_sftp_open.assert_called_once_with(target_path, 'wb')
 
         # Check that we write to target what we read from source.
         expected_read_calls = [mock.call(self._client.CHUNKSIZE)
@@ -918,6 +907,8 @@ class TestSshClientNotConnected(TestCase):
         # produced when the class is instantiated in the tested code.
         self._paramiko_client_class_mock = patcher.start()
         self.addCleanup(patcher.stop)
+        # reference to instantiated object
+        self._mock_ssh_client = self._paramiko_client_class_mock.return_value
 
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
@@ -959,9 +950,9 @@ class TestSshClientNotConnected(TestCase):
         self._client.login(host_name=HOST_NAME, port=PORT,
                            user=USERNAME, passwd=PASSWORD)
 
-        self.assertEqual(self._client._ssh_client.connect.call_count, 1)
+        self.assertEqual(self._mock_ssh_client.connect.call_count, 1)
         # Make sure we are not opening a sftp session
-        self.assertEqual(self._client._ssh_client.open_sftp.call_count, 0)
+        self.assertEqual(self._mock_ssh_client.open_sftp.call_count, 0)
 
         # Make sure the connection objects were created.
         self.assertIsNot(self._client._ssh_client, None)

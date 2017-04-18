@@ -42,9 +42,6 @@ def timer(cmd_channel, cmd, times, error_msg):
     times (list): interval to wait in each trial (i.e. [1, 2, 5])
     error_msg (str): error message to raise in case of failure
 
-    Returns:
-        None
-
     Raises:
         RuntimeError: In case there is no success executing the command
                       after waiting the consecutive wait times.

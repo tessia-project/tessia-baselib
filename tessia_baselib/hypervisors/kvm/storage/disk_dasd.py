@@ -43,9 +43,6 @@ class DiskDasd(DiskBase):
             target_dev_mngr (object): Instance of TargetDeviceManager.
             host_conn (GuestLinux): instance
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -64,9 +61,6 @@ class DiskDasd(DiskBase):
         Activate the disk by performing the proper handling.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

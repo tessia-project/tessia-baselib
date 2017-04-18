@@ -45,9 +45,6 @@ class S3270(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -80,7 +77,7 @@ class S3270(object):
         """
         cmd = "Ascii"
         # add parameters to Ascii command
-        if param is not None and len(param) > 0:
+        if param is not None and param:
             cmd = "Ascii("
             for item in param:
                 cmd += str(item)+","
@@ -167,7 +164,7 @@ class S3270(object):
                                        'long to answer: ')
                 raise TimeoutError('Host is taking so long to answer')
 
-            if len(status) > 0:
+            if status:
                 if 'No address associated with hostname' in output:
                     raise S3270StatusError('No address associated with '
                                            'hostname '+host_name)
@@ -278,7 +275,7 @@ class S3270(object):
             TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
-        if len(attr) == 0:
+        if not attr:
             try:
                 (status, output) = self._s3270.run('Query("Host")', timeout)
             except TimeoutError:
@@ -304,9 +301,6 @@ class S3270(object):
 
         Args:
             timeout (int): how many seconds to wait for action to complete
-
-        Returns:
-            None
 
         Raises:
             TimeoutError: if we have a timeout on connector
@@ -337,7 +331,7 @@ class S3270(object):
             TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
         """
-        if len(cmd) == 0:
+        if not cmd:
             try:
                 (status, output) = self._s3270.run('Snap', timeout)
             except TimeoutError:
@@ -388,9 +382,6 @@ class S3270(object):
         Terminate s3270 process and clean up object
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
