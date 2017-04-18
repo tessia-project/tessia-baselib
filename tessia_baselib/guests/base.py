@@ -50,9 +50,6 @@ class GuestBase(metaclass=abc.ABCMeta):
             extensions (dict): a dictionary containing values specific to each
                                guest type
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -77,9 +74,6 @@ class GuestBase(metaclass=abc.ABCMeta):
             extensions (dict): dict with specific attributes depending on
                                guest type
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -95,9 +89,6 @@ class GuestBase(metaclass=abc.ABCMeta):
         Args:
             timeout (int): how many seconds to wait for connection
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -110,9 +101,6 @@ class GuestBase(metaclass=abc.ABCMeta):
         Close an active connection to the guest system
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -130,9 +118,6 @@ class GuestBase(metaclass=abc.ABCMeta):
         Args:
             packages (list): package names to install
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -143,13 +128,11 @@ class GuestBase(metaclass=abc.ABCMeta):
     def open_session(self, extensions=None):
         """
         Returns a expect-like object which can be used for sending commands and
-        receiving output from a guest's shell.
+        receiving output from a guest's shell. Concrete implementations should
+        return an instance of GuestSession.
 
         Args:
             extensions (dict): params specific to each guest type
-
-        Returns:
-            instance of GuestSession
 
         Raises:
             NotImplementedError: as it has to be implemented by child class
@@ -193,9 +176,6 @@ class GuestBase(metaclass=abc.ABCMeta):
             write_mode (str): Either 'wb' or 'ab', for truncating and appending
                                to the target file, respectively.
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: in case this method is called, since it is
                                  implemented in the child class.
@@ -209,9 +189,6 @@ class GuestBase(metaclass=abc.ABCMeta):
         Stop a given guest by executing a shutdown command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

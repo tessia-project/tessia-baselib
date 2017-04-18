@@ -87,9 +87,6 @@ class TestGuestLinux(TestCase):
             distro_name (str): name of distro class that should be created
             distro_cmd (str): expected command used to identify environment
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -124,9 +121,6 @@ class TestGuestLinux(TestCase):
             guest_obj (GuestLinux): object
             mock_ssh_client (Mock): the mock created for object of SshClient
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -143,9 +137,6 @@ class TestGuestLinux(TestCase):
 
         Args:
             guest_obj (GuestLinux): object
-
-        Returns:
-            None
 
         Raises:
             AssertionError: if validation fails
@@ -164,9 +155,6 @@ class TestGuestLinux(TestCase):
             mock_ssh_shell (Mock): representation for object of SshShell
             stop_cmd (str): expected command used to shutdown system
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -183,9 +171,6 @@ class TestGuestLinux(TestCase):
 
         Args:
             mock_ssh_client_cls (Mock): representation of SshClient class
-
-        Returns:
-            None
 
         Raises:
             AssertionError: if the guest object does not behave as expected
@@ -271,9 +256,6 @@ class TestGuestLinux(TestCase):
 
         Args:
             mock_ssh_client_cls (Mock): represents the SshClient class
-
-        Returns:
-            None
 
         Raises:
             AssertionError: if guest object does not raise NotImplementedError

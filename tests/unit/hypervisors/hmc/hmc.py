@@ -109,9 +109,6 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -132,9 +129,6 @@ class TestHypervisorHmc(TestCase):
         Check if the logoff() method works as expected
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -164,20 +158,15 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
         # setting up the mock objects
         mock_lpar = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_lpar.return_value
         )
         mock_image_profile = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_image_profile.return_value
         )
@@ -259,14 +248,10 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
         mock_lpar = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_lpar.return_value
         )
@@ -296,9 +281,6 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -312,9 +294,6 @@ class TestHypervisorHmc(TestCase):
         network boot
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -342,12 +321,10 @@ class TestHypervisorHmc(TestCase):
 
         # setting up the mock objects
         mock_lpar = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_lpar.return_value
         )
         mock_image_profile = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_image_profile.return_value
         )
@@ -357,7 +334,6 @@ class TestHypervisorHmc(TestCase):
             'number-shared-ifl-processors': 1
         }
 
-        # pylint: disable=no-member
         patcher_guest_linux = patch.object(hmc, 'GuestLinux')
         mock_guest_linux = patcher_guest_linux.start()
 
@@ -464,7 +440,6 @@ class TestHypervisorHmc(TestCase):
         patcher_conf = patch.object(hmc, 'CONF')
         mock_conf = patcher_conf.start()
         self.addCleanup(patcher_conf.stop)
-        # pylint: disable=no-member
         mock_conf.get_config.return_value = {
             'netdisks': {'XX11': "FFFF"}
         }
@@ -486,9 +461,6 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -515,7 +487,6 @@ class TestHypervisorHmc(TestCase):
         self._mock_zhmc.return_value.get_cpc.return_value.name = 'CP23'
 
         mock_image_profile = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_image_profile.return_value
         )
@@ -528,7 +499,6 @@ class TestHypervisorHmc(TestCase):
         patcher_conf = patch.object(hmc, 'CONF')
         mock_conf = patcher_conf.start()
         self.addCleanup(patcher_conf.stop)
-        # pylint: disable=no-member
         mock_conf.get_config.return_value = {
             'netdisks': {'CP23': "FFFF"}
         }
@@ -550,9 +520,6 @@ class TestHypervisorHmc(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -579,7 +546,6 @@ class TestHypervisorHmc(TestCase):
         self._mock_zhmc.return_value.get_cpc.return_value.name = 'CP23'
 
         mock_image_profile = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_image_profile.return_value
         )
@@ -592,13 +558,11 @@ class TestHypervisorHmc(TestCase):
         patcher_conf = patch.object(hmc, 'CONF')
         mock_conf = patcher_conf.start()
         self.addCleanup(patcher_conf.stop)
-        # pylint: disable=no-member
         mock_conf.get_config.return_value = {
             'netdisks': {'CP23': "FFFF"}
         }
         # set the mock so that the load operation works
         mock_lpar = (
-            # pylint: disable=no-member
             self._mock_zhmc.return_value.get_cpc.return_value.
             get_lpar.return_value
         )

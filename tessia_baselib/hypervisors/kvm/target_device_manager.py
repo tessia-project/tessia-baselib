@@ -43,9 +43,6 @@ class TargetDeviceManager(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """

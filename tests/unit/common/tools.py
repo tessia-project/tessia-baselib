@@ -74,9 +74,6 @@ class TestImportModules(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -116,9 +113,6 @@ class TestImportModules(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -130,9 +124,6 @@ class TestImportModules(TestCase):
         Exercise the module importing with an empty skip list.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -160,9 +151,6 @@ class TestImportModules(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the result from function call is not correct
         """
@@ -185,9 +173,6 @@ class TestImportModules(TestCase):
         so here we make sure the function does not mix up things.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -213,9 +198,6 @@ class TestImportModules(TestCase):
         Exercise the module importing with an empty skip list.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

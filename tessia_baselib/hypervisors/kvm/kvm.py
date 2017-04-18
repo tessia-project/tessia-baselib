@@ -56,9 +56,6 @@ class HypervisorKvm(HypervisorBase):
             parameters (dict): a dictionary containing values specific to each
                         hypervisor type
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -89,9 +86,6 @@ class HypervisorKvm(HypervisorBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: if it is not logged in the system.
         """
@@ -106,9 +100,6 @@ class HypervisorKvm(HypervisorBase):
 
         Args:
             timeout (int): how many seconds to wait for connection
-
-        Returns:
-            None
 
         Raises:
             None
@@ -143,9 +134,6 @@ class HypervisorKvm(HypervisorBase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: It is not logged in the guest
         """
@@ -171,9 +159,6 @@ class HypervisorKvm(HypervisorBase):
             memory (int):         Amount of memory to assin in megabytes.
             parameters (dict):    A dictionary containing values specific to
                                   each hypervisor type.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: If it is not logged in the guest.
@@ -232,9 +217,6 @@ class HypervisorKvm(HypervisorBase):
             parameters (dict): Dictionary with content specific to hypervisor
                                type.
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: In case it is not logged in, or the domain is
                           undefined or not started.
@@ -271,9 +253,6 @@ class HypervisorKvm(HypervisorBase):
             guest_name (str): Name of the guest as known by hypervisor
             parameters (dict): Dictionary with content specific to hypervisor
                                type.
-
-        Returns:
-            None
 
         Raises:
             RuntimeError: In case it is not logged in, or the domain is

@@ -36,8 +36,6 @@ from unittest import TestCase
 #
 # CODE
 #
-
-
 class TestCPC(TestCase):
     """
     Unit test for the CPC class
@@ -47,9 +45,6 @@ class TestCPC(TestCase):
         Setup a CPC object.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -92,9 +87,6 @@ class TestCPC(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -118,9 +110,6 @@ class TestCPC(TestCase):
         Test if get_lpar() method work as expected.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -160,9 +149,6 @@ class TestCPC(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -198,9 +184,6 @@ class TestCPC(TestCase):
         Test if get_image_profile() method work as expected.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -240,9 +223,6 @@ class TestCPC(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -257,12 +237,10 @@ class TestCPC(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
         with self.assertRaises(NotImplementedError):
             self.cpc.get_group_profile('dummy_profile')
     # test_get_group_profile()
+# TestCPC

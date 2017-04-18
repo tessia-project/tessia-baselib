@@ -41,9 +41,6 @@ class TestGuestSessionBase(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -68,9 +65,6 @@ class TestGuestSessionBase(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if object instantiation does raise expected
                             exception
@@ -84,9 +78,6 @@ class TestGuestSessionBase(TestCase):
         Exercise all methods in the target class.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

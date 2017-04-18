@@ -15,7 +15,6 @@
 """
 S3270 Pipe connector class
 """
-# pylint: disable=redefined-variable-type
 #
 # IMPORTS
 #
@@ -47,9 +46,6 @@ class S3270PipeConnector(object):
         Constructor. Initializes object variables and logging
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -164,9 +160,6 @@ class S3270PipeConnector(object):
             cmd (str): s3270 command
             timeout (int): how many seconds to wait for stdin to be ready
 
-        Returns:
-            None
-
         Raises:
             TimeoutError: if stdin is not available
         """
@@ -206,9 +199,6 @@ class S3270PipeConnector(object):
         Execute a 'Quit' command and return.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -256,9 +246,6 @@ class S3270PipeConnector(object):
         Terminate process execution and clean up object.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

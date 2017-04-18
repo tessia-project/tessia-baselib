@@ -42,9 +42,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -73,9 +70,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -94,9 +88,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -113,9 +104,6 @@ class TestS3270(TestCase):
         Exercise an ascii command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -139,9 +127,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -162,9 +147,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -181,9 +163,6 @@ class TestS3270(TestCase):
         Exercise a clear command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -207,9 +186,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -230,9 +206,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -249,9 +222,6 @@ class TestS3270(TestCase):
         Exercise a connect command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -276,9 +246,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -297,9 +264,6 @@ class TestS3270(TestCase):
         Exercise a connect command returning timeout
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -330,9 +294,6 @@ class TestS3270(TestCase):
         Exercise a connect command returning timeout
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -368,9 +329,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -393,9 +351,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -412,9 +367,6 @@ class TestS3270(TestCase):
         Exercise a disconnect command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -438,9 +390,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -461,9 +410,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -480,9 +426,6 @@ class TestS3270(TestCase):
         Exercise an enter command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -506,9 +449,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -529,9 +469,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -548,9 +485,6 @@ class TestS3270(TestCase):
         Exercise an execute command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -574,9 +508,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -597,9 +528,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -618,9 +546,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -637,9 +562,6 @@ class TestS3270(TestCase):
         Exercise an query command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -663,9 +585,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -684,9 +603,6 @@ class TestS3270(TestCase):
         Exercise a query command returning timeout
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -709,9 +625,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -728,9 +641,6 @@ class TestS3270(TestCase):
         Exercise a quit command returning timeout
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -753,9 +663,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -774,9 +681,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -793,9 +697,6 @@ class TestS3270(TestCase):
         Exercise an snap command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -819,9 +720,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -840,9 +738,6 @@ class TestS3270(TestCase):
         Exercise a snap command returning timeout
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -865,9 +760,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -884,9 +776,6 @@ class TestS3270(TestCase):
         Exercise a string command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -910,9 +799,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -933,9 +819,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -954,9 +837,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -973,9 +853,6 @@ class TestS3270(TestCase):
         Exercise a transfer command returning error
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -999,9 +876,6 @@ class TestS3270(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -1014,6 +888,4 @@ class TestS3270(TestCase):
         # simple command execution
         self.assertRaises(TimeoutError, s3270.transfer)
     # test_string_timeout()
-
-
 # TestS3270

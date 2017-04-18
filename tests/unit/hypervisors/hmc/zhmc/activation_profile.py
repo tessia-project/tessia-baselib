@@ -33,8 +33,6 @@ from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
 #
 # CODE
 #
-
-
 class TestActivationProfile(TestCase):
     """
     Unit test for the ActivationProfile class
@@ -44,9 +42,6 @@ class TestActivationProfile(TestCase):
         Setup a Activation Profile object.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -85,9 +80,6 @@ class TestActivationProfile(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -113,9 +105,6 @@ class TestActivationProfile(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if validation fails
         """
@@ -132,3 +121,4 @@ class TestActivationProfile(TestCase):
             body=fake_dict
         )
     # test_update()
+# TestActivationProfile

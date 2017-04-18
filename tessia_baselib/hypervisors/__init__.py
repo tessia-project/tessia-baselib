@@ -55,9 +55,6 @@ class Hypervisor(object):
                           constructor
             kwargs (dict): keyword arguments to forward to driver's constructor
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: in case hyp_type is not supported
         """

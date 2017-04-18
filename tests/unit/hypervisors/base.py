@@ -42,9 +42,6 @@ class TestHypervisorBase(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -73,9 +70,6 @@ class TestHypervisorBase(TestCase):
         attributes correspond to what was passed in the constructor.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -129,9 +123,6 @@ class TestHypervisorBase(TestCase):
         raised after a call to each method.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

@@ -50,9 +50,6 @@ class HypervisorBase(metaclass=abc.ABCMeta):
             passwd (str): password to login to system
             parameters (dict): content specific to each hypervisor type.
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -72,13 +69,11 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     def login(self, timeout=60):
         """
         Execute the login to the hypervisor system using the credentials
-        provided.
+        provided. Concrete implementations should return a string 'ok' if
+        succeeded, error message otherwise
 
         Args:
             timeout (int): how many seconds to wait for connection
-
-        Returns:
-            string 'ok' if succeded, error message otherwise
 
         Raises:
             NotImplementedError: as it has to be implemented by child class
@@ -89,13 +84,12 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def logoff(self):
         """
-        Close an active connection to the hypervisor system
+        Close an active connection to the hypervisor system. Concrete
+        implementations should return a string 'ok' if succeeded, error message
+        otherwise
 
         Args:
             None
-
-        Returns:
-            string 'ok' if succeded, error message otherwise
 
         Raises:
             NotImplementedError: as it has to be implemented by child class
@@ -116,9 +110,6 @@ class HypervisorBase(metaclass=abc.ABCMeta):
             parameters (dict): A dictionary containing values specific to each
                                hypervisor type.
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -134,9 +125,6 @@ class HypervisorBase(metaclass=abc.ABCMeta):
             guest_name (str): name of the guest as known by hypervisor
             parameters (dict): content specific to hypervisor type
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it has to be implemented by child class
         """
@@ -151,9 +139,6 @@ class HypervisorBase(metaclass=abc.ABCMeta):
         Args:
             guest_name (str): name of the guest as known by hypervisor
             parameters (dict): content specific to hypervisor type
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError: as it has to be implemented by child class

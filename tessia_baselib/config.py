@@ -50,9 +50,6 @@ class Config(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as the class should not be instantiated
         """
@@ -73,6 +70,7 @@ class Config(object):
             dict: The configuration read from the config file.
 
         Raises:
+            OSError: see IOError
             IOError: if config file cannot be read
         """
         def _read_file(file_path):

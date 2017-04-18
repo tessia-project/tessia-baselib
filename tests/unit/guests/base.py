@@ -42,9 +42,6 @@ class TestGuestBase(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -81,14 +78,10 @@ class TestGuestBase(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if an attribute does not match passed argument
         """
-        # pylint:disable=abstract-class-instantiated
-        self.assertRaises(
+        self.assertRaises( # pylint:disable=abstract-class-instantiated
             TypeError,
             base.GuestBase,
             sentinel.system_name,
@@ -125,9 +118,6 @@ class TestGuestBase(TestCase):
         raised after a call to each method.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

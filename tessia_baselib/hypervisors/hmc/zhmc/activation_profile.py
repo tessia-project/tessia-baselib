@@ -51,9 +51,6 @@ class ActivationProfile(object):
             profile_type (str): the profile type we are referencing:
                                 'image', 'load', 'reset' or 'group'
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -104,9 +101,6 @@ class ActivationProfile(object):
             TODO
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

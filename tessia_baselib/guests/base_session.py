@@ -44,9 +44,6 @@ class GuestSessionBase(metaclass=abc.ABCMeta):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: this method should be implemented by children
         """
@@ -60,14 +57,12 @@ class GuestSessionBase(metaclass=abc.ABCMeta):
         It should raise the following exceptions:
             RuntimeError: if any unexpected problem occurs
             TimeoutError: if timeout is reached and execution did not complete
+        On successful operation return tuple (integer_exit_code, string_output)
 
         Args:
             cmd (str): command to execute
             timeout (int): seconds to wait for response
             ignore_ret (bool): ignore command return
-
-        Returns:
-            tuple (integer_exit_code, string_output)
 
         Raises:
             NotImplementedError: this method should be implemented by children

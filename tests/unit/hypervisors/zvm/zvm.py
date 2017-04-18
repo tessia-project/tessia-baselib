@@ -42,9 +42,6 @@ class TestHypervisorZvm(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -63,9 +60,6 @@ class TestHypervisorZvm(TestCase):
         Exercise a normal login command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -98,9 +92,6 @@ class TestHypervisorZvm(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -124,9 +115,6 @@ class TestHypervisorZvm(TestCase):
         Exercise a failed logoff command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -156,9 +144,6 @@ class TestHypervisorZvm(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -184,9 +169,6 @@ class TestHypervisorZvm(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -210,9 +192,6 @@ class TestHypervisorZvm(TestCase):
         Exercise a failed stop command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -241,9 +220,6 @@ class TestHypervisorZvm(TestCase):
         *** Placeholder for reboot test when implemented ***
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

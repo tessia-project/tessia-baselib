@@ -52,9 +52,6 @@ class Terminal(object):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -107,7 +104,7 @@ class Terminal(object):
             None
         """
         # if an output text is passed as argument, look for status there
-        if len(output) > 0:
+        if output:
             status = output[-21:-14]
         else:
             # look at status area
@@ -260,7 +257,7 @@ class Terminal(object):
         time_expired = False
         output = ""
 
-        if len(wait_for) > 0:
+        if wait_for:
             # variable for wait_for control
             found = False
             # define the timeout limit
@@ -304,9 +301,6 @@ class Terminal(object):
         Args:
             host_name (str): target hostname
             timeout (int): how many seconds to wait for connection
-
-        Returns:
-            None
 
         Raises:
             None

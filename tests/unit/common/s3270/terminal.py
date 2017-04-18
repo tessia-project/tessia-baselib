@@ -42,9 +42,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -66,9 +63,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -88,9 +82,6 @@ class TestTerminal(TestCase):
         Exercise a normal connect command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -118,9 +109,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -146,9 +134,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -171,9 +156,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -194,9 +176,6 @@ class TestTerminal(TestCase):
         Exercise a login with byuser
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -227,9 +206,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -250,9 +226,6 @@ class TestTerminal(TestCase):
         Exercise a normal disconnect command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -280,9 +253,6 @@ class TestTerminal(TestCase):
         Exercise a disconnect that fails keeping connected
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -316,9 +286,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -344,9 +311,6 @@ class TestTerminal(TestCase):
         Exercise a logoff that fails keeping connected
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -378,9 +342,6 @@ class TestTerminal(TestCase):
         Exercise send_cmd with a CMS command
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -417,9 +378,6 @@ class TestTerminal(TestCase):
         Exercise send_cmd with a CMS command when a timeout occurs
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -467,9 +425,6 @@ class TestTerminal(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if the session object does not behave as expected
         """
@@ -500,9 +455,6 @@ class TestTerminal(TestCase):
         Exercise send_cmd without a conneciton to host
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

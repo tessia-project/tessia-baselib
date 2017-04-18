@@ -49,9 +49,6 @@ class SshShell(object):
         Args:
             socket_obj (socket): socket object for reading and writing
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -144,7 +141,7 @@ class SshShell(object):
             # wait during 0.1 seconds for socket to be available for reading
             r_list, _, _ = select.select([self.socket], [], [], 0.1)
             # socket ready for reading: read 1024 bytes to buffer
-            if len(r_list) > 0:
+            if r_list:
                 try:
                     # assume data we receive is in utf-8 and decode it as such
                     output += str(self.socket.recv(1024), ENCODING)
@@ -187,9 +184,6 @@ class SshShell(object):
             timeout (int): how many seconds to wait for operation to complete
             content (str): it will be encoded in utf-8 prior to writing
 
-        Returns:
-            None
-
         Raises:
             TimeoutError: if timeout is reached and write did not complete
         """
@@ -229,9 +223,6 @@ class SshShell(object):
         Close the socket. No more operations are possible.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

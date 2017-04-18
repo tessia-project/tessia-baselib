@@ -43,9 +43,6 @@ class DiskBase(object):
             target_dev_mngr (TargetDeviceManager): object instance
             host_conn (GuestLinux): instance connected to linux host
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -93,9 +90,6 @@ class DiskBase(object):
         Args:
             devicenr (str): device number of the device to be enabled
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: In case the command fails to be executed
         """
@@ -117,9 +111,6 @@ class DiskBase(object):
         the block device available in the hypervisor operating system.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:

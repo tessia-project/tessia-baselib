@@ -48,9 +48,6 @@ class TestConfig(TestCase):
             option (str): string 'good' for a valid config file content,
                           'bad' for invalid content, or 'empty'
 
-        Returns:
-            None
-
         Raises:
             RuntimeError: if an unsupported option is provided
         """
@@ -86,7 +83,6 @@ class TestConfig(TestCase):
         self._mock_open_fd.__enter__.return_value = self._mock_open_fd
 
         # force re-read of file
-        # pylint: disable=protected-access
         config.CONF._config_dict = None
     # setUp()
 
@@ -95,9 +91,6 @@ class TestConfig(TestCase):
         Exercise parsing configuration file with invalid content
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -116,9 +109,6 @@ class TestConfig(TestCase):
         Exercise files in the standard locations that are not readable.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -146,9 +136,6 @@ class TestConfig(TestCase):
 
         Args:
             mock_get (Mock): mock replacing os.environ.get function
-
-        Returns:
-            None
 
         Raises:
             AssertionError: if any of the assertion calls fails
@@ -181,9 +168,6 @@ class TestConfig(TestCase):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             AssertionError: if class instantiates fails to raise exception
         """
@@ -195,9 +179,6 @@ class TestConfig(TestCase):
         Exercise parsing an empty configuration file
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -215,9 +196,6 @@ class TestConfig(TestCase):
         Exercise parsing configuration file from default path and caching
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -254,9 +232,6 @@ class TestConfig(TestCase):
         caching.
 
         Args:
-            None
-
-        Returns:
             None
 
         Raises:
@@ -305,9 +280,6 @@ class TestConfig(TestCase):
 
         Args:
             mock_get (Mock): mock replacing os.environ.get function
-
-        Returns:
-            None
 
         Raises:
             AssertionError: if any of the assertion calls fails

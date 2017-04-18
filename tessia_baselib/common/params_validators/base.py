@@ -46,9 +46,6 @@ class BaseParamsValidator(metaclass=abc.ABCMeta):
             schema_file (str): Path to the file containing the json schema
                                that will be used to validate parameters.
 
-        Returns:
-            None
-
         Raises:
             ValueError: In case the schema contained in schema_file is not
                         valid.
@@ -79,9 +76,6 @@ class BaseParamsValidator(metaclass=abc.ABCMeta):
         Args:
             None
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: to avoid the method being called.
         """
@@ -96,9 +90,6 @@ class BaseParamsValidator(metaclass=abc.ABCMeta):
 
         Args:
             parameters (dict): parameters to be validated.
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError: as it has to be implemented in concrete

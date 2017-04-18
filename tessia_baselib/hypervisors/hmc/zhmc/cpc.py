@@ -54,9 +54,6 @@ class CPC(object):
             cpc_uri (str):    cpc uri
             cpc_status (str): current cpc status
 
-        Returns:
-            None
-
         Raises:
             None
         """
@@ -213,9 +210,6 @@ class CPC(object):
         Args:
             reset_profile_name (str): reset profile name
 
-        Returns:
-            None
-
         Raises:
             NotImplementedError: as it needs implementation
         """
@@ -234,9 +228,6 @@ class CPC(object):
 
         Args:
             group_profile_name (str):  group profile name
-
-        Returns:
-            None
 
         Raises:
             NotImplementedError: as it needs implementation
