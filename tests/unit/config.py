@@ -34,7 +34,6 @@ import yaml
 #
 # CODE
 #
-
 class TestConfig(TestCase):
     """
     Unit test for the config module.
@@ -46,7 +45,8 @@ class TestConfig(TestCase):
 
         Args:
             option (str): string 'good' for a valid config file content,
-                          'bad' for invalid content, or 'empty'
+                          'bad' for invalid content, 'empty',
+                          else use the string provided as content
 
         Raises:
             RuntimeError: if an unsupported option is provided
@@ -59,9 +59,11 @@ class TestConfig(TestCase):
         elif option == 'empty':
             content = ''
         else:
-            raise RuntimeError("unrecognized option '{}'".format(option))
+            content = option
 
         self._mock_open_fd.read.return_value = content
+        # force module to re-read file
+        config.CONF._config_dict = None
     # _set_open_mock()
 
     def setUp(self):
@@ -102,6 +104,23 @@ class TestConfig(TestCase):
         # perform the action and validate result
         self.assertRaises(yaml.scanner.ScannerError,
                           config.CONF.get_config)
+
+        # set the mock to return a random string
+        self._set_open_mock(' random-string ')
+
+        # perform the action and validate result
+        with self.assertRaisesRegex(
+            RuntimeError, 'Invalid configuration file content'):
+            config.CONF.get_config()
+
+        # set the mock to return a list
+        self._set_open_mock('- bla')
+
+        # perform the action and validate result
+        with self.assertRaisesRegex(
+            RuntimeError, 'Invalid configuration file content'):
+            config.CONF.get_config()
+
     # test_bad_content()
 
     def test_bad_default_paths(self):
@@ -186,6 +205,12 @@ class TestConfig(TestCase):
         """
         # set the mock to return config content
         self._set_open_mock('empty')
+
+        # perform the action and validate result
+        self.assertEqual({}, config.CONF.get_config())
+
+        # set the mock to return a blank
+        self._set_open_mock(' ')
 
         # perform the action and validate result
         self.assertEqual({}, config.CONF.get_config())
