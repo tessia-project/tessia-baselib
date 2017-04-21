@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 # What is it?
-A tool to manage the communication with various types of hypervisors and guest systems in order to perform actions like activate, deactivate, hotplug resources, and others.
+A python library to manage the communication with various types of hypervisors and guest systems in order to perform actions like activate, deactivate, hotplug resources, and others.
 
-# Status
+Go to [documentation](doc/index.md).
+
+# Project Status
 
 - CI (build/lint/unittest): [![build status](https://gitlab.com/tessia-project/tessia_baselib/badges/master/build.svg)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
 
