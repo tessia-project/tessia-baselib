@@ -239,8 +239,10 @@ class HypervisorHmc(HypervisorBase):
         # read it. Also use nohup to prevent a race condition where the ssh
         # connection dies too fast before the command is processed.
         session.run(
+            "killall -9 sshd; "
             "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
             "&>/tmp/kexec.log".format(cmdline), ignore_ret=True)
+        time.sleep(1)
     #_execute_kexec()
 
     def _load(self, cpc_name, lpar, boot_params):

@@ -23,7 +23,10 @@ from datetime import timedelta
 from contextlib import suppress
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
+# the import is there but pylint does not recognize it
+# pylint: disable=import-error
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+# pylint: enable=import-error
 
 import time
 import requests
