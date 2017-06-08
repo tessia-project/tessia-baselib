@@ -393,6 +393,7 @@ class TestHypervisorHmc(TestCase):
 
         session = mock_guest_linux.return_value.open_session.return_value
         session.run.assert_called_with(
+            "killall -9 sshd; "
             "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
             "&>/tmp/kexec.log".format(boot_params.get("cmdline")),
             ignore_ret=True
