@@ -38,7 +38,7 @@ import subprocess
 # timeout in seconds before the netboot operation is considered failed
 # TODO: compute the timeout based on the amount of storage memory (i.e. 1TB
 # LPAR will take a long time to load)
-NETBOOT_LOAD_TIMEOUT = 60 # seconds
+NETBOOT_LOAD_TIMEOUT = 1800 # seconds
 # user and password for the auxiliary image
 # TODO: move this to conf file
 NETBOOT_USER = "root"
@@ -336,6 +336,13 @@ class HypervisorHmc(HypervisorBase):
         subnet_addr = boot_params['mask']
         gw_addr = boot_params['gateway']
         channel = boot_params['device']
+        options = boot_params.get('options', {})
+        try:
+            layer2 = options.pop('layer2')
+            layer2 = {'true': 1, 'false': 0, '1': 1, '0': 0}[layer2.lower()]
+        # option not specified or unknown value used: defaults to active
+        except KeyError:
+            layer2 = 1
 
         if channel.find(',') != -1:
             ch_list = channel.split(',')
@@ -344,14 +351,25 @@ class HypervisorHmc(HypervisorBase):
             ch_list.append(hex(int(channel, 16)+1).lstrip("0x"))
             ch_list.append(hex(int(channel, 16)+2).lstrip("0x"))
 
+        # build the options string, layer2 should always come first
+        str_option = '-o layer2={}'.format(layer2)
+        for key, value in options.items():
+            str_option += ' -o {}={}'.format(key, value)
+
         net_cmds = [
             # make the osa channels available
             "cio_ignore -r {} && \\".format(','.join(ch_list)),
             # activate the osa card
-            "znetconf -a {} -o portname=osaport && \\".format(
-                ch_list[0].replace("0.0.", "")),
-            # set mac address for network interface
-            "ifconfig enc{} hw ether {} && \\".format(ch_list[0], mac_addr),
+            "znetconf -a {} {} && \\".format(
+                ch_list[0].replace("0.0.", ""), str_option),
+        ]
+        # layer2 active: set mac address for network interface
+        if layer2 == 1:
+            net_cmds.append(
+                "ifconfig enc{} hw ether {} && \\".format(
+                    ch_list[0], mac_addr))
+
+        net_cmds.extend([
             # set ip address and network mask
             "ifconfig enc{} {} netmask {} && \\".format(
                 ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr),
@@ -362,7 +380,7 @@ class HypervisorHmc(HypervisorBase):
             # ping is performed (probably to update some arp table or so).
             # Once this issue is fixed, remove this.
             "ping -c 1 {}".format(gw_addr),
-        ]
+        ])
         timeout = time.time() + NETBOOT_LOAD_TIMEOUT
         while True:
             # the api has a limit of 200 chars per call so we need to split the

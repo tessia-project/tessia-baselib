@@ -31,6 +31,9 @@
         "mask": {
             "maxLength": 16,
             "type": "string"
+        },
+        "options": {
+            "type": "object"
         }
     },
     "required": [

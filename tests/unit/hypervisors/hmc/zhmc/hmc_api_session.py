@@ -21,6 +21,7 @@ Unit test for the hmc_api_session module
 #
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
+from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import READ_TIMEOUT
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch
@@ -114,7 +115,7 @@ class TestHmcApiSession(TestCase):
             headers={},
             json=body,
             verify=False,
-            timeout=60
+            timeout=(60, READ_TIMEOUT)
         )
 
         self.assertEqual(999, self.session.session_id)
@@ -150,7 +151,7 @@ class TestHmcApiSession(TestCase):
             headers=headers,
             json=None,
             verify=False,
-            timeout=60
+            timeout=(60, READ_TIMEOUT)
         )
 
         self.assertIs(None, self.session.session_id)
@@ -187,7 +188,7 @@ class TestHmcApiSession(TestCase):
             headers=headers,
             json=None,
             verify=False,
-            timeout=60
+            timeout=(60, READ_TIMEOUT)
         )
 
         # test setting optional parameters
@@ -204,7 +205,7 @@ class TestHmcApiSession(TestCase):
             headers=headers,
             json={"foo": 1},
             verify=False,
-            timeout=60
+            timeout=(60, READ_TIMEOUT)
         )
 
         # test when the requests fails
