@@ -339,7 +339,9 @@ class HypervisorHmc(HypervisorBase):
         options = boot_params.get('options', {})
         try:
             layer2 = options.pop('layer2')
-            layer2 = {'true': 1, 'false': 0, '1': 1, '0': 0}[layer2.lower()]
+            layer2 = {
+                'true': 1, 'false': 0, '1': 1, '0': 0
+            }[str(layer2).lower()]
         # option not specified or unknown value used: defaults to active
         except KeyError:
             layer2 = 1
