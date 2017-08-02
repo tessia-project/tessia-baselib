@@ -19,6 +19,7 @@ Testing class for the HMC hypervisor
 #
 # IMPORTS
 #
+from collections import OrderedDict
 from tessia_baselib.hypervisors.hmc import hmc
 from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from unittest import mock
@@ -361,13 +362,13 @@ class TestHypervisorHmc(TestCase):
 
         ch_list = boot_params.get("device").split(",")
         # test network setup
-        calls = [
+        net_cmd_calls = [
             mock.call("root"),
             mock.call("somepasswd"),
             mock.call(
                 "cio_ignore -r {} && \\".format(boot_params.get("device"))),
             mock.call(
-                "znetconf -a {} -o portname=osaport && \\".format(ch_list[0])),
+                "znetconf -a {} -o layer2=1 && \\".format(ch_list[0])),
             mock.call("ifconfig enc{} hw ether {} && \\".format(
                 ch_list[0], boot_params.get("mac"))),
             mock.call("ifconfig enc{} {} netmask {} && \\".format(
@@ -376,7 +377,8 @@ class TestHypervisorHmc(TestCase):
                 boot_params.get("gateway"))),
             mock.call("ping -c 1 {}".format(boot_params.get('gateway')))
         ]
-        mock_lpar.send_os_command.assert_has_calls(calls)
+        mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+
         # verify that we tried to reach target system
         self._mock_subprocess.run.assert_called_with(
             'ping -c 1 -w 5 ' + boot_params.get("ip"),
@@ -400,13 +402,36 @@ class TestHypervisorHmc(TestCase):
         )
 
         # test with a different channel format
-        parameters.get("boot_params")['device'] = "f500"
+        parameters["boot_params"]['device'] = "f500"
+        mock_lpar.send_os_command.reset_mock()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         f501 = hex(int("f500", 16)+1).strip("0x")
         f502 = hex(int("f500", 16)+2).strip("0x")
-        mock_lpar.send_os_command.assert_any_call(
+        # replace expected command
+        net_cmd_calls[2] = mock.call(
             "cio_ignore -r {} && \\".format("f500," + f501 + "," +f502)
         )
+        mock_lpar.send_os_command.has_calls(net_cmd_calls)
+
+        # test with layer2 off and additional options
+        # by using an ordered dict and placing layer2 on second position we
+        # validate that layer2 always comes first
+        parameters["boot_params"]['options'] = OrderedDict()
+        parameters["boot_params"]['options']['portname'] = 'osaport'
+        parameters["boot_params"]['options']['layer2'] = '0'
+        parameters["boot_params"]['options']['portno'] = '0'
+        parameters["boot_params"]['options']['buffer_count'] = '128'
+        mock_lpar.send_os_command.reset_mock()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+        # replace expected commands
+        net_cmd_calls[3] = mock.call(
+            "znetconf -a {} -o layer2=0 -o portname=osaport -o portno=0 "
+            "-o buffer_count=128 && \\".format(ch_list[0])
+        )
+        # mac address is not set when layer2 is off
+        net_cmd_calls.pop(4)
+        mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+
     # test_netboot()
 
     def test_netboot_no_disk(self):
