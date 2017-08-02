@@ -38,6 +38,10 @@ import warnings
 
 DEFAULT_HMC_PORT = 6794
 
+# as per requests lib recommendation, read timeout is slightly
+# bigger than a multiple of 3
+READ_TIMEOUT = 1805
+
 REQUESTS = {
     "GET": requests.get,
     "POST": requests.post,
@@ -204,8 +208,11 @@ class HmcApiSession(object):
             url,
             headers=headers,
             json=body,
-            verify=False, # TODO Need to add a certificate and remove this
-            timeout=self.timeout
+            verify=False, # TODO add support to certificates
+            # use connect timeout from caller, but the read timeout has to be
+            # long as the hmc is slow to process things and give us an answer
+            # to a request
+            timeout=(self.timeout, READ_TIMEOUT)
         )
 
         self._validate_response(response)
