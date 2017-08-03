@@ -166,8 +166,13 @@ class SshShell(object):
         output = output.replace('\r\n', '\n')
 
         # command echo found in output: remove it
-        if cmd_echo is not None and output[0:len(cmd_echo)] == cmd_echo:
-            output = output[len(cmd_echo):]
+        # There might be escape chars in the beginning of the line,
+        # so we must make sure that we find the correct position of the
+        # command echo.
+        if cmd_echo is not None:
+            cmd_echo_offset = output.find(cmd_echo)
+            if cmd_echo_offset != -1:
+                output = output[cmd_echo_offset + len(cmd_echo):]
 
         # remove trailing newline as it is added by logger later
         self._console_logger.info(output.rstrip('\n'))
