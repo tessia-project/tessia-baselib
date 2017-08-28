@@ -107,7 +107,7 @@ class DiskFcp(DiskBase):
         return adapter_path
     # _get_adapter_path()
 
-    def _get_all_lun_dev_filenames(self, adapters, lun):
+    def _get_all_scsi_dev_filenames(self, adapters, lun):
         """
         Auxiliary method. Generate the device filenames for each fcp path of
         the lun and adapters specified as arguments.
@@ -123,21 +123,24 @@ class DiskFcp(DiskBase):
         Raises:
             None
         """
-        lun_devs = []
+        scsi_devs = []
 
         for adapter in adapters:
             zfcp_devno = adapter["devno"]
             for wwpn in adapter["wwpns"]:
-                lun_dev = self._get_lun_dev_filename(zfcp_devno, wwpn, lun)
-                lun_devs.append(lun_dev)
+                entry = {
+                    'fcp_path': '{}/{}/{}'.format(zfcp_devno, wwpn, lun),
+                    'kernel_path': self._get_scsi_dev_filename(
+                        zfcp_devno, wwpn, lun)
+                }
+                scsi_devs.append(entry)
 
-        return lun_devs
-    # _get_all_lun_dev_filenames()
+        return scsi_devs
+    # _get_all_scsi_dev_filenames()
 
-    @staticmethod
-    def _get_lun_dev_filename(devno, wwpn, lun):
+    def _get_scsi_dev_filename(self, devno, wwpn, lun):
         """
-        Auxiliary function, returns the device filename of a lun path.
+        Auxiliary function, returns the kernel device filename of a lun path.
 
         Args:
             devno (str): device number of the zfcp adapter.
@@ -148,12 +151,26 @@ class DiskFcp(DiskBase):
             str: full device path.
 
         Raises:
-            None
+            RuntimeError: in case scsi kernel device cannot be determined
         """
-        dev_path = FCP_DEVPATH.format(devno, wwpn, lun)
+        # retrieve the scsi path associated with the fcp path
+        cmd = "lszfcp -D -b {} -p {} -l {}".format(devno, wwpn, lun)
+        ret, output = self._cmd_channel.run(cmd)
+        output = output.strip()
+        if ret != 0 or not output:
+            raise RuntimeError('scsi path not found for '
+                               'path {}/{}/{}'.format(devno, wwpn, lun))
+        scsi_path = output.split()[-1]
 
-        return dev_path
-    # _get_lun_dev_filename()
+        # convert scsi path to kernel device
+        ret, output = self._cmd_channel.run('lsscsi {}'.format(scsi_path))
+        output = output.strip()
+        if ret != 0 or not output:
+            raise RuntimeError('scsi kernel device not found for '
+                               'path {}/{}/{}'.format(devno, wwpn, lun))
+
+        return output.split()[-1]
+    # _get_scsi_dev_filename()
 
     def _is_wwpn_active(self, devno, wwpn):
         """
@@ -244,10 +261,12 @@ class DiskFcp(DiskBase):
         Raises:
             None
         """
-        lun_dev = self._get_lun_dev_filename(devno, wwpn, lun)
-        ret, _ = self._cmd_channel.run("readlink -e '{}'".format(lun_dev))
+        try:
+            self._get_scsi_dev_filename(devno, wwpn, lun)
+        except RuntimeError:
+            return False
 
-        return ret == 0
+        return True
     # _is_lun_active()
 
     def _activate_lun(self, devno, wwpn, lun):
@@ -267,7 +286,6 @@ class DiskFcp(DiskBase):
 
         # build the filesystem paths for the adapter and lun's path
         adapter_path = self._get_adapter_path(devno)
-        lun_dev = self._get_lun_dev_filename(devno, wwpn, lun)
 
         # execute the action to attach the lun
         cmd = "echo '{}' > {}/{}/unit_add".format(lun, adapter_path, wwpn)
@@ -278,10 +296,16 @@ class DiskFcp(DiskBase):
 
         # FCP adapter might have delays so give some time for device
         # to come up in the kernel
-        cmd = "readlink -e '{}'".format(lun_dev)
-        try:
-            timer(self._cmd_channel, cmd, [1, 5, 15, 30, 60], '')
-        except RuntimeError:
+        found = False
+        for time in (0, 1, 5, 15, 30, 60):
+            sleep(time)
+            try:
+                self._get_scsi_dev_filename(devno, wwpn, lun)
+            except RuntimeError:
+                continue
+            found = True
+            break
+        if not found:
             # try to be helpful and report storage configuration
             # problem if failed is 1
             cmd = 'cat {}/{}/{}/failed'.format(adapter_path, wwpn,
@@ -291,8 +315,8 @@ class DiskFcp(DiskBase):
                 msg = ("Failed to add LUN {} under {}/{}, check your "
                        'storage configuration'.format(lun, devno, wwpn))
             else:
-                msg = ("Device {} didn't come "
-                       "up after adding LUN".format(lun_dev))
+                msg = ("FCP path {}/{}/{} didn't come "
+                       "up after adding LUN".format(devno, wwpn, lun))
             raise RuntimeError(msg)
     # _activate_lun()
 
@@ -383,35 +407,6 @@ class DiskFcp(DiskBase):
         return None
     # _get_multipath_name()
 
-    def _get_dm_dev(self, mpath_name):
-        """
-        Auxiliary Method. Get the name of the device mapper associated with the
-        given multipath map.
-
-        Args:
-            mpath_name (str): multipath map name.
-
-        Returns:
-            str: name of the device mapper (i.e. dm-0)
-
-        Raises:
-            RuntimeError: in case device mapper is not available
-        """
-        for time in (0, 1, 5, 15, 30, 60):
-            sleep(time)
-            try:
-                mpath_dm_dev = self._get_kernel_devname(
-                    '/dev/mapper/{}'.format(mpath_name)).split('/')[-1]
-            except RuntimeError:
-                pass
-            else:
-                return mpath_dm_dev
-
-        raise RuntimeError("Failed to determine device mapper for "
-                           "multipath "
-                           "/dev/mapper/{}".format(mpath_name))
-    # _get_dm_dev()
-
     def _check_multipath(self):
         """
         Auxiliary method. Checks that each path belongs to the same
@@ -428,47 +423,34 @@ class DiskFcp(DiskBase):
         """
         # the name of the multipath map associated with the paths
         mpath_name = None
-        # the multipath device mapper device
-        mpath_dm_dev = None
 
-        lun_devs = self._get_all_lun_dev_filenames(self._adapters, self._lun)
+        scsi_devs = self._get_all_scsi_dev_filenames(self._adapters, self._lun)
 
         self._logger.debug("Checking if the following devices belong to the "
-                           "same multipath name: %s", lun_devs)
+                           "same multipath name: %s", scsi_devs)
         # perform verification on each device filename that is supposed to be
         # part of the multipath map
-        for lun_dev in lun_devs:
+        for scsi_dev in scsi_devs:
             # find the multipath map associated with this path
-            checked_mpath_name = self._get_multipath_name(lun_dev)
+            check_mpath_name = self._get_multipath_name(
+                scsi_dev['kernel_path'])
 
             # path is not part of any mpath map: report storage problem
-            if checked_mpath_name is None:
-                msg = ("Multipath map not available for device {}, make sure "
-                       "it's not blacklisted".format(lun_dev))
+            if check_mpath_name is None:
+                msg = ("Multipath map not available for path {}, make sure "
+                       "it's not blacklisted".format(scsi_dev['fcp_path']))
                 raise RuntimeError(msg)
 
             # first path verification: store mpath map name for validation
             # against next paths
             if mpath_name is None:
-                mpath_name = checked_mpath_name
-                # the device mapper name (i.e. dm-0)
-                mpath_dm_dev = self._get_dm_dev(mpath_name)
+                mpath_name = check_mpath_name
 
             # mpath map is different from previous path: this should never
             # happen
-            elif checked_mpath_name != mpath_name:
+            elif check_mpath_name != mpath_name:
                 raise RuntimeError("Multipath map is not the same across "
                                    "paths of lun {}".format(self._lun))
-
-            # convert the device symlink to the real device filepath to verify
-            # if it's monitored
-            kernel_dev = self._get_kernel_devname(lun_dev)
-            # make sure the path is monitored by the map
-            msg = ("Device {} not monitored by "
-                   "multipath map {}".format(lun_dev, mpath_name))
-            cmd = ("[ -e '/sys/block/{}/slaves/{}' ]".format(
-                mpath_dm_dev, kernel_dev.split('/')[-1]))
-            timer(self._cmd_channel, cmd, [0, 1, 5, 15, 30, 60], msg)
 
         # update the source dev path
         self._source_dev = "/dev/mapper/" + mpath_name
@@ -484,13 +466,13 @@ class DiskFcp(DiskBase):
         Raises:
             None
         """
-        lun_devs = self._get_all_lun_dev_filenames(self._adapters, self._lun)
-        self._logger.debug("Disabling multipath for devices: %s", lun_devs)
+        scsi_devs = self._get_all_scsi_dev_filenames(self._adapters, self._lun)
+        self._logger.debug("Disabling multipath for devices: %s", scsi_devs)
 
-        for lun_dev in lun_devs:
-            kernel_dev = self._get_kernel_devname(lun_dev)
-            cmd = 'multipathd del path {}'.format(kernel_dev)
-            msg = 'Failed to disable multipath for device {}'.format(lun_dev)
+        for scsi_dev in scsi_devs:
+            cmd = 'multipathd del path {}'.format(scsi_dev['kernel_path'])
+            msg = ('Failed to disable multipath for device {} path {}'
+                   .format(scsi_dev['kernel_path'], scsi_dev['fcp_path']))
             timer(self._cmd_channel, cmd, [0, 1, 5, 15, 30, 60], msg)
     # _disable_multipath()
 

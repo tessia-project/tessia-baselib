@@ -35,18 +35,18 @@ DISK_TYPEMAP = {
 
 MPATH_TEMPLATE = (r'''
 defaults {
-\t default_features "1 queue_if_no_path"
-\t user_friendly_names no
-\t path_grouping_policy multibus
+   default_features "1 queue_if_no_path"
+   user_friendly_names no
+   path_grouping_policy multibus
 }
 
 blacklist {
-\t devnode "*"
+   devnode ".*"
 }
 
 blacklist_exceptions {
-\t devnode "^dasd[a-z]+[0-9]*"
-\t devnode "^sd[a-z]+[0-9]*"
+   devnode "^dasd[a-z]+[0-9]*"
+   devnode "^sd[a-z]+[0-9]*"
 }
 ''')
 
@@ -109,7 +109,7 @@ class StoragePool(object):
         shell = self._host_conn.open_session()
         shell.run('rm -f /etc/multipath.conf.bak && '
                   'cp /etc/multipath.conf /etc/multipath.conf.bak')
-        cmd = "echo -e '%s' > /etc/multipath.conf" % MPATH_TEMPLATE
+        cmd = "echo '%s' > /etc/multipath.conf" % MPATH_TEMPLATE
         ret, output = shell.run(cmd)
         if ret != 0:
             raise RuntimeError('Failed to create /etc/multipath.conf: %s'

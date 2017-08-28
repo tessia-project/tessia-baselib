@@ -92,7 +92,10 @@ class SshShell(object):
         # perform a first read to consume the expect setup above
         self._read()
 
-        status, output = self.run('locale charmap')
+        # pager variable is to prevent systemd commands from calling some pager
+        # which would cause output to hang
+        status, output = self.run(
+            'export SYSTEMD_PAGER=; export LC_ALL=en_US.UTF-8; locale charmap')
 
         # locale command worked: check its output
         if status == 0:
@@ -107,11 +110,10 @@ class SshShell(object):
         else:
             self._main_logger.warning('Could not determine charmap')
 
-        self._main_logger.warning('Data sent and received through this'
-                                  ' ssh  channel is encoded and decoded in'
-                                  ' utf-8, but locale of this shell does'
-                                  ' not seem to have been configured'
-                                  ' to use utf-8.')
+        self._main_logger.warning(
+            'Data in this ssh channel is encoded and decoded in UTF-8, '
+            'but the shell locale seems to be using a different encoding.'
+        )
 
     # __init__()
 

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """
-Test module for disk_base module
+Test module for disk module
 """
 
 #
@@ -21,7 +21,7 @@ Test module for disk_base module
 #
 from tessia_baselib.guests.linux.linux import GuestLinux
 from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
-from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
+from tessia_baselib.hypervisors.kvm.storage import disk as disk_module
 from tessia_baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 
@@ -55,6 +55,9 @@ class TestDisk(TestCase):
         """
         Create mocks that are used in all test cases.
         """
+        patcher = mock.patch.object(disk_module, 'sleep', autospec=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
         self._mock_tgt_dv_mngr = mock.Mock(spec=TargetDeviceManager)
         self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
         self._mock_session = mock.Mock(spec_set=GuestSessionLinux)
@@ -65,8 +68,8 @@ class TestDisk(TestCase):
         """
         Auxiliary method to create a disk.
         """
-        return DiskBase(parameters, self._mock_tgt_dv_mngr,
-                        self._mock_host_conn)
+        return disk_module.DiskBase(parameters, self._mock_tgt_dv_mngr,
+                                    self._mock_host_conn)
 
     def test_init_with_system_attrs(self):
         """
@@ -209,7 +212,11 @@ class TestDisk(TestCase):
         disk = self._create_disk({'volume_id': 'some_id'})
         devicenr = "some device number"
 
-        self._mock_session.run.side_effect = [(0, ""), (1, "")]
+        ret_output = [(0, "")]
+        # _enable_device perform many attempts
+        for _ in range(0, 6):
+            ret_output.append((1, ""))
+        self._mock_session.run.side_effect = ret_output
         self.assertRaisesRegex(RuntimeError, "Failed to activate",
                                disk._enable_device, devicenr)
     # test_enable_device_fails()

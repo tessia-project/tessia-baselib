@@ -90,6 +90,81 @@ class TestDiskFcp(TestCase):
                        self._mock_host_conn)
     # _create_disk()
 
+    @staticmethod
+    def _get_outputs_for_mpath():
+        """
+        Return the list of command outputs expected for a normal path
+        activation up to the point where multipath checking/disabling starts.
+        """
+        # The following table contais all the return values of the
+        # run method, resulting from the execution of shell commands
+        # to handle the disk operations.
+        outputs = [
+            (0, ""), # _enable_zfcp_module
+            # for zfcp interface 0.0.1800
+            #PATH 1
+            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:23:1073889314"),
+            (0, "/dev/sda"),
+
+            #PATH 2
+            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
+                "1:0:23:1073889315"),
+            (0, "/dev/sdb"),
+
+            # for zfcp interface 0.0.1801
+            #PATH 1
+            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:24:1073889317"),
+            (0, "/dev/sdc"),
+
+            #PATH 2
+            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (0, ""), # _enable_lun_paths _activate_wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
+                "1:0:24:1073889315"),
+            (0, "/dev/sdd"),
+
+            # check_multipath
+            # _get_all_scsi_dev_filenames
+            (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:23:1073889314"),
+            (0, "/dev/sda"),
+            (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
+                "1:0:23:1073889315"),
+            (0, "/dev/sdb"),
+            (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:24:1073889317"),
+            (0, "/dev/sdc"),
+            (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
+                "1:0:24:1073889315"),
+            (0, "/dev/sdd"),
+        ]
+        return outputs
+    # _get_outputs_for_mpath()
+
     def test_init(self):
         """
         Test the proper initialization the DiskFcp instance variables
@@ -111,56 +186,23 @@ class TestDiskFcp(TestCase):
         """
         Test the activate method for the common case, with multipath enabled.
         """
-        # The following table contais all the return values of the
-        # run method, resulting from the execution of shell commands
-        # to handle the disk operations.
-        self._mock_session.run.side_effect = [
-            (0, ""), # _enable_zfcp_module
-            # for zfcp interface 0.0.1800
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            # for zfcp interface 0.0.1801
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+        outputs = self._get_outputs_for_mpath()
+        outputs.extend([
             # check_multipath
             #iteration 1
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "dm0"), #_get_dm_dev only called in the first iteration
-            (0, "/dev/sda"),# _get_kernel_devname
             #iteration 2
             (0, "/dev/sdb"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdb"),# _get_kernel_devname
             #iteration 3
             (0, "/dev/sdc"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdc"),# _get_kernel_devname
             #iteration 4
             (0, "/dev/sdd"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdd"),# _get_kernel_devname
-        ]
+        ])
+        self._mock_session.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
         disk.activate()
         # one call for each zfcp adapter
@@ -180,99 +222,141 @@ class TestDiskFcp(TestCase):
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:23:1073889314"),
+            (0, "/dev/sda"),
+
             #PATH 2
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
+                "1:0:23:1073889315"),
+            (0, "/dev/sdb"),
+
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:24:1073889317"),
+            (0, "/dev/sdc"),
+
             #PATH 2
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
+                "1:0:24:1073889315"),
+            (0, "/dev/sdd"),
+
             # check_multipath
+            # _get_all_scsi_dev_filenames
+            (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:23:1073889314"),
+            (0, "/dev/sda"),
+            (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
+                "1:0:23:1073889315"),
+            (0, "/dev/sdb"),
+            (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:24:1073889317"),
+            (0, "/dev/sdc"),
+            (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
+                "1:0:24:1073889315"),
+            (0, "/dev/sdd"),
+
             #iteration 1
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "dm0"), #_get_dm_dev only called in the first iteration
-            (0, "/dev/sda"),# _get_kernel_devname
             #iteration 2
             (0, "/dev/sdb"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdb"),# _get_kernel_devname
             #iteration 3
             (0, "/dev/sdc"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdc"),# _get_kernel_devname
             #iteration 4
             (0, "/dev/sdd"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH1_UID"), # _get_multipath_name
-            (0, "/dev/sdd"),# _get_kernel_devname
         ]
         disk = self._create_disk(PARAMS_FCP)
         disk.activate()
     # test_activate_new_wwpn_port_type()
 
-    def test_activate_fail_activate_lun(self):
+    def test_activate_fail_unit_add(self):
         """
-        Test the case that a lun fails to be activated.
+        Test the case that a lun fails to be activated due to failed unit_add
+        operation.
         """
-        self._mock_session.run.side_effect = [
+        output = [
             (0, ""), # _enable_zfcp_module
+            #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (1, "") # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (1, ""), # _enable_lun_paths _activate_lun unit_add
         ]
+        self._mock_session.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Failed to activate LUN",
                                disk.activate)
-    # test_activate_fail_activate_lun()
+    # test_activate_fail_unit_add()
 
-    def test_activate_fail2_activate_lun(self):
+    def test_activate_fail_no_path_cat_fail(self):
         """
-        Test the case that a lun fails to be activated.
+        Test the case where a lun fails to be activated after unit_add
+        works and the path does not come up. This variant also simulates
+        a failure to check for the 'failed' file.
         """
-        self._mock_session.run.side_effect = [
+        output = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            (0, "") # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (0, ""), # _enable_lun_paths _activate_lun unit_add
         ]
-        self.mock_timer.side_effect = [None, None, RuntimeError]
+        # _get_scsi_dev_filename many attempts
+        for _ in range(0, 6):
+            output.append((0, ""))
+        output.append((1, "")) # _enable_lun_paths _activate_lun cat failed
+        self._mock_session.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "up after adding LUN",
                                disk.activate)
-    # test_activate_fail2_activate_lun()
+    # test_activate_fail_unit_add()
 
-    def test_activate_fail_add_lun(self):
+    def test_activate_fail_no_path_cat_success(self):
         """
-        Test the case that a lun fails to be add.
+        Test the case where a lun fails to be activated after unit_add
+        works and the path does not come up. In this variant the 'failed'
+        provides a hint about wrong storage configuration.
         """
-        self._mock_session.run.side_effect = [
+        output = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (1, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
             (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            (0, "1") # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (0, ""), # _enable_lun_paths _activate_lun unit_add
         ]
-        self.mock_timer.side_effect = [None, None, RuntimeError]
+        # _get_scsi_dev_filename many attempts
+        for _ in range(0, 6):
+            output.append((0, ""))
+        output.append((0, "1")) # _enable_lun_paths _activate_lun cat failed
+        self._mock_session.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Failed to add",
                                disk.activate)
@@ -283,43 +367,17 @@ class TestDiskFcp(TestCase):
         Test the case in which two paths don't belong to the same multipath
         name.
         """
-        self._mock_session.run.side_effect = [
-            (0, ""), # _enable_zfcp_module
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+        outputs = self._get_outputs_for_mpath()
+        outputs.extend([
             # check_multipath
             #iteration 1
-            (0, "/dev/sda"),# _get_kernel_devname
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
             (0, "PATH1_UID"), # _get_multipath_name
-            (0, "dm0"), #_get_dm_dev only called in the first iteration
             #iteration 2
-            (0, "/dev/sdb"),# _get_kernel_devname
             (0, "/dev/sdb"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH2_UID") # _get_multipath_name
-        ]
+        ])
+        self._mock_session.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Multipath map",
                                disk.activate)
@@ -329,32 +387,8 @@ class TestDiskFcp(TestCase):
         """
         Test the case that a path does not belong to a multipath name.
         """
-        self._mock_session.run.side_effect = [
-            (0, ""), # _enable_zfcp_module
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+        outputs = self._get_outputs_for_mpath()
+        outputs.extend([
             # check_multipath
             #iteration 1
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
@@ -364,59 +398,12 @@ class TestDiskFcp(TestCase):
             (0, ""), # _get_multipath_name trial 15
             (0, ""), # _get_multipath_name trial 30
             (0, ""), # _get_multipath_name trial 60
-        ]
+        ])
+        self._mock_session.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Multipath map not available",
                                disk.activate)
     # test_activate_multipath_not_available()
-
-    def test_activate_fail_determine_dev_mapper(self):
-        """
-        Test the case in which the device mapper is not available.
-        """
-        self._mock_session.run.side_effect = [
-            (0, ""), # _enable_zfcp_module
-            #(0, ""), # _enable_lun_paths _enable_device
-            #(0, ""),
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            # check_multipath
-            #iteration 1
-            (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
-            (0, "PATH1_UID"), # _get_multipath_name
-            (1, ""), #_get_dm_dev only called in the first iteration trial 0
-            (1, ""), #_get_dm_dev only called in the first iteration trial 1
-            (1, ""), #_get_dm_dev only called in the first iteration trial 5
-            (1, ""), #_get_dm_dev only called in the first iteration trial 15
-            (1, ""), #_get_dm_dev only called in the first iteration trial 30
-            (1, "") #_get_dm_dev only called in the first iteration trial 60
-        ]
-        disk = self._create_disk(PARAMS_FCP)
-        self.assertRaisesRegex(RuntimeError, "Failed to determine",
-                               disk.activate)
-    # test_activate_fail_determine_dev_mapper()
 
     def test_activate_disable_multipath(self):
         """
@@ -424,40 +411,15 @@ class TestDiskFcp(TestCase):
         """
         params_fcp_no_multipath = copy.deepcopy(PARAMS_FCP)
         params_fcp_no_multipath.get("specs")["multipath"] = False
-        self._mock_session.run.side_effect = [
-            (0, ""), # _enable_zfcp_module
-            #(0, ""), # _enable_lun_paths _enable_device
-            #(0, ""),
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 1
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
-            #PATH 2
-            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+        outputs = self._get_outputs_for_mpath()
+        outputs.extend([
             # _disable_multipath
             (0, ""), # _disable_multipath _get_kernel_devname Path 1
             (0, ""), # _disable_multipath _get_kernel_devname Path 2
             (0, ""), # _disable_multipath _get_kernel_devname Path 3
             (0, ""), # _disable_multipath _get_kernel_devname Path 4
-        ]
+        ])
+        self._mock_session.run.side_effect = outputs
         disk = self._create_disk(params_fcp_no_multipath)
         disk.activate()
     # test_activate_disable_multipath()

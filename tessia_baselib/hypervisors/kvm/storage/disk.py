@@ -19,6 +19,7 @@ Module for the Disk Class
 #
 # IMPORTS
 #
+from time import sleep
 import os
 
 #
@@ -98,8 +99,15 @@ class DiskBase(object):
                               " /proc/cio_ignore".format(devicenr))
 
         # try to activate channel again
-        ret, output = self._cmd_channel.run('chccwdev -e {}'.format(devicenr))
-        if ret != 0:
+        active = False
+        for time in (0, 1, 5, 15, 30, 60):
+            sleep(time)
+            ret, output = self._cmd_channel.run(
+                'chccwdev -e {}'.format(devicenr))
+            if ret == 0:
+                active = True
+                break
+        if not active:
             raise RuntimeError("Failed to activate "
                                "device devicenr={}: {}".format(devicenr,
                                                                output))

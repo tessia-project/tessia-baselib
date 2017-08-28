@@ -94,7 +94,9 @@ class TestSshShell(TestCase):
         self._dummy_socket.recv.side_effect = (
             [self._make_output('', '\n')]
             + [self._make_output('', 'output')]
-            + self._build_regular_run_output('locale charmap', 'UTF-8')
+            + self._build_regular_run_output(
+                'export SYSTEMD_PAGER=; export LC_ALL=en_US.UTF-8; '
+                'locale charmap', 'UTF-8')
         )
 
         shell = shell_module.SshShell(self._dummy_socket)
@@ -569,7 +571,9 @@ class TestSshShell(TestCase):
             self._dummy_socket.recv.side_effect = (
                 [self._make_output('', '\n')]
                 + [self._make_output('', 'output')]
-                + self._build_regular_run_output('locale charmap', bad_charmap)
+                + self._build_regular_run_output(
+                    'export SYSTEMD_PAGER=; export LC_ALL=en_US.UTF-8; '
+                    'locale charmap', bad_charmap)
             )
 
             shell_module.SshShell(self._dummy_socket)
@@ -604,7 +608,9 @@ class TestSshShell(TestCase):
             self._dummy_socket.recv.side_effect = (
                 [self._make_output('', '\n')]
                 + [self._make_output('', 'output')]
-                + self._build_regular_run_output('locale charmap', 'UTF-8', 1)
+                + self._build_regular_run_output(
+                    'export SYSTEMD_PAGER=; export LC_ALL=en_US.UTF-8; '
+                    'locale charmap', 'UTF-8', 1)
             )
 
             shell_module.SshShell(self._dummy_socket)
