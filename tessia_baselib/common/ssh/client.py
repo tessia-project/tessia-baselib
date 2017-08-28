@@ -216,7 +216,6 @@ class SshClient(object):
         kwargs = {
             'user': username,
             'passwd': password,
-            'private_key_path': self._private_key_path,
             'timeout': self._timeout,
         }
 
@@ -436,7 +435,7 @@ class SshClient(object):
     # change_file_permissions()
 
     def login(self, host_name, port=22, user=None, passwd=None,
-              private_key_path=None, timeout=60):
+              private_key_str=None, timeout=60):
         """
         Establishes a connection to the target system
 
@@ -447,13 +446,14 @@ class SshClient(object):
                         private_key_path is specified
             passwd (str): password for connection, disregarded if
                           private_key_path is specified
-            private_key_path (str): directory path containing private keys to
-                                    use
+            private_key_str (str): a RSA private key to use for authentication
             timeout (int): how many seconds to wait for connection to complete
 
         Raises:
             ConnectionError: if protocol or network error occurred
             PermissionError: if login failed because credentials are invalid
+            ValueError: in case an invalid private key (i.e. not RSA) is
+                        provided
         """
         # existing connection: warn in log
         if self._ssh_client is not None:
@@ -461,10 +461,20 @@ class SshClient(object):
                                  'dropping previous connection object')
 
         # debugging information on connection
+        if private_key_str:
+            try:
+                key_obj = paramiko.RSAKey.from_private_key(
+                    file_obj=io.StringIO(private_key_str))
+            except paramiko.ssh_exception.SSHException as exc:
+                raise ValueError(
+                    'Invalid private key provided: {}'.format(str(exc)))
+            key_str = key_obj.get_base64()
+        else:
+            key_obj = None
+            key_str = 'None'
         self._logger.debug(
             "login: hostname='%s' port='%s' user='%s' priv_key='%s' "
-            "timeout='%s'", host_name, port, user,
-            private_key_path, timeout
+            "timeout='%s'", host_name, port, user, key_str, timeout
         )
 
         # create library object with policy to add unknown host keys
@@ -482,7 +492,7 @@ class SshClient(object):
                 port=port,
                 username=user,
                 password=passwd,
-                key_filename=private_key_path,
+                pkey=key_obj,
                 timeout=timeout,
                 # disable usage of SSH agent
                 allow_agent=False,
@@ -509,10 +519,7 @@ class SshClient(object):
 
         # store instance values
         self._ssh_client = ssh_client
-
-        self._private_key_path = private_key_path
         self._timeout = timeout
-
     # login()
 
     def logoff(self):

@@ -41,7 +41,35 @@ HOST_NAME = 'localhost'
 PORT = 1234
 PASSWORD = 'password'
 USERNAME = 'some_user'
-
+RSA_PRIV_KEY = ("""
+-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEA3iPp07U3xL02kgJH9VGA6+h8mj9hsUJO3vkZomwc5qYzgXnb
+hctCszP2SEh5Ukrv4+YwJYZqIvctnChD5DxHbpzlvxgMLOptc+/6v6yydVAfg6A5
+V2DZSR6YkJE5icjbF6IyenK6wOmYh5oOBDzTnqtW3muPYCC/SfCsXT9IHo+9NF2J
+cPYxCkK1EXw1Tug3QtvuDOGzWOg7/0RxsByxDKCSa8JapRJZGCMXmFrATJdA7Tg0
+FmjFpXexA+zzHlRzeqSfTZ6sm4TKqxi6Q6/64ML07Tk07GUDCgAiE47TUllpJTsM
+02SxK4UpJzlvQOoyU8RB9YszAAZPqo9+4JBAdwIDAQABAoIBAAUyN90A5y4N8wHV
+VdOSNX7PMGL3SpS35Vpn30aiWsa2aowDyrPFfmjstT0ZnOTk5dmh38xw6Xip6YI2
+mufy1QTsXJ9ss5Q1Y5wLqATlyELgPex5Sf4WQN7p/U2caAkmDqHt5Fpi5qVukWfS
+nbNRrO2QOnb3cyIfgfn7zDxeJ5S3YtrmfSFN5DY3qny9jMOZ9dBNqbr9ywg4QEn7
+/DYzsZqx0ps2Ft+wS8I+y7IUPHAPRqeh3tGnnG/EFY/4HflILiVitDTWNfj1tbQq
+aJx0TbUTtke12IeY0msGkL+5QI+wc/V5S524PuDMt3jIx0N4BiWT74o23PP3E3Vh
+H52i67kCgYEA/ftrOfzFC8VVIoAbl3TWYQMRopaGKffkik+kGUVX2j+fIP4j6e+a
+5jASDqPQh6UXXalKBng4VgULYxmAohfVFJic2RdRLDN5VIOaiwiIv+ut4iy4bKG5
+7s7ByKeEqUjkad18U1Yijoqdvdtb2MoSjDq6j5Ouc7xHxM8rfNdZWPMCgYEA3+e7
+B9k4ErcBKPXmoKpbE9NVD2cS5A3OASKjfEoN2Ognd5nsPqXobaOsg+ID325E0enV
+Y01K+P+wYfIohuW9wSWwARH+4TvYQDyD5kcw4456i5WQm0vyDGiAWV+umsRR0gmU
+y1rhg3oP8/rVECkkh5rHDAhJbngCGo/QDZk9W20CgYA6F52o/8XaMWKNp5uoAtNe
+ESOheqhpRQgDEsBH/3Jeuxqco0R3p5RYfjpDGvkBbaNwit4hqLHKCxFVs2mWqbjV
+IysNBKZOY9+mkwtwLZ2JuFBnYS81ubAbjTMJwDc5uTB1fnGHZjY1QENgP6I8bcvc
+QzqUyISoeDI6M+CQh3kqPQKBgCOI4mz3c2e89YkrpYOAJd46nvhH0n6xFi2l8q5K
+DnKLPaBEpHK43+9ul3WCzDyMgo2R/9S3sptb8QFKblYiZgAeXBV/ZqUWW1aug/xq
+9f5XYWl/vih3YB3KA/yrK8nSOG4OKTgw3zN/jsKY33GmJe8DiG2HbygCEctnYYyW
+8l7tAoGBANKA6z76uOuHp2E8TarHeFdYG7bGrF4DJmrm/O4D2gURROnM1TmaQ8gN
+j9q7qRHIFUKR152+olQSNtmW6bdmOwszOUO/DjWxqStvuAG5mJja1b6rXyT/wv9g
+/71zgvm3aR88c9xpfZ1YIaapgfDeSIivUNCM7tqPkcRXK2q8uYhy
+-----END RSA PRIVATE KEY-----
+""")
 
 #
 # CODE
@@ -1024,6 +1052,50 @@ class TestSshClientNotConnected(TestCase):
 
         # Double logging-in will cause a warning to be issued.
         self.assertTrue(self._client._logger.warning.called)
+
+    def test_login_private_key(self):
+        """
+        Test a regular login using private key authentication
+
+        Args:
+        Returns:
+        Raises:
+        """
+        key_obj = paramiko.RSAKey.from_private_key(
+            file_obj=io.StringIO(RSA_PRIV_KEY))
+        self._client.login(
+            host_name=HOST_NAME, port=PORT, user=USERNAME,
+            private_key_str=RSA_PRIV_KEY)
+
+        self._mock_ssh_client.connect.assert_called_with(
+            hostname=HOST_NAME,
+            port=PORT,
+            username=USERNAME,
+            password=None,
+            pkey=key_obj,
+            timeout=60,
+            allow_agent=False,
+            look_for_keys=False)
+        # Make sure we are not opening a sftp session
+        self.assertEqual(self._mock_ssh_client.open_sftp.call_count, 0)
+
+        # Make sure the connection objects were created.
+        self.assertIsNot(self._client._ssh_client, None)
+        # The sftp session is not open just by issuing a login
+        self.assertIs(self._client._sftp_conn, None)
+
+    def test_login_private_key_invalid(self):
+        """
+        Test a regular login using an invalid private key
+
+        Args:
+        Returns:
+        Raises:
+        """
+        with self.assertRaisesRegex(ValueError, 'Invalid private key'):
+            self._client.login(
+                host_name=HOST_NAME, port=PORT, user=USERNAME,
+                private_key_str='SOME_WRONG_KEY')
 
     def test_logoff(self):
         """
