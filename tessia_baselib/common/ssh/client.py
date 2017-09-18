@@ -481,10 +481,6 @@ class SshClient(object):
         ssh_client = paramiko.SSHClient()
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
-        # change default's paramiko channel name to our module structure, it
-        # is easier for logging configuration
-        ssh_client.set_log_channel(__name__ + '.paramiko')
-
         # try to connect and catch possible problems
         try:
             ssh_client.connect(
@@ -502,7 +498,7 @@ class SshClient(object):
         # credentials invalid
         except paramiko.AuthenticationException as exc:
             # log the traceback for possible debugging
-            self._logger.exception('login exception:')
+            self._logger.debug('login exception:', exc_info=True)
 
             # report our custom exception so that upper layers do not tie to
             # the underlying implementation
@@ -511,7 +507,7 @@ class SshClient(object):
         # other errors (i.e. protocol or connection errors)
         except Exception as exc:
             # log the traceback for possible debugging
-            self._logger.exception('login exception:')
+            self._logger.debug('login exception:', exc_info=True)
 
             # report our custom exception so that upper layers do not tie to
             # the underlying implementation
