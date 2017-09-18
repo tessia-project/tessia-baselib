@@ -122,6 +122,9 @@ def validate_params(func):
         """
         Inner function of the decorator
         """
+        if (len(params)-1) < parameters_index:
+            raise ValueError("Method call has missing argument '{}'".format(
+                ARGUMENT_TO_VALIDATE))
         validator.validate(params[parameters_index])
 
         return func(*params)
