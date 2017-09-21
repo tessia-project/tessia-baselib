@@ -266,6 +266,9 @@ class TestHypervisorHmc(TestCase):
         # regular scenario
         self.hmc_object.login()
         self.hmc_object.stop('my_lpar', {'cpc_name': 'my_cpc'})
+        # names in hmc in classic mode are always uppercased, check if we made
+        # the call in uppercase
+        self._mock_zhmc.return_value.get_cpc.assert_called_with('MY_CPC')
         mock_lpar.stop.assert_called_with()
         mock_lpar.reset_clear.assert_called_with()
 

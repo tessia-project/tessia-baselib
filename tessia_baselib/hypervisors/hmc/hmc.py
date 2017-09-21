@@ -182,7 +182,9 @@ class HypervisorHmc(HypervisorBase):
         if self._session is None:
             raise ZHmcError("You need to login first")
 
-        cpc = self._session.get_cpc(parameters['cpc_name'])
+        # in hmc classic mode the names are always uppercased, therefore we
+        # make sure we passing the names as so
+        cpc = self._session.get_cpc(parameters['cpc_name'].upper())
         guest_name = guest_name.upper()
         lpar = cpc.get_lpar(guest_name)
         # Profiles have the same name as the LPAR's
@@ -508,14 +510,17 @@ class HypervisorHmc(HypervisorBase):
 
         self._logger.debug(
             "performing STOP HypervisorHMC: name='%s' host_name='%s' "
-            "user='%s' parameters='%s'",
+            "user='%s' guest_name=%s parameters='%s'",
             self.name,
             self.host_name,
             self.user,
+            guest_name,
             str(self.parameters)
         )
-        cpc = self._session.get_cpc(parameters.get('cpc_name'))
-        lpar = cpc.get_lpar(guest_name)
+        # in hmc classic mode the names are always uppercased, therefore we
+        # make sure we passing the names as so
+        cpc = self._session.get_cpc(parameters['cpc_name'].upper())
+        lpar = cpc.get_lpar(guest_name.upper())
 
         if lpar.status != 'operating':
             raise ZHmcError(
