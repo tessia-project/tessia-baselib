@@ -502,7 +502,6 @@ class HypervisorHmc(HypervisorBase):
 
         Raises:
             ZHmcError: if session is not created
-                       if LPAR status is different from 'operating'
         """
 
         if self._session is None:
@@ -521,11 +520,6 @@ class HypervisorHmc(HypervisorBase):
         # make sure we passing the names as so
         cpc = self._session.get_cpc(parameters['cpc_name'].upper())
         lpar = cpc.get_lpar(guest_name.upper())
-
-        if lpar.status != 'operating':
-            raise ZHmcError(
-                "Operation not allowed on LPAR with status '%s'" % lpar.status
-            )
 
         lpar.stop()
         lpar.reset_clear()

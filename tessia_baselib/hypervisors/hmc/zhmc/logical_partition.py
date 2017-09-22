@@ -60,19 +60,38 @@ class LogicalPartition(object):
         self.status = lpar_status
     # __init__()
 
+    @staticmethod
+    def _normalize_address(address):
+        """
+        Convert the load address to the format expected by the HMC API.
+
+        Args:
+            address (str): string in the format 0.0.1500 or 1500
+
+        Returns:
+            str: normalized load address
+        """
+        if address.find('.') > -1:
+            return address.split('.')[-1]
+
+        return address
+    # _normalize_address()
+
     def _wait_for_job(self, job_uri, timeout):
         """
         Wait for a given job to be completed, based on the provided timeout.
 
         Args:
             job_uri (str): url to use to query API for the job status
-            timeout (int): timeout in seconds to wait until job finishes
+            timeout (int): timeout in seconds to wait until job finishes, a
+                           value of 0 means wait forever and negative values
+                           mean not to wait
 
         Raises:
             ZHmcRequestError: in case timeout is reached
         """
         # asynchronous operation: do not wait for job completion
-        if timeout <= 0:
+        if timeout < 0:
             return
 
         timeout_date = time.time() + timeout
@@ -81,7 +100,7 @@ class LogicalPartition(object):
             job_dict = self._hmc.session.json_request("GET", job_uri)
             if job_dict['status'] == 'complete':
                 break
-            elif time.time() >= timeout_date:
+            elif timeout and time.time() >= timeout_date:
                 raise ZHmcRequestError(
                     'Timed out while waiting for load job completion')
     # _wait_for_job()
@@ -184,7 +203,7 @@ class LogicalPartition(object):
         """
         param = dict()
 
-        param['load-address'] = load_address
+        param['load-address'] = self._normalize_address(load_address)
         param['force'] = True
 
         load_resp = self._issue_operation(
@@ -219,7 +238,7 @@ class LogicalPartition(object):
         """
         param = dict()
 
-        param['load-address'] = load_address
+        param['load-address'] = self._normalize_address(load_address)
         param['world-wide-port-name'] = wwpn
         param['logical-unit-number'] = lun
         param['force'] = True

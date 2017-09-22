@@ -193,14 +193,27 @@ class TestLogicalPartition(TestCase):
             AssertionError: if validation fails
         """
 
-        self.lpar.load('dummy_address')
+        self.lpar.load('1500', timeout=-1)
 
         self._mock_hmc.session.json_request.assert_called_once_with(
             'POST',
             self.lpar_uri + '/operations/load',
-            body={'load-address': 'dummy_address', 'force': True}
+            body={'load-address': '1500', 'force': True}
         )
     # test_load_async()
+
+    def test_load_normalize(self):
+        """
+        Test normalization of the load address for correct usage in the HMC API
+        """
+        self.lpar.load('0.0.1500', timeout=-1)
+
+        self._mock_hmc.session.json_request.assert_called_once_with(
+            'POST',
+            self.lpar_uri + '/operations/load',
+            body={'load-address': '1500', 'force': True}
+        )
+    # test_load_normalize()
 
     def test_load_sync(self):
         """
@@ -226,13 +239,13 @@ class TestLogicalPartition(TestCase):
                 "job-reason-code": 0
             },
         ]
-        self.lpar.load('dummy_address', timeout=30)
+        self.lpar.load('1500', timeout=30)
 
         self._mock_hmc.session.json_request.assert_has_calls([
             mock.call(
                 'POST',
                 self.lpar_uri + '/operations/load',
-                body={'load-address': 'dummy_address', 'force': True}
+                body={'load-address': '1500', 'force': True}
             ),
             mock.call(
                 'GET',
@@ -261,14 +274,14 @@ class TestLogicalPartition(TestCase):
         with self.assertRaisesRegex(
             ZHmcRequestError,
             'Timed out while waiting for load job completion'):
-            self.lpar.load('dummy_address', timeout=30)
+            self.lpar.load('1500', timeout=30)
 
         session = self.lpar._hmc.session
         session.json_request.assert_any_call(
             'POST',
             self.lpar_uri + '/operations/load',
             body={
-                'load-address': 'dummy_address',
+                'load-address': '1500',
                 'force': True
             }
         )
@@ -289,22 +302,49 @@ class TestLogicalPartition(TestCase):
 
         # test with force flag set
         self.lpar.scsi_load(
-            'dummy_address',
-            'dummy_wwpn',
-            'dummy_lun',
+            '1500',
+            '500000000000abcd',
+            '4000000000000000',
+            timeout=-1
         )
 
         session.json_request.assert_called_once_with(
             'POST',
             self.lpar_uri + '/operations/scsi-load',
             body={
-                'load-address': 'dummy_address',
-                'world-wide-port-name': 'dummy_wwpn',
-                'logical-unit-number': 'dummy_lun',
+                'load-address': '1500',
+                'world-wide-port-name': '500000000000abcd',
+                'logical-unit-number': '4000000000000000',
                 'force': True
             }
         )
     # test_scsi_load_async()
+
+    def test_scsi_load_normalize(self):
+        """
+        Test normalization of the load address for correct usage in the HMC API
+        """
+        session = self.lpar._hmc.session
+
+        # test with force flag set
+        self.lpar.scsi_load(
+            '0.0.1500',
+            '500000000000abcd',
+            '4000000000000000',
+            timeout=-1
+        )
+
+        session.json_request.assert_called_once_with(
+            'POST',
+            self.lpar_uri + '/operations/scsi-load',
+            body={
+                'load-address': '1500',
+                'world-wide-port-name': '500000000000abcd',
+                'logical-unit-number': '4000000000000000',
+                'force': True
+            }
+        )
+    # test_scsi_load_normalize()
 
     def test_scsi_load_sync(self):
         """
@@ -331,9 +371,9 @@ class TestLogicalPartition(TestCase):
             },
         ]
         self.lpar.scsi_load(
-            'dummy_address',
-            'dummy_wwpn',
-            'dummy_lun',
+            '1500',
+            '500000000000abcd',
+            '4000000000000000',
             timeout=30
         )
 
@@ -343,9 +383,9 @@ class TestLogicalPartition(TestCase):
                 'POST',
                 self.lpar_uri + '/operations/scsi-load',
                 body={
-                    'load-address': 'dummy_address',
-                    'world-wide-port-name': 'dummy_wwpn',
-                    'logical-unit-number': 'dummy_lun',
+                    'load-address': '1500',
+                    'world-wide-port-name': '500000000000abcd',
+                    'logical-unit-number': '4000000000000000',
                     'force': True
                 }
             ),
@@ -376,9 +416,9 @@ class TestLogicalPartition(TestCase):
             ZHmcRequestError,
             'Timed out while waiting for load job completion'):
             self.lpar.scsi_load(
-                'dummy_address',
-                'dummy_wwpn',
-                'dummy_lun',
+                '1500',
+                '500000000000abcd',
+                '4000000000000000',
                 timeout=30
             )
 
@@ -387,9 +427,9 @@ class TestLogicalPartition(TestCase):
             'POST',
             self.lpar_uri + '/operations/scsi-load',
             body={
-                'load-address': 'dummy_address',
-                'world-wide-port-name': 'dummy_wwpn',
-                'logical-unit-number': 'dummy_lun',
+                'load-address': '1500',
+                'world-wide-port-name': '500000000000abcd',
+                'logical-unit-number': '4000000000000000',
                 'force': True
             }
         )
