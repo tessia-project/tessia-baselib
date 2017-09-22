@@ -272,10 +272,18 @@ class TestHypervisorHmc(TestCase):
         mock_lpar.stop.assert_called_with()
         mock_lpar.reset_clear.assert_called_with()
 
-        # test operation on invalid lpar status
+        # test operation on invalid lpar status - should work anyway, the
+        # hmc api just ignores it
+        self._mock_zhmc.return_value.get_cpc.reset_mock()
+        mock_lpar.stop.reset_mock()
+        mock_lpar.reset_clear.reset_mock()
         mock_lpar.status = 'dummy_status'
-        with self.assertRaises(ZHmcError):
-            self.hmc_object.stop('my_lpar', {'cpc_name': 'my_cpc'})
+        self.hmc_object.stop('my_lpar', {'cpc_name': 'my_cpc'})
+
+        # validate
+        self._mock_zhmc.return_value.get_cpc.assert_called_with('MY_CPC')
+        mock_lpar.stop.assert_called_with()
+        mock_lpar.reset_clear.assert_called_with()
     # test_stop()
 
     def test_reboot(self):
