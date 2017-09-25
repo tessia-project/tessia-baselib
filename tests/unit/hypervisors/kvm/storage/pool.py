@@ -68,6 +68,11 @@ class TestStoragePool(TestCase):
         # host connection
         self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
 
+        # mock sleep to avoid waiting
+        patcher = patch.object(pool, 'sleep', autospec=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
         # create an instance for convenient usage
         self._volumes = [
             {

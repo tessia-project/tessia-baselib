@@ -21,6 +21,7 @@ Handles a pool of disks for a kvm guest
 #
 from tessia_baselib.hypervisors.kvm.storage.disk_dasd import DiskDasd
 from tessia_baselib.hypervisors.kvm.storage.disk_fcp import DiskFcp
+from time import sleep
 
 import logging
 import threading
@@ -169,6 +170,9 @@ class StoragePool(object):
 
         self._logger.info('Waiting for disk(s) activation')
         while True:
+            # do not consume all cpu in an continuous loop, wait a while to
+            # re-check threads
+            sleep(0.5)
             for vol_id, task in list(tasks.items()):
                 # task still running: wait
                 if task['thread'].is_alive():
