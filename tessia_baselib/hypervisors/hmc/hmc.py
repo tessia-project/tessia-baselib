@@ -56,12 +56,13 @@ class HypervisorHmc(HypervisorBase):
     # the identifier for this hypervisor class
     HYP_ID = 'hmc'
 
-    def __init__(self, system_name, host_name, user, passwd, parameters=None):
+    @validate_params
+    def __init__(self, system_name, host_name, user, passwd, parameters):
         """
         Constructor, store instance values via base class and initialize logger
 
         Args:
-            system_name (str): string containing the hypervisor name
+            system_name (str): the name of the CPC hosting the target LPAR
             host_name (str): hostname or ip address of system
             user (str): user to login to HMC
             passwd (str): password to login to HMC
@@ -72,7 +73,9 @@ class HypervisorHmc(HypervisorBase):
         """
         # base class will store instances values
         super().__init__(
-            system_name,
+            # in hmc classic mode the names are always uppercased, therefore we
+            # make sure we use it as so
+            system_name.upper(),
             host_name,
             user,
             passwd,
@@ -182,9 +185,7 @@ class HypervisorHmc(HypervisorBase):
         if self._session is None:
             raise ZHmcError("You need to login first")
 
-        # in hmc classic mode the names are always uppercased, therefore we
-        # make sure we passing the names as so
-        cpc = self._session.get_cpc(parameters['cpc_name'].upper())
+        cpc = self._session.get_cpc(self.name)
         guest_name = guest_name.upper()
         lpar = cpc.get_lpar(guest_name)
         # Profiles have the same name as the LPAR's
@@ -204,7 +205,7 @@ class HypervisorHmc(HypervisorBase):
             if update or lpar.status == 'not-activated':
                 lpar.activate()
 
-            self._load(cpc.name, lpar, parameters['boot_params'])
+            self._load(lpar, parameters['boot_params'])
         except Exception as exc:
             self._logger.debug(
                 'An error ocurred during start, info:', exc_info=True)
@@ -247,13 +248,12 @@ class HypervisorHmc(HypervisorBase):
         time.sleep(1)
     #_execute_kexec()
 
-    def _load(self, cpc_name, lpar, boot_params):
+    def _load(self, lpar, boot_params):
         """
         Perform the load operation on a profile according to the specified
         method.
 
         Args:
-            cpc_name (str): name of cpc containing LPAR
             lpar (LogicalPartition): profile instance
             boot_params (dict): options as specified in json schema
 
@@ -283,10 +283,10 @@ class HypervisorHmc(HypervisorBase):
             # downloaded kernel.
 
             try:
-                disk_id = CONF.get_config()['netdisks'][cpc_name]
+                disk_id = CONF.get_config()['netdisks'][self.name]
             except KeyError:
-                raise RuntimeError(
-                    'No auxiliary disk configured for CPC {}'.format(cpc_name))
+                raise RuntimeError('No auxiliary disk configured for CPC {}'
+                                   .format(self.name)) from None
 
             # load and wait operation to finish
             lpar.load(disk_id, timeout=NETBOOT_LOAD_TIMEOUT)
@@ -498,7 +498,7 @@ class HypervisorHmc(HypervisorBase):
         Args:
             guest_name (str): target LPAR name.
             parameters (dict): content specific to each hypervisor type.
-            In this case, the CPC name.
+                               In this case not used.
 
         Raises:
             ZHmcError: if session is not created
@@ -516,9 +516,7 @@ class HypervisorHmc(HypervisorBase):
             guest_name,
             str(self.parameters)
         )
-        # in hmc classic mode the names are always uppercased, therefore we
-        # make sure we passing the names as so
-        cpc = self._session.get_cpc(parameters['cpc_name'].upper())
+        cpc = self._session.get_cpc(self.name)
         lpar = cpc.get_lpar(guest_name.upper())
 
         lpar.stop()

@@ -38,8 +38,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # the identifier for this hypervisor class, should be a lowercase string
     HYP_ID = 'base'
 
-    def __init__(self, system_name, host_name, user,
-                 passwd, parameters=None):
+    def __init__(self, system_name, host_name, user, passwd, parameters):
         """
         Constructor
 

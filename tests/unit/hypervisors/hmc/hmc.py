@@ -43,14 +43,18 @@ class TestHypervisorHmc(TestCase):
         """
         self.system_name = 'dummy_system'
         self.host_name = 'dummy.domain.com'
-        self.user = 'root'
+        self.user = 'HMCUSER'
         self.passwd = 'somepwd'
         self.parameters = {}
 
         # mock the ZHmc class
         self._patcher_zhmc = patch.object(hmc, 'ZHmc')
-        self._mock_zhmc = self._patcher_zhmc.start()
+        self._mock_zhmc_cls = self._patcher_zhmc.start()
+        self._mock_zhmc_obj = self._mock_zhmc_cls.return_value
         self.addCleanup(self._patcher_zhmc.stop)
+        # useful references to mock objects
+        self._mock_cpc = self._mock_zhmc_obj.get_cpc.return_value
+        self._mock_lpar = self._mock_cpc.get_lpar.return_value
 
         # subprocess used to ping target system
         self._patcher_subprocess = patch.object(hmc, 'subprocess')
@@ -96,7 +100,7 @@ class TestHypervisorHmc(TestCase):
             AssertionError: if validation fails
         """
         self.assertEqual('hmc', self.hmc_object.HYP_ID)
-        self.assertEqual(self.system_name, self.hmc_object.name)
+        self.assertEqual(self.system_name.upper(), self.hmc_object.name)
         self.assertEqual(self.host_name, self.hmc_object.host_name)
         self.assertEqual(self.user, self.hmc_object.user)
         self.assertEqual(self.passwd, self.hmc_object.passwd)
@@ -115,7 +119,7 @@ class TestHypervisorHmc(TestCase):
         """
         # regular scenario
         self.hmc_object.login()
-        self.assertIs(self.hmc_object._session, self._mock_zhmc.return_value)
+        self.assertIs(self.hmc_object._session, self._mock_zhmc_obj)
 
         # test login on already active connection
         self.hmc_object.login()
@@ -141,7 +145,7 @@ class TestHypervisorHmc(TestCase):
             self.hmc_object.logoff()
 
         # set the return value so the logoff can properly work
-        session = self._mock_zhmc.return_value.session = mock.Mock()
+        session = self._mock_zhmc_obj.session = mock.Mock()
         session.close_session.return_value = "foo"
 
         # regular scenario
@@ -152,9 +156,46 @@ class TestHypervisorHmc(TestCase):
         self.assertIs(self.hmc_object._session, None)
     # test_logoff()
 
-    def test_start(self):
+    def test_param_none(self):
         """
-        Check if the start() method works as expected
+        Confirm that the constructor accepts also None as value for the
+        'parameter' attribute and works correctly.
+        """
+        # setting up the mock objects
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
+        mock_image_profile.get_properties.return_value = {
+            'central-storage': 4096,
+            'number-shared-general-purpose-processors': 5,
+            'number-shared-ifl-processors': 1
+        }
+
+        hmc_object = hmc.HypervisorHmc(
+            self.system_name, self.host_name, self.user, self.passwd, None)
+        hmc_object.login()
+
+        lpar_name = 'dummy_lpar'
+        cpu = 10
+        memory = 1024
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999'
+            }
+        }
+        hmc_object.start(lpar_name, cpu, memory, parameters)
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.load.assert_called_with('9999')
+    # test_param_none()
+
+    def test_start_dasd_update_profile(self):
+        """
+        Check if the start() method works as expected for a DASD based
+        activation and update of the image profile
 
         Args:
             None
@@ -163,67 +204,44 @@ class TestHypervisorHmc(TestCase):
             AssertionError: if validation fails
         """
         # setting up the mock objects
-        mock_lpar = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_lpar.return_value
-        )
-        mock_image_profile = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_image_profile.return_value
-        )
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
         mock_image_profile.get_properties.return_value = {
             'central-storage': 4096,
             'number-shared-general-purpose-processors': 5,
             'number-shared-ifl-processors': 1
         }
 
-        # check if exception is raised on start performed without previous
-        # login
-        parameters = {
-            'cpc_name': 'dummy',
-            'boot_params': {
-                "boot_method": "dasd",
-                "devicenr": "9999"
-            }
-        }
-        with self.assertRaises(ZHmcError):
-            self.hmc_object.start('dummy', 'dummy', 'dummy', parameters)
-
-        # regular scenario
         self.hmc_object.login()
-
         # perform the operation when the image profile needs to update cpu
         # and memory using a DASD disk
         lpar_name = 'dummy_lpar'
         cpu = 10
         memory = 1024
         parameters = {
-            'cpc_name': 'my_cpc',
             'boot_params': {
                 'boot_method': 'dasd',
                 'devicenr': '9999'
             }
         }
-
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
-        mock_lpar.activate.assert_called_with()
-        mock_lpar.load.assert_called_with('9999')
 
-        # test in case of operation error
-        mock_lpar.load.side_effect = ZHmcError('Error')
-        self.hmc_object._logger = mock.create_autospec(
-            self.hmc_object._logger
-        )
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.load.assert_called_with('9999')
+    # test_start_dasd_update_profile()
 
-        with self.assertRaises(ZHmcError):
-            self.hmc_object.start(lpar_name, cpu, memory, parameters)
-        # reset side effect
-        mock_lpar.load.side_effect = mock.DEFAULT
-
+    def test_start_scsi_no_update(self):
+        """
+        Check if the start() method works as expected for a SCSI based
+        activation and no update of the image profile
+        """
         # perform the operation when the image profile do not need update
         # using a SCSI disk
+        lpar_name = 'dummy_lpar'
         parameters = {
-            'cpc_name': 'my_cpc',
             'boot_params': {
                 'boot_method': 'scsi',
                 'zfcp_devicenr':'1234',
@@ -232,15 +250,64 @@ class TestHypervisorHmc(TestCase):
             },
             'ifl_cpus': 1
         }
-
         cpu = 6
         memory = 4096
-        mock_lpar.status = 'not-activated'
+        self._mock_lpar.status = 'not-activated'
+        self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
-        mock_lpar.activate.assert_called_with()
-        mock_lpar.scsi_load.assert_called_with(
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.scsi_load.assert_called_with(
             '1234', '4321', '1324')
-    # test_start()
+    # test_start_scsi_no_update()
+
+    def test_start_no_login(self):
+        """
+        Exercise the scenario where the start operation is called without a
+        previous login.
+        """
+        # check if exception is raised on start performed without previous
+        # login
+        parameters = {
+            'boot_params': {
+                "boot_method": "dasd",
+                "devicenr": "9999"
+            }
+        }
+        with self.assertRaises(ZHmcError):
+            self.hmc_object.start('dummy', 'dummy', 'dummy', parameters)
+    # test_start_no_login()
+
+    def test_start_operation_error(self):
+        """
+        Verify if the module correctly reports error when the load operation
+        fails.
+        """
+        lpar_name = 'cpc1lp50'
+        parameters = {
+            'boot_params': {
+                'boot_method': 'scsi',
+                'zfcp_devicenr':'1234',
+                'wwpn': '4321',
+                'lun': '1324'
+            },
+            'ifl_cpus': 1
+        }
+        cpu = 6
+        memory = 4096
+        # test in case of operation error
+        self._mock_lpar.load.side_effect = ZHmcError('Timeout')
+        self.hmc_object._logger = mock.create_autospec(
+            self.hmc_object._logger
+        )
+
+        with self.assertRaises(ZHmcError):
+            self.hmc_object.start(lpar_name, cpu, memory, parameters)
+    # test_start_operation_error()
 
     def test_stop(self):
         """
@@ -252,38 +319,43 @@ class TestHypervisorHmc(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        mock_lpar = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_lpar.return_value
-        )
-        mock_lpar.status = 'operating'
+        lpar_name = 'my_lpar'
+        self._mock_lpar.status = 'operating'
 
         # check if exception is raised on stop performed without previous
         # login
         with self.assertRaises(ZHmcError):
-            self.hmc_object.stop('dummy', {'cpc_name': 'my_cpc'})
+            self.hmc_object.stop('dummy', {})
 
         # regular scenario
         self.hmc_object.login()
-        self.hmc_object.stop('my_lpar', {'cpc_name': 'my_cpc'})
+        self.hmc_object.stop('my_lpar', {})
         # names in hmc in classic mode are always uppercased, check if we made
         # the call in uppercase
-        self._mock_zhmc.return_value.get_cpc.assert_called_with('MY_CPC')
-        mock_lpar.stop.assert_called_with()
-        mock_lpar.reset_clear.assert_called_with()
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.stop.assert_called_with()
+        self._mock_lpar.reset_clear.assert_called_with()
 
+    def test_stop_invalid_status(self):
+        """
+        Check if the stop() also works even if the lpar is not in operating
+        state.
+        """
         # test operation on invalid lpar status - should work anyway, the
         # hmc api just ignores it
-        self._mock_zhmc.return_value.get_cpc.reset_mock()
-        mock_lpar.stop.reset_mock()
-        mock_lpar.reset_clear.reset_mock()
-        mock_lpar.status = 'dummy_status'
-        self.hmc_object.stop('my_lpar', {'cpc_name': 'my_cpc'})
+        lpar_name = 'my_lpar'
+        self._mock_lpar.status = 'not-operating'
+        self.hmc_object.login()
+        self.hmc_object.stop(lpar_name, {})
 
         # validate
-        self._mock_zhmc.return_value.get_cpc.assert_called_with('MY_CPC')
-        mock_lpar.stop.assert_called_with()
-        mock_lpar.reset_clear.assert_called_with()
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.stop.assert_called_with()
+        self._mock_lpar.reset_clear.assert_called_with()
     # test_stop()
 
     def test_reboot(self):
@@ -311,13 +383,11 @@ class TestHypervisorHmc(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-
         lpar_name = "dummy_lpar"
         cpu = 6
         memory = 4096
 
         parameters = {
-            "cpc_name": "CP23",
             "boot_params": {
                 "boot_method": "network",
                 "cmdline": "some_url",
@@ -332,14 +402,7 @@ class TestHypervisorHmc(TestCase):
         }
 
         # setting up the mock objects
-        mock_lpar = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_lpar.return_value
-        )
-        mock_image_profile = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_image_profile.return_value
-        )
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
         mock_image_profile.get_properties.return_value = {
             'central-storage': 4096,
             'number-shared-general-purpose-processors': 5,
@@ -349,26 +412,26 @@ class TestHypervisorHmc(TestCase):
         patcher_guest_linux = patch.object(hmc, 'GuestLinux')
         mock_guest_linux = patcher_guest_linux.start()
 
-        # mock get_cpc to return the cpc name
-        self._mock_zhmc.return_value.get_cpc.return_value.name = 'CP23'
-
         patcher_conf = patch.object(hmc, 'CONF')
         mock_conf = patcher_conf.start()
         self.addCleanup(patcher_conf.stop)
         mock_conf.get_config.return_value = {
-            'netdisks': {'CP23': "FFFF"}
+            'netdisks': {self.system_name.upper(): "FFFF"}
         }
 
-        mock_lpar.get_properties.return_value = {
+        self._mock_lpar.get_properties.return_value = {
             'status': 'operating'
         }
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
 
         # verify behavior
-        mock_lpar.load.assert_called_with(
-            'FFFF', timeout=hmc.NETBOOT_LOAD_TIMEOUT)
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
 
+        self._mock_lpar.load.assert_called_with(
+            'FFFF', timeout=hmc.NETBOOT_LOAD_TIMEOUT)
         boot_params = parameters.get('boot_params')
 
         ch_list = boot_params.get("device").split(",")
@@ -388,7 +451,7 @@ class TestHypervisorHmc(TestCase):
                 boot_params.get("gateway"))),
             mock.call("ping -c 1 {}".format(boot_params.get('gateway')))
         ]
-        mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+        self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
 
         # verify that we tried to reach target system
         self._mock_subprocess.run.assert_called_with(
@@ -414,7 +477,7 @@ class TestHypervisorHmc(TestCase):
 
         # test with a different channel format
         parameters["boot_params"]['device'] = "f500"
-        mock_lpar.send_os_command.reset_mock()
+        self._mock_lpar.send_os_command.reset_mock()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         f501 = hex(int("f500", 16)+1).strip("0x")
         f502 = hex(int("f500", 16)+2).strip("0x")
@@ -422,7 +485,7 @@ class TestHypervisorHmc(TestCase):
         net_cmd_calls[2] = mock.call(
             "cio_ignore -r {} && \\".format("f500," + f501 + "," +f502)
         )
-        mock_lpar.send_os_command.has_calls(net_cmd_calls)
+        self._mock_lpar.send_os_command.has_calls(net_cmd_calls)
 
         # test with layer2 off and additional options
         # by using an ordered dict and placing layer2 on second position we
@@ -432,7 +495,7 @@ class TestHypervisorHmc(TestCase):
         parameters["boot_params"]['options']['layer2'] = '0'
         parameters["boot_params"]['options']['portno'] = '0'
         parameters["boot_params"]['options']['buffer_count'] = '128'
-        mock_lpar.send_os_command.reset_mock()
+        self._mock_lpar.send_os_command.reset_mock()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         # replace expected commands
         net_cmd_calls[3] = mock.call(
@@ -441,7 +504,7 @@ class TestHypervisorHmc(TestCase):
         )
         # mac address is not set when layer2 is off
         net_cmd_calls.pop(4)
-        mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+        self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
 
     # test_netboot()
 
@@ -450,13 +513,24 @@ class TestHypervisorHmc(TestCase):
         Exercise the scenario where there is no auxiliary disk for the given
         cpc.
         """
+        # instantiate an object to use a different cpc name
         cpc_name = 'YY22'
+        hmc_object = hmc.HypervisorHmc(
+            cpc_name, self.host_name, self.user, self.passwd, self.parameters)
+        # mock get_cpc to return the cpc name
+        self._mock_cpc.name = cpc_name
+        # mock configuration file
+        patcher_conf = patch.object(hmc, 'CONF')
+        mock_conf = patcher_conf.start()
+        self.addCleanup(patcher_conf.stop)
+        mock_conf.get_config.return_value = {
+            'netdisks': {'XX11': "FFFF"}
+        }
+
         lpar_name = "dummy_lpar"
         cpu = 6
         memory = 4096
-
         parameters = {
-            "cpc_name": cpc_name,
             "boot_params": {
                 "boot_method": "network",
                 "cmdline": "some_url",
@@ -470,23 +544,13 @@ class TestHypervisorHmc(TestCase):
             }
         }
 
-        # mock get_cpc to return the cpc name
-        self._mock_zhmc.return_value.get_cpc.return_value.name = cpc_name
-
-        # mock configuration file
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {'XX11': "FFFF"}
-        }
-
-        self.hmc_object.login()
+        # execute action and verify
+        hmc_object.login()
         with self.assertRaisesRegex(
             ZHmcError,
             'Operation failed with: No auxiliary disk configured for '
             'CPC {}'.format(cpc_name)):
-            self.hmc_object.start(lpar_name, cpu, memory, parameters)
+            hmc_object.start(lpar_name, cpu, memory, parameters)
 
     # test_netboot_no_disk()
 
@@ -501,12 +565,33 @@ class TestHypervisorHmc(TestCase):
         Raises:
             AssertionError: if validation fails
         """
+        # instantiate an object to use a different cpc name
+        cpc_name = 'CP23'
+        hmc_object = hmc.HypervisorHmc(
+            cpc_name, self.host_name, self.user, self.passwd, self.parameters)
+        # mock get_cpc to return the cpc name
+        self._mock_zhmc_obj.get_cpc.return_value.name = cpc_name
+        # mock image profile
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
+        mock_image_profile.get_properties.return_value = {
+            'central-storage': 4096,
+            'number-shared-general-purpose-processors': 5,
+            'number-shared-ifl-processors': 1
+        }
+        # mock conf file to return aux disk for CPC
+        patcher_conf = patch.object(hmc, 'CONF')
+        mock_conf = patcher_conf.start()
+        self.addCleanup(patcher_conf.stop)
+        mock_conf.get_config.return_value = {
+            'netdisks': {'CP23': "FFFF"}
+        }
+
+
+        # perform call and validate error
         lpar_name = "dummy_lpar"
         cpu = 6
         memory = 4096
-
         parameters = {
-            "cpc_name": "CP23",
             "boot_params": {
                 "boot_method": "network",
                 "cmdline": "some_url",
@@ -519,33 +604,12 @@ class TestHypervisorHmc(TestCase):
                 "device": "f500,f501,f502"
             }
         }
-
-        # mock get_cpc to return the cpc name
-        self._mock_zhmc.return_value.get_cpc.return_value.name = 'CP23'
-
-        mock_image_profile = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_image_profile.return_value
-        )
-        mock_image_profile.get_properties.return_value = {
-            'central-storage': 4096,
-            'number-shared-general-purpose-processors': 5,
-            'number-shared-ifl-processors': 1
-        }
-
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {'CP23': "FFFF"}
-        }
-
-        self.hmc_object.login()
+        hmc_object.login()
         with self.assertRaisesRegex(
             ZHmcError,
             'Operation failed with: Timed out while performing load of '
             'auxiliary system'):
-            self.hmc_object.start(lpar_name, cpu, memory, parameters)
+            hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_netboot_load_timeout()
 
     def test_netboot_network_timeout(self):
@@ -565,7 +629,6 @@ class TestHypervisorHmc(TestCase):
         memory = 4096
 
         parameters = {
-            "cpc_name": "CP23",
             "boot_params": {
                 "boot_method": "network",
                 "cmdline": "some_url",
@@ -580,32 +643,23 @@ class TestHypervisorHmc(TestCase):
         }
 
         # mock get_cpc to return the cpc name
-        self._mock_zhmc.return_value.get_cpc.return_value.name = 'CP23'
-
-        mock_image_profile = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_image_profile.return_value
-        )
+        self._mock_cpc.name = self.system_name.upper()
+        # image profile values
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
         mock_image_profile.get_properties.return_value = {
             'central-storage': 4096,
             'number-shared-general-purpose-processors': 5,
             'number-shared-ifl-processors': 1
         }
-
+        # config file
         patcher_conf = patch.object(hmc, 'CONF')
         mock_conf = patcher_conf.start()
         self.addCleanup(patcher_conf.stop)
         mock_conf.get_config.return_value = {
-            'netdisks': {'CP23': "FFFF"}
+            'netdisks': {self.system_name.upper(): "FFFF"}
         }
         # set the mock so that the load operation works
-        mock_lpar = (
-            self._mock_zhmc.return_value.get_cpc.return_value.
-            get_lpar.return_value
-        )
-        mock_lpar.get_properties.return_value = {
-            'status': 'operating'
-        }
+        self._mock_lpar.get_properties.return_value = {'status': 'operating'}
         # set the subprocess mock so that the network configuration fails
         self._mock_subprocess.CalledProcessError = Exception
         self._mock_subprocess.run.side_effect = Exception()

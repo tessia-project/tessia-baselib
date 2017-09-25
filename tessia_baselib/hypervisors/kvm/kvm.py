@@ -43,8 +43,7 @@ class HypervisorKvm(HypervisorBase):
     HYP_ID = 'kvm'
 
     @validate_params
-    def __init__(self, system_name, host_name, user,
-                 passwd, parameters):
+    def __init__(self, system_name, host_name, user, passwd, parameters):
         """
         Constructor
 
