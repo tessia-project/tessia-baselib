@@ -1,0 +1,13 @@
+{
+    "oneOf": [
+        {
+            "type": "object",
+            "properties": {
+            },
+            "additionalProperties": false
+        },
+        {
+            "type": "null"
+        }
+    ]
+}

@@ -21,7 +21,6 @@ Test module for kvm module
 #
 from tessia_baselib.hypervisors.kvm import kvm
 from unittest import mock
-from unittest.mock import sentinel
 
 import unittest
 
@@ -99,13 +98,16 @@ class TestHypervisorKvm(unittest.TestCase):
         patcher = mock.patch.object(kvm, 'get_logger', spec_set=True)
         self._mock_logger = patcher.start().return_value
         self.addCleanup(patcher.stop)
+
         # create an instance for convenient use by testcases
+        self.system_name = 'lpar054'
+        self.host_name = 'lpar054.domain.com'
+        self.user = 'root'
+        self.passwd = 'somepasswd'
+        self.parameters = {}
         self._hyp = kvm.HypervisorKvm(
-            sentinel.system_name,
-            sentinel.host_name,
-            sentinel.user,
-            sentinel.passwd,
-            sentinel.parameters)
+            self.system_name, self.host_name, self.user, self.passwd,
+            self.parameters)
     # setUp()
 
     def test_init(self):
@@ -113,11 +115,11 @@ class TestHypervisorKvm(unittest.TestCase):
         Checks the correct initialization of the instance variables.
 
         """
-        self.assertIs(sentinel.system_name, self._hyp.name)
-        self.assertIs(sentinel.host_name, self._hyp.host_name)
-        self.assertIs(sentinel.user, self._hyp.user)
-        self.assertIs(sentinel.passwd, self._hyp.passwd)
-        self.assertIs(sentinel.parameters, self._hyp.parameters)
+        self.assertIs(self.system_name, self._hyp.name)
+        self.assertIs(self.host_name, self._hyp.host_name)
+        self.assertIs(self.user, self._hyp.user)
+        self.assertIs(self.passwd, self._hyp.passwd)
+        self.assertIs(self.parameters, self._hyp.parameters)
     # test_init()
 
     def test_login(self):
@@ -127,24 +129,21 @@ class TestHypervisorKvm(unittest.TestCase):
         some_value = 44
         self._hyp.login(some_value)
 
-        self._mock_guest_linux.assert_called_with(sentinel.system_name,
-                                                  sentinel.host_name,
-                                                  sentinel.user,
-                                                  sentinel.passwd,
-                                                  sentinel.parameters)
+        self._mock_guest_linux.assert_called_with(
+            self.system_name, self.host_name, self.user, self.passwd,
+            self.parameters)
         # assert connection was stablished
         self._mock_guest_linux.return_value.login.assert_called_with(
             some_value)
         self.assertIs(
-            self._hyp._host_conn,
-            self._mock_guest_linux.return_value)
+            self._hyp._host_conn, self._mock_guest_linux.return_value)
         # assert virsh was created
         self.assertIs(
             self._hyp._virsh,
             self._mock_virsh.return_value)
         self._mock_logger.warning.assert_not_called()
 
-        # in order to achieve 100% coverage
+        # exercise re-login
         self._hyp.login()
         self._mock_logger.warning.assert_called_with(
             "Login called with connection already active: dropping"
@@ -348,4 +347,31 @@ class TestHypervisorKvm(unittest.TestCase):
         self._mock_virsh.return_value.start.assert_called_with(
             guest_name)
     # test_start_clean_up_not_necessary()
+
+    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    def test_start_param_none(self, mock_guest):
+        """
+        Confirm that the constructor accepts also None as value for the
+        'parameter' attribute and works correctly.
+        """
+        self._mock_virsh.return_value.is_running.return_value = True
+        self._mock_virsh.return_value.is_defined.return_value = True
+        guest_name = "some guest"
+        cpu = 10
+        memory = 4096
+
+        hyp_obj = kvm.HypervisorKvm(
+            self.system_name, self.host_name, self.user, self.passwd, None)
+        hyp_obj.login()
+        hyp_obj.start(guest_name, cpu, memory, START_PARAMETERS)
+
+        mock_guest.assert_called_with(
+            guest_name, cpu, memory, START_PARAMETERS, hyp_obj._host_conn)
+        mock_guest.return_value.activate.assert_called_with()
+        self._mock_virsh.return_value.define.assert_called_with(
+            mock_guest.return_value.to_xml.return_value)
+        self._mock_virsh.return_value.start.assert_called_with(
+            guest_name)
+    # test_start_param_none()
+
 # TestHypervisorKvm

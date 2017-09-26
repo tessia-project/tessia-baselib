@@ -3,15 +3,11 @@
         "boot_params": {
             "$ref": "../entities/boot_params_type.json"
         },
-        "cpc_name": {
-            "$ref": "../entities/cpc_name_type.json"
-        },
         "ifl_cpus": {
             "type": "number"
         }
     },
     "required": [
-        "cpc_name",
         "boot_params"
     ],
     "type": "object"

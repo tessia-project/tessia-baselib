@@ -1,6 +1,0 @@
-{
-    "maxLength": 8,
-    "minLength": 1,
-    "pattern": "^[a-zA-Z0-9_\\-\\.@][a-zA-Z0-9_\\-\\.@\\s]*[a-zA-Z0-9_\\-\\.@]$",
-    "type": "string"
-}
