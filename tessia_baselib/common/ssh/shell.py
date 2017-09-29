@@ -235,7 +235,10 @@ class SshShell(object):
         Raises:
             None
         """
-        self.socket.close()
+        try:
+            self.socket.close()
+        except Exception:
+            pass
     # close()
 
     def run(self, cmd, timeout=120, ignore_ret=False):
