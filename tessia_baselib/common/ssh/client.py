@@ -24,6 +24,7 @@ from tessia_baselib.common.ssh.exceptions import SshClientError
 from tessia_baselib.common.ssh.shell import SshShell
 
 import io
+import logging
 import paramiko
 import stat
 import urllib.parse
@@ -477,8 +478,14 @@ class SshClient(object):
             "timeout='%s'", host_name, port, user, key_str, timeout
         )
 
-        # create library object with policy to add unknown host keys
+        # create underlying library object
         ssh_client = paramiko.SSHClient()
+        ssh_client.set_log_channel('paramiko')
+        paramiko_logger = logging.getLogger('paramiko')
+        # logger not configured: make it silent
+        if not paramiko_logger.hasHandlers():
+            paramiko_logger.addHandler(logging.NullHandler())
+        # set policy to add unknown host keys
         ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 
         # try to connect and catch possible problems
@@ -539,7 +546,7 @@ class SshClient(object):
         # connection
         self._logger.debug('closing connection')
 
-        # A sftp session could not be open
+        # a sftp session exists: close it
         if self._sftp_conn is not None:
             self._sftp_conn.close()
             self._sftp_conn = None
@@ -587,6 +594,10 @@ class SshClient(object):
             FileNotFoundError: if chroot dir does not exist
             SshClientError: if shell cannot be started
         """
+        self._logger.debug(
+            "open_shell: chroot_dir='%s' shell_path='%s'",
+            chroot_dir, shell_path)
+
         self._assert_connected()
 
         # chroot directory does not exist: abort
@@ -605,15 +616,18 @@ class SshClient(object):
             )
 
         # open a new session to be used to run the shell process
+        self._logger.debug('calling get_transport.open_session()')
         try:
-            channel = self._ssh_client.get_transport().open_session()
+            channel = self._ssh_client.get_transport().open_session(timeout=15)
         except paramiko.SSHException as exc:
-            self._logger.exception('open_shell open_session exception:')
+            self._logger.debug(
+                'open_shell open_session exception:', exc_info=True)
             raise IOError(
                 'Failed to open shell: {}'.format(str(exc))) from exc
 
         # term dumb is important to avoid escape sequences
         # width is important to not truncate long command lines
+        self._logger.debug('calling channel.get_pty()')
         channel.get_pty(term='dumb', width=10000)
         # put stdout and stderr in same stream
         channel.set_combine_stderr(True)
@@ -625,12 +639,14 @@ class SshClient(object):
         if chroot_dir:
             shell_cmd = 'chroot %s %s' % (chroot_dir, shell_cmd)
         # start the shell command
+        self._logger.debug('calling channel.exec_command()')
         try:
             channel.exec_command(shell_cmd)
         except paramiko.SSHException as exc:
             # log the exception for debugging and raise our own to decouple
             # user from implementation detail
-            self._logger.exception('login exception:')
+            self._logger.debug(
+                'open_shell exec_command exception:', exc_info=True)
             raise SshClientError(
                 'Failed to start shell: {}'.format(str(exc))) from exc
 

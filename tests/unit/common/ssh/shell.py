@@ -204,6 +204,17 @@ class TestSshShell(TestCase):
         self.assertEqual(self._shell.socket.close.call_count,
                          1)
 
+    def test_close_exception(self):
+        """
+        Test that a call to close() will work even if the underlying socket
+        raises an exception.
+        """
+        self._shell.socket.close.side_effect = Exception()
+        self._shell.close()
+
+        self.assertEqual(self._shell.socket.close.call_count, 1)
+    # test_close_exception()
+
     def test_run(self):
         """
         Test regular run function.
