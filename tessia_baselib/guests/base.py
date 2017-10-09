@@ -63,16 +63,18 @@ class GuestBase(metaclass=abc.ABCMeta):
     # __init__()
 
     @abc.abstractmethod
-    def hotplug(self, method, resources, extensions):
+    def hotplug(self, cpu=None, memory=None, vols=None, extensions=None):
         """
-        Hotplug/unplug a given dictionary of resources to/from the guest.
+        Performs a logical hotplug of resources in the guest operating system.
+        Concrete classes should return a dict with operation result whose
+        format is guest type dependant.
 
         Args:
-            method (str): attach (hotplug) or detach (hotunplug)
-            resources (dict): in the form:
-                       {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
-            extensions (dict): dict with specific attributes depending on
-                               guest type
+            cpu (int): number of new cpus to activate
+            memory (int): MiB of memory to activate, it might need to be a
+                          multiple of certain value depending on the OS type
+            vols (list): list of volumes to activate
+            extensions (dict): not used
 
         Raises:
             NotImplementedError: as it has to be implemented by child class

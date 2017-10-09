@@ -15,12 +15,13 @@
 """
 Module for class DiskDasd
 """
+
 #
 # IMPORTS
 #
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
-from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
+from tessia_baselib.guests.linux.storage.disk import DiskBase
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -34,19 +35,18 @@ class DiskDasd(DiskBase):
     """
     This class is an abstraction for a dasd disk.
     """
-    def __init__(self, parameters, target_dev_mngr, host_conn):
+    def __init__(self, parameters, host_conn):
         """
         Constructor
 
         Args:
             parameters (dict):  Disk parameters as defined in the json schema.
-            target_dev_mngr (object): Instance of TargetDeviceManager.
             host_conn (GuestLinux): instance
 
         Raises:
             None
         """
-        super().__init__(parameters, target_dev_mngr, host_conn)
+        super().__init__(parameters, host_conn)
 
         self._logger = get_logger(__name__)
 
@@ -62,6 +62,9 @@ class DiskDasd(DiskBase):
 
         Args:
             None
+
+        Returns:
+            str: device path
 
         Raises:
             None
@@ -87,7 +90,7 @@ class DiskDasd(DiskBase):
         self._logger.debug("DiskDasd devicenr=%s attached.",
                            self._devicenr)
 
-        # update the source device path
-        self._source_dev = DASD_DEVPATH + self._devicenr
-    # attach()
+        # return the device path
+        return DASD_DEVPATH + self._devicenr
+    # activate()
 # DiskDasd

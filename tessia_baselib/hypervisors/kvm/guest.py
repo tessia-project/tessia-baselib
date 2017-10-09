@@ -40,7 +40,7 @@ class GuestKvm(object):
     """
     Class abstraction for a KVM Guest
     """
-    def __init__(self, guest_name, cpu, memory, parameters, host_conn):
+    def __init__(self, guest_name, cpu, memory, parameters, guest_linux):
         """
         Constructor. Initialize all instance values.
 
@@ -49,7 +49,7 @@ class GuestKvm(object):
             cpu (int):         Number of CPUs of the guest
             memory (int):      Amount of memory used by the guest in MB
             parameters (dict):  Specific parameters for the gues
-            host_conn (GuestLinux): instance connected to linux host
+            guest_linux (GuestLinux): linux host
 
         Raises:
             None
@@ -62,33 +62,11 @@ class GuestKvm(object):
         with open(TEMPLATE_FILE, "r") as template_file:
             self._template_xml = template_file.read()
 
-        self._host_conn = host_conn
-        self._target_dev_mngr = TargetDeviceManager()
-        self._ifaces = []
+        self._guest_obj = guest_linux
 
-        # get a pool to manage all disks to be used
-        self._storage_pool = StoragePool(
-            self._parameters.get("storage_volumes", []),
-            self._target_dev_mngr,
-            self._host_conn
-        )
-        # create an iface object for each entry in the parameters dict
-        self._create_ifaces(self._parameters.get("ifaces", []))
+        # set by activate()
+        self._active_hw = None
     # __init__()
-
-    def _create_ifaces(self, ifaces):
-        """
-        Auxiliar function, creates an iface object
-        function.
-
-        Args:
-            ifaces (list): list of entries defined by schema
-                               kvm/entities/iface_type.json
-        """
-        for iface_params in ifaces:
-            self._ifaces.append(Iface(iface_params,
-                                      self._target_dev_mngr))
-    # _create_ifaces()
 
     def activate(self):
         """
@@ -100,7 +78,8 @@ class GuestKvm(object):
         Raises:
             None
         """
-        self._storage_pool.activate()
+        self._active_hw = self._guest_obj.hotplug(
+            vols=self._parameters.get("storage_volumes", []))
     # activate()
 
     def to_xml(self):
@@ -114,13 +93,26 @@ class GuestKvm(object):
             str: a domain xml representing the guest.
 
         Raises:
-            None
+            RuntimeError: if called before hardware activation
         """
-        disks_xml = self._storage_pool.to_xml()
+        if self._active_hw is None:
+            raise RuntimeError('Guest hardware must be activated first')
 
+        target_dev_mngr = TargetDeviceManager()
+
+        # use a pool to manage xml configuration of the disks
+        storage_pool = StoragePool(
+            self._parameters.get("storage_volumes", []),
+            self._active_hw['vols'],
+            target_dev_mngr,
+        )
+        disks_xml = storage_pool.to_xml()
+
+        # create an iface object for each entry in the parameters dict
         ifaces_xml = ""
-        for iface in self._ifaces:
-            ifaces_xml += iface.to_xml()
+        for iface_params in self._parameters.get("ifaces", []):
+            iface_obj = Iface(iface_params, target_dev_mngr)
+            ifaces_xml += iface_obj.to_xml()
 
         # generate a uuid for the domain xml, necessary in order to redefine
         # the domain xml while performing the network boot.

@@ -19,16 +19,13 @@ Test module for disk_fcp module
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.linux import GuestLinux
-from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
-from tessia_baselib.hypervisors.kvm.storage import disk_fcp
-from tessia_baselib.hypervisors.kvm.storage.disk_fcp import DiskFcp
-from tessia_baselib.hypervisors.kvm.target_device_manager \
-    import TargetDeviceManager
+from copy import deepcopy
+from tessia_baselib.common import utils
+from tessia_baselib.common.ssh.client import SshClient
+from tessia_baselib.common.ssh.shell import SshShell
+from tessia_baselib.guests.linux.storage import disk_fcp
 from unittest import mock
 from unittest import TestCase
-
-import copy
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -60,24 +57,17 @@ class TestDiskFcp(TestCase):
         """
         Create the mock objects used in the initialization of the DiskFcp.
         """
-        self._mock_tgt_dv_mngr = mock.Mock(spec=TargetDeviceManager)
-        self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
-        self._mock_session = mock.Mock(spec_set=GuestSessionLinux)
-        self._mock_host_conn.open_session.return_value = self._mock_session
+        self._mock_host_conn = mock.Mock(spec_set=SshClient)
+        self._mock_shell = mock.Mock(spec_set=SshShell)
+        self._mock_host_conn.open_shell.return_value = self._mock_shell
 
-        # mock timer
-        patcher = mock.patch.object(
-            disk_fcp, 'timer', autospec=True)
-        self.mock_timer = patcher.start()
+        # mock sleep in timer
+        patcher = mock.patch.object(utils, 'sleep', autospec=True)
+        patcher.start()
         self.addCleanup(patcher.stop)
 
-        # mock _enable_device method
-        DiskFcp._enable_device = mock.Mock()
-        self.mock_enable_device = DiskFcp._enable_device
-
-        # mock sleep function
-        patcher = mock.patch.object(
-            disk_fcp, 'sleep', autospec=True)
+        # mock sleep in disk module
+        patcher = mock.patch.object(disk_fcp, 'sleep', autospec=True)
         patcher.start()
         self.addCleanup(patcher.stop)
     # setUp()
@@ -86,8 +76,7 @@ class TestDiskFcp(TestCase):
         """
         Auxiliary method to create a disk using the mock objects.
         """
-        return DiskFcp(parameters, self._mock_tgt_dv_mngr,
-                       self._mock_host_conn)
+        return disk_fcp.DiskFcp(parameters, self._mock_host_conn)
     # _create_disk()
 
     @staticmethod
@@ -103,6 +92,9 @@ class TestDiskFcp(TestCase):
             (0, ""), # _enable_zfcp_module
             # for zfcp interface 0.0.1800
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
@@ -126,6 +118,9 @@ class TestDiskFcp(TestCase):
 
             # for zfcp interface 0.0.1801
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
             (0, ""), # _enable_lun_paths _activate_wwpn
             (0, ""), # _enable_lun_paths _activate_wwpn
@@ -175,7 +170,7 @@ class TestDiskFcp(TestCase):
         self.assertEqual(disk._multipath,
                          PARAMS_FCP.get("specs").get("multipath"))
 
-        check_adapters = PARAMS_FCP.get("specs").get("adapters").copy()
+        check_adapters = deepcopy(PARAMS_FCP.get("specs").get("adapters"))
         for adapter in check_adapters:
             for i in range(0, len(adapter['wwpns'])):
                 adapter['wwpns'][i] = '0x{}'.format(adapter['wwpns'][i])
@@ -186,27 +181,28 @@ class TestDiskFcp(TestCase):
         """
         Test the activate method for the common case, with multipath enabled.
         """
+        mpath_id = "MPATH1_UID"
         outputs = self._get_outputs_for_mpath()
         outputs.extend([
             # check_multipath
             #iteration 1
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
-            (0, "MPATH1_UID"), # _get_multipath_name
+            (0, mpath_id), # _get_multipath_name
             #iteration 2
             (0, "/dev/sdb"),# _get_multipath_name _get_kernel_devname
-            (0, "MPATH1_UID"), # _get_multipath_name
+            (0, mpath_id), # _get_multipath_name
             #iteration 3
             (0, "/dev/sdc"),# _get_multipath_name _get_kernel_devname
-            (0, "MPATH1_UID"), # _get_multipath_name
+            (0, mpath_id), # _get_multipath_name
             #iteration 4
             (0, "/dev/sdd"),# _get_multipath_name _get_kernel_devname
-            (0, "MPATH1_UID"), # _get_multipath_name
+            (0, mpath_id), # _get_multipath_name
         ])
-        self._mock_session.run.side_effect = outputs
+        self._mock_shell.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
-        disk.activate()
-        # one call for each zfcp adapter
-        self.assertEqual(self.mock_enable_device.call_count, 2)
+
+        # validate response containing the device path
+        self.assertEqual(disk.activate(), '/dev/mapper/{}'.format(mpath_id))
     # test_activate()
 
     def test_activate_new_wwpn_port_type(self):
@@ -214,14 +210,18 @@ class TestDiskFcp(TestCase):
         Test the activation of the disk using the port_rescan sysfs interface
         for the wwpns.
         """
-        self._mock_session.run.side_effect = [
+        self._mock_shell.run.side_effect = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, ""), # _enable_lun_paths _activate_lun echo > unit_add
             # _enable_lun_paths _activate_lun _get_scsi_dev_filename
             (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:23:1073889314"),
@@ -229,21 +229,26 @@ class TestDiskFcp(TestCase):
 
             #PATH 2
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, ""), # _enable_lun_paths _activate_lun echo > unit_add
             # _enable_lun_paths _activate_lun _get_scsi_dev_filename
             (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
                 "1:0:23:1073889315"),
             (0, "/dev/sdb"),
 
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, ""), # _enable_lun_paths _activate_lun echo > unit_add
             # _enable_lun_paths _activate_lun _get_scsi_dev_filename
             (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:24:1073889317"),
@@ -251,10 +256,11 @@ class TestDiskFcp(TestCase):
 
             #PATH 2
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
-            (0, ""), # _enable_lun_paths _activate_lun (raise Exception if 1)
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, ""), # _enable_lun_paths _activate_lun echo > unit_add
             # _enable_lun_paths _activate_lun _get_scsi_dev_filename
             (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
                 "1:0:24:1073889315"),
@@ -289,7 +295,7 @@ class TestDiskFcp(TestCase):
             (0, "MPATH1_UID"), # _get_multipath_name
         ]
         disk = self._create_disk(PARAMS_FCP)
-        disk.activate()
+        self.assertEqual(disk.activate(), '/dev/mapper/MPATH1_UID')
     # test_activate_new_wwpn_port_type()
 
     def test_activate_fail_unit_add(self):
@@ -300,13 +306,17 @@ class TestDiskFcp(TestCase):
         output = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
             (1, ""), # _enable_lun_paths _activate_lun unit_add
         ]
-        self._mock_session.run.side_effect = output
+        self._mock_shell.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Failed to activate LUN",
                                disk.activate)
@@ -321,19 +331,23 @@ class TestDiskFcp(TestCase):
         output = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
             (0, ""), # _enable_lun_paths _activate_lun unit_add
         ]
         # _get_scsi_dev_filename many attempts
         for _ in range(0, 6):
-            output.append((0, ""))
+            output.append((1, ""))
         output.append((1, "")) # _enable_lun_paths _activate_lun cat failed
-        self._mock_session.run.side_effect = output
+        self._mock_shell.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
-        self.assertRaisesRegex(RuntimeError, "up after adding LUN",
+        self.assertRaisesRegex(RuntimeError, "didn't come up after adding LUN",
                                disk.activate)
     # test_activate_fail_unit_add()
 
@@ -346,20 +360,24 @@ class TestDiskFcp(TestCase):
         output = [
             (0, ""), # _enable_zfcp_module
             #PATH 1
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
             (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
-            (1, ""), # _enable_lun_paths _activate_wwpn
-            (0, ""), # _enable_lun_paths _activate_wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active 0 = True, 1 = False
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
             (0, ""), # _enable_lun_paths _activate_lun unit_add
         ]
         # _get_scsi_dev_filename many attempts
         for _ in range(0, 6):
-            output.append((0, ""))
+            output.append((1, ""))
         output.append((0, "1")) # _enable_lun_paths _activate_lun cat failed
-        self._mock_session.run.side_effect = output
+        self._mock_shell.run.side_effect = output
         disk = self._create_disk(PARAMS_FCP)
-        self.assertRaisesRegex(RuntimeError, "Failed to add",
-                               disk.activate)
+        re_msg = "Failed to add .* check your storage configuration"
+        self.assertRaisesRegex(RuntimeError, re_msg, disk.activate)
     # test_activate_fail_add_lun()
 
     def test_activate_multipath_name_not_same(self):
@@ -377,7 +395,7 @@ class TestDiskFcp(TestCase):
             (0, "/dev/sdb"),# _get_multipath_name _get_kernel_devname
             (0, "MPATH2_UID") # _get_multipath_name
         ])
-        self._mock_session.run.side_effect = outputs
+        self._mock_shell.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Multipath map",
                                disk.activate)
@@ -399,7 +417,7 @@ class TestDiskFcp(TestCase):
             (0, ""), # _get_multipath_name trial 30
             (0, ""), # _get_multipath_name trial 60
         ])
-        self._mock_session.run.side_effect = outputs
+        self._mock_shell.run.side_effect = outputs
         disk = self._create_disk(PARAMS_FCP)
         self.assertRaisesRegex(RuntimeError, "Multipath map not available",
                                disk.activate)
@@ -409,7 +427,7 @@ class TestDiskFcp(TestCase):
         """
         Test the case that the multipath is disabled.
         """
-        params_fcp_no_multipath = copy.deepcopy(PARAMS_FCP)
+        params_fcp_no_multipath = deepcopy(PARAMS_FCP)
         params_fcp_no_multipath.get("specs")["multipath"] = False
         outputs = self._get_outputs_for_mpath()
         outputs.extend([
@@ -419,9 +437,9 @@ class TestDiskFcp(TestCase):
             (0, ""), # _disable_multipath _get_kernel_devname Path 3
             (0, ""), # _disable_multipath _get_kernel_devname Path 4
         ])
-        self._mock_session.run.side_effect = outputs
+        self._mock_shell.run.side_effect = outputs
         disk = self._create_disk(params_fcp_no_multipath)
-        disk.activate()
+        self.assertEqual(disk.activate(), '/dev/sda')
     # test_activate_disable_multipath()
 
     def test_activate_fail_fcp(self):
@@ -429,8 +447,31 @@ class TestDiskFcp(TestCase):
         Test the case that the zfcp module fails to be loaded.
         """
         disk = self._create_disk(PARAMS_FCP)
-        self._mock_session.run.side_effect = [(1, "")]
+        self._mock_shell.run.side_effect = [(1, "")]
         self.assertRaisesRegex(RuntimeError, "Unable to load fcp",
                                disk.activate)
     # test_activate_fail_fcp()
+
+    def test_no_fcp_path(self):
+        """
+        Test the case where no fcp path was provided in disk parameters.
+        """
+        params = {
+            "type": "FCP",
+            "volume_id": "1024400000000000",
+            "boot_device": True,
+            "specs": {
+                "multipath": True,
+                "adapters": [{
+                    "devno": "0.0.1800",
+                }, {
+                    "devno": "0.0.1801",
+                }]
+            }
+        }
+        msg = 'No FCP path defined for disk LUN 0x{}'.format(
+            params['volume_id'])
+        with self.assertRaisesRegex(ValueError, msg):
+            self._create_disk(params)
+    # test_no_fcp_path()
 # TestDiskFcp

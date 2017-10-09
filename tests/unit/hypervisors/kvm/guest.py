@@ -72,11 +72,13 @@ class TestGuestKvm(TestCase):
         self._ifaces = [mock.Mock(spec_set=Iface), mock.Mock(spec_set=Iface)]
         self._mock_iface.side_effect = self._ifaces
 
-        self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
+        self._mock_guest_linux = mock.Mock(spec_set=GuestLinux)
+        self._mock_guest_linux.hotplug.return_value = {
+            'vols': {sentinel.volume1: '/dev/volume1'}}
         # create the guest that is used in all tests
         self._guest = GuestKvm(sentinel.guest_name, sentinel.cpu,
                                sentinel.memory, self._parameters,
-                               self._mock_host_conn)
+                               self._mock_guest_linux)
     # setUp()
 
     def test_init(self):
@@ -87,12 +89,8 @@ class TestGuestKvm(TestCase):
         self.assertIs(self._guest._cpu, sentinel.cpu)
         self.assertIs(self._guest._memory, sentinel.memory)
         self.assertIs(self._guest._parameters, self._parameters)
-        self.assertIs(self._guest._storage_pool, self._mock_pool.return_value)
-
-        for i in range(len(self._ifaces)):
-            self._mock_iface.assert_any_call(
-                self._parameters.get("ifaces")[i],
-                self._mock_tgt_dv_mngr.return_value)
+        self.assertIs(self._guest._guest_obj, self._mock_guest_linux)
+        self.assertIs(self._guest._active_hw, None)
     # test_init()
 
     def test_activate(self):
@@ -101,7 +99,8 @@ class TestGuestKvm(TestCase):
         """
         self._guest.activate()
         # Currently we only activate disks.
-        self._mock_pool.return_value.activate.assert_called_with()
+        self._mock_guest_linux.hotplug.assert_called_with(
+            vols=self._parameters['storage_volumes'])
     # test_activate()
 
     @mock.patch("tessia_baselib.hypervisors.kvm.guest.uuid", spec_set=True)
@@ -115,8 +114,13 @@ class TestGuestKvm(TestCase):
         for iface in self._ifaces:
             iface.to_xml.return_value = iface_xml
 
+        self._guest.activate()
         self._guest.to_xml()
 
+        self._mock_pool.assert_called_with(
+            self._parameters['storage_volumes'],
+            self._mock_guest_linux.hotplug.return_value['vols'],
+            self._mock_tgt_dv_mngr.return_value)
         self._mock_pool.return_value.to_xml.assert_called_with()
         disk_xml = self._mock_pool.return_value.to_xml.return_value
 

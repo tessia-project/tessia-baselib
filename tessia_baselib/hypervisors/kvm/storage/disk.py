@@ -19,7 +19,6 @@ Module for the Disk Class
 #
 # IMPORTS
 #
-from time import sleep
 import os
 
 #
@@ -35,32 +34,29 @@ class DiskBase(object):
     """
     Base class for all type of physical disks.
     """
-    def __init__(self, parameters, target_dev_mngr, host_conn):
+    def __init__(self, parameters, target_dev_mngr):
         """
         Constructor. Initialize instance variables.
 
         Args:
             parameters (dict): Disk parameters as defined in the json schema.
             target_dev_mngr (TargetDeviceManager): object instance
-            host_conn (GuestLinux): instance connected to linux host
 
         Raises:
-            None
+            ValueError: in case device path information is not provided
         """
         self._parameters = parameters
         # useful to uniquely identify the instance
         self.volume_id = self._parameters['volume_id']
+        # make sure we know the device path on hypervisor
+        if not 'hyp_dev_path' in self._parameters:
+            raise ValueError('Device path on hypervisor not provided')
 
         # xml device definition
         self._libvirt_xml = None
         # template used to create the xml device definition
         with open(TEMPLATE_FILE, "r") as template_fd:
             self._xml_template = template_fd.read()
-        # shell object to run commands on hypervisor, each disk gets its own
-        self._cmd_channel = host_conn.open_session()
-
-        # the _source_dev variable is set by the concrete classes
-        self._source_dev = None
 
         system_attributes = self._parameters.get("system_attributes")
         # device xml definition was passed in the parameters: use it to define
@@ -84,50 +80,6 @@ class DiskBase(object):
 
     # __init__()
 
-    def _enable_device(self, devicenr):
-        """
-        Enable a device in the ccw bus.
-
-        Args:
-            devicenr (str): device number of the device to be enabled
-
-        Raises:
-            RuntimeError: In case the command fails to be executed
-        """
-        # make sure device is not in cio_ignore list
-        self._cmd_channel.run("echo free {} >"
-                              " /proc/cio_ignore".format(devicenr))
-
-        # try to activate channel again
-        active = False
-        for time in (0, 1, 5, 15, 30, 60):
-            sleep(time)
-            ret, output = self._cmd_channel.run(
-                'chccwdev -e {}'.format(devicenr))
-            if ret == 0:
-                active = True
-                break
-        if not active:
-            raise RuntimeError("Failed to activate "
-                               "device devicenr={}: {}".format(devicenr,
-                                                               output))
-    # _enable_device()
-
-    def activate(self):
-        """
-        Activate the disk by performing all necessary operations to get
-        the block device available in the hypervisor operating system.
-
-        Args:
-            None
-
-        Raises:
-            NotImplementedError: as it has to be implemented by children
-                                 classes
-        """
-        raise NotImplementedError()
-    # activate()
-
     def to_xml(self):
         """
         Convert the disk to a libvirt domain xml disk.
@@ -142,9 +94,6 @@ class DiskBase(object):
         Raises:
             RuntimeError: if the device is not activated.
         """
-        if self._source_dev is None:
-            raise RuntimeError("The disk is not activated")
-
         # definition already provided or built: return it
         if self._libvirt_xml is not None:
             return self._libvirt_xml
@@ -156,7 +105,7 @@ class DiskBase(object):
 
         self._libvirt_xml = (
             self._xml_template.format(
-                dev=self._source_dev,
+                dev=self._parameters['hyp_dev_path'],
                 target_dev=self._target_dev,
                 devno=self._target_devno,
                 boot_tag=boot_tag)

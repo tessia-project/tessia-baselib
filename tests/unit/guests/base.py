@@ -136,7 +136,7 @@ j       """
 
         # call each method and check if exception was raised
         methods = [
-            ('hotplug', (None, None, None)),
+            ('hotplug', (None, None, None, None)),
             ('login', ()),
             ('logoff', ()),
             ('install_packages', (None,)),
