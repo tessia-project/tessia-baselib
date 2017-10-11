@@ -18,16 +18,16 @@ Module for DiskFcp class.
 #
 # IMPORTS
 #
+from copy import deepcopy
 from tessia_baselib.common.logger import get_logger
 from tessia_baselib.common.utils import timer
-from tessia_baselib.hypervisors.kvm.storage.disk import DiskBase
+from tessia_baselib.guests.linux.storage.disk import DiskBase
 from time import sleep
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 FCP_SYSPATH = '/sys/bus/ccw/drivers/zfcp'
-FCP_DEVPATH = '/dev/disk/by-path/ccw-{}-zfcp-{}:{}'
 
 #
 # CODE
@@ -36,34 +36,41 @@ class DiskFcp(DiskBase):
     """
     This class is an abstraction for a FCP-SCSI disk.
     """
-    def __init__(self, parameters, target_dev_mngr, host_conn):
+    def __init__(self, parameters, host_conn):
         """
         Constructor
 
         Args:
             parameters (dict):  Disk parameters as defined in the json schema.
-            target_dev_mngr (TargetDeviceManager): object instance
             host_conn (GuestLinux): instance connected to linux host
 
         Raises:
-            None
+            ValueError: in case no fcp path is provided
         """
 
-        super().__init__(parameters, target_dev_mngr, host_conn)
+        super().__init__(parameters, host_conn)
 
         self._logger = get_logger(__name__)
 
         # the lun id, i.e. 1022400000000002 (no leading 0x)
         self._lun = '0x{}'.format(self._parameters.get("volume_id"))
+
         # whether multipath is enabled (True or False)
         self._multipath = self._parameters["specs"].get("multipath", False)
+
         # list of adapters with paths - mandatory, at least one path must be
         # specified otherwise it's not possible to activate disk
-        self._adapters = self._parameters["specs"]["adapters"].copy()
+        has_path = False
+        self._adapters = deepcopy(self._parameters["specs"]["adapters"])
         # add the leading 0x to the wwpns
         for adapter in self._adapters:
-            for i in range(0, len(adapter['wwpns'])):
+            for i in range(0, len(adapter.get('wwpns', []))):
+                has_path = True
                 adapter['wwpns'][i] = '0x{}'.format(adapter['wwpns'][i])
+
+        if not has_path:
+            raise ValueError(
+                'No FCP path defined for disk LUN {}'.format(self._lun))
 
         self._logger.debug("Creating DiskFcp "
                            "lun=%s adapters=%s", self._lun, self._adapters)
@@ -415,6 +422,9 @@ class DiskFcp(DiskBase):
         Args:
             None
 
+        Returns:
+            str: device path associated to multipath
+
         Raises:
             RuntimeError: In case the paths are not part of a multipath map,
                           or the multipath map is not part of a device mapper,
@@ -452,8 +462,8 @@ class DiskFcp(DiskBase):
                 raise RuntimeError("Multipath map is not the same across "
                                    "paths of lun {}".format(self._lun))
 
-        # update the source dev path
-        self._source_dev = "/dev/mapper/" + mpath_name
+        # return the device path of the multipath mapping
+        return "/dev/mapper/" + mpath_name
     # _check_multipath()
 
     def _disable_multipath(self):
@@ -462,6 +472,9 @@ class DiskFcp(DiskBase):
 
         Args:
             None
+
+        Returns:
+            str: device path of first LUN path
 
         Raises:
             None
@@ -474,6 +487,9 @@ class DiskFcp(DiskBase):
             msg = ('Failed to disable multipath for device {} path {}'
                    .format(scsi_dev['kernel_path'], scsi_dev['fcp_path']))
             timer(self._cmd_channel, cmd, [0, 1, 5, 15, 30, 60], msg)
+
+        # return the device path as the first lun path
+        return scsi_devs[0]['kernel_path']
     # _disable_multipath()
 
     def activate(self):
@@ -483,6 +499,9 @@ class DiskFcp(DiskBase):
 
         Args:
             None
+
+        Returns:
+            str: device path of the activated disk
 
         Raises:
             None
@@ -494,8 +513,10 @@ class DiskFcp(DiskBase):
             self._enable_lun_paths(adapter)
 
         if self._multipath:
-            self._check_multipath()
+            dev_path = self._check_multipath()
         else:
-            self._disable_multipath()
+            dev_path = self._disable_multipath()
+
+        return dev_path
     # activate()
 # DiskFcp

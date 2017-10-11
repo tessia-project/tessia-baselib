@@ -19,7 +19,7 @@ Unit test for linux module
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.linux import GuestLinux
+from tessia_baselib.guests.linux import linux
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 from unittest.mock import Mock
@@ -39,6 +39,33 @@ class TestGuestLinux(TestCase):
     """
     Unit test for the GuestLinux class
     """
+    def setUp(self):
+        """
+        Set up the mocks common to the testcases
+        """
+        patcher = patch.object(linux, 'SshClient', autospec=True)
+        self._mock_ssh_client_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        patcher = patch.object(linux, 'StoragePool', autospec=True)
+        self._mock_pool = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        # define the mock for SshShell containing only the run method which
+        # returns a successful exit code and the response below to a
+        # 'uname -a' cmd
+        self._mock_ssh_shell = Mock(name='SshShell', spec_set=['run'])
+        self._mock_ssh_shell.run.return_value = (
+            0,
+            'Linux dummy 4.4.6-200.x86_64 #1 SMP Wed Mar 16 22:13:40 UTC 2016 '
+            'x86_64 x86_64 x86_64 GNU/Linux'
+        )
+        # set the client.open_shell mock to return the shell mock
+        self._mock_ssh_client_obj = self._mock_ssh_client_cls.return_value
+        self._mock_ssh_client_obj.open_shell.return_value = (
+            self._mock_ssh_shell)
+    # setUp()
+
     def _check_init(self):
         """
         Check if the class constructor works as expected and return the object
@@ -59,7 +86,7 @@ class TestGuestLinux(TestCase):
         user = 'root'
         passwd = 'somepwd'
         extensions = {}
-        guest_obj = GuestLinux(
+        guest_obj = linux.GuestLinux(
             system_name, host_name, user, passwd, extensions)
 
         # validate if attributes were correctly assigned to object
@@ -74,16 +101,12 @@ class TestGuestLinux(TestCase):
         return guest_obj
     # _check_init()
 
-    def _check_login(self, guest_obj, mock_ssh_client_cls, mock_ssh_client,
-                     mock_ssh_shell, distro_name, distro_cmd):
+    def _check_login(self, guest_obj, distro_name, distro_cmd):
         """
         Check if the login() method works as expected
 
         Args:
             guest_obj (GuestLinux): instance of GuestLinux
-            mock_ssh_client_cls (Mock): the mock created for class SshClient
-            mock_ssh_client (Mock): the mock created for object of SshClient
-            mock_ssh_shell (Mock): the mock created for object of SshShell
             distro_name (str): name of distro class that should be created
             distro_cmd (str): expected command used to identify environment
 
@@ -94,41 +117,38 @@ class TestGuestLinux(TestCase):
         guest_obj.login()
 
         # validate if instantiating SshClient was correct
-        mock_ssh_client_cls.assert_called_with()
+        self._mock_ssh_client_cls.assert_called_with()
 
         # validate usage of SshClient object was correct
-        mock_ssh_client.login.assert_called_with(
+        self._mock_ssh_client_obj.login.assert_called_with(
             guest_obj.host_name,
             user=guest_obj.user,
             passwd=guest_obj.passwd,
             timeout=60
         )
-        mock_ssh_client.open_shell.assert_called_with()
+        self._mock_ssh_client_obj.open_shell.assert_called_with()
 
         # validate if the right distro object was created
         self.assertIs(distro_name, guest_obj._distro_obj.__class__.__name__)
 
         # validate the right command was issued for env detection
-        mock_ssh_shell.run.assert_called_with(distro_cmd)
+        self._mock_ssh_shell.run.assert_called_with(distro_cmd)
 
     # _check_login()
 
-    def _check_logoff(self, guest_obj, mock_ssh_client):
+    def _check_logoff(self, guest_obj):
         """
         Check if the logoff() method works as expected
 
         Args:
             guest_obj (GuestLinux): object
-            mock_ssh_client (Mock): the mock created for object of SshClient
 
         Raises:
             AssertionError: if validation fails
         """
-        # call method and verify if it correctly drops distro object and
-        # closes ssh connection
+        # call method and verify if it correctly closes ssh connection
         guest_obj.logoff()
-        self.assertIs(None, guest_obj._distro_obj)
-        mock_ssh_client.logoff.assert_called_with()
+        self._mock_ssh_client_obj.logoff.assert_called_with()
     # _check_logoff()
 
     def _check_open_session(self, guest_obj):
@@ -145,14 +165,12 @@ class TestGuestLinux(TestCase):
         self.assertIs('GuestSessionLinux', session.__class__.__name__)
     # _check_open_session()
 
-    @staticmethod
-    def _check_stop(guest_obj, mock_ssh_shell, stop_cmd):
+    def _check_stop(self, guest_obj, stop_cmd):
         """
         Check if the stop() method works as expected
 
         Args:
             guest_obj (GuestLinux): object
-            mock_ssh_shell (Mock): representation for object of SshShell
             stop_cmd (str): expected command used to shutdown system
 
         Raises:
@@ -160,20 +178,45 @@ class TestGuestLinux(TestCase):
         """
         # call method and verify if it executed cmd in ssh shell
         guest_obj.stop()
-        mock_ssh_shell.run.assert_called_with(stop_cmd)
+        self._mock_ssh_shell.run.assert_called_with(stop_cmd)
     # _check_stop()
 
+    def test_hotplug_storage(self):
+        """
+        Test logical hotplugging of storage volumes to the guest
+        """
+        target_vols = [
+            {
+                "type": "FCP",
+                "volume_id": "1024400000000000",
+                "boot_device": True,
+                "specs": {
+                    "multipath": True,
+                    "adapters": [{
+                        "devno": "0.0.1800",
+                        "wwpns": ['300607630503c1ae', '300607630503c1af']
+                    }, {
+                        "devno": "0.0.1801",
+                        "wwpns": ['300607630503c1ae', '300607630503c1af']
+                    }]
+                }
+            }
+        ]
+        # set response from storage pool object
+        pool_resp = {target_vols[0]['volume_id']: '/dev/mapper/mpatha'}
+        self._mock_pool.return_value.activate.return_value = pool_resp
+
+        guest_obj = self._check_init()
+        guest_obj.login()
+        # validate response
+        self.assertEqual(guest_obj.hotplug(vols=target_vols),
+                         {'vols': pool_resp})
+    # test_hotplug()
+
     # mock the ssh module to pretend we connect to a real system
-    @patch('tessia_baselib.guests.linux.linux.SshClient', spec_set=True)
-    def test_normal_flow_generic_distro(self, mock_ssh_client_cls):
+    def test_normal_flow_generic_distro(self):
         """
         Exercise a normal flow for a generic linux guest.
-
-        Args:
-            mock_ssh_client_cls (Mock): representation of SshClient class
-
-        Raises:
-            AssertionError: if the guest object does not behave as expected
         """
         # set a simple log configuration to catch messages from all levels
         # and output to a file which we will check later
@@ -181,44 +224,22 @@ class TestGuestLinux(TestCase):
         logging.basicConfig(filename=log_file.name, filemode='w',
                             level=logging.DEBUG)
 
-        # define the mock for SshShell containing only the run method which
-        # returns a successful exit code and the response below to a
-        # 'uname -a' cmd
-        mock_ssh_shell = Mock(name='SshShell', spec_set=['run'])
-        mock_ssh_shell.run.return_value = (
-            0,
-            'Linux dummy 4.4.6-200.x86_64 #1 SMP Wed Mar 16 22:13:40 UTC 2016 '
-            'x86_64 x86_64 x86_64 GNU/Linux'
-        )
-
-        # define a SshClient object which will return the SshShell mock created
-        # in previous step
-        mock_ssh_client = Mock(
-            name='SshClient', spec_set=['login', 'logoff', 'open_shell']
-        )
-        mock_ssh_client.open_shell.return_value = mock_ssh_shell
-
-        # make the mock SshClientClass from patch decorator return the object
-        # we just defined upon instantiation
-        mock_ssh_client_cls.return_value = mock_ssh_client
-
         # validate the constructor of the guest class
         guest_obj = self._check_init()
 
         # validate login() method
         self._check_login(
-            guest_obj, mock_ssh_client_cls, mock_ssh_client, mock_ssh_shell,
-            'DistroGeneric', 'uname -a'
+            guest_obj, 'DistroGeneric', 'uname -a'
         )
 
         # validate open_session() method
         self._check_open_session(guest_obj)
 
         # validate stop() method
-        self._check_stop(guest_obj, mock_ssh_shell, 'nohup halt &')
+        self._check_stop(guest_obj, 'nohup halt &')
 
         # validate logoff() method
-        self._check_logoff(guest_obj, mock_ssh_client)
+        self._check_logoff(guest_obj)
 
         # validate the logging was correct
         # define the content we expect to see in the log file
@@ -248,33 +269,13 @@ class TestGuestLinux(TestCase):
     # test_normal_flow_generic_distro()
 
     # mock the ssh module to pretend we connect to a real system
-    @patch('tessia_baselib.guests.linux.linux.SshClient', spec_set=True)
-    def test_fail_flow_invalid_distro(self, mock_ssh_client_cls):
+    def test_fail_flow_invalid_distro(self):
         """
         Simulate the connection to a system which does not claim to have a
         Linux kernel.
-
-        Args:
-            mock_ssh_client_cls (Mock): represents the SshClient class
-
-        Raises:
-            AssertionError: if guest object does not raise NotImplementedError
-                            for the called methods
         """
-        # define the mock for SshShell with only the run method which fails to
-        # execute commands
-        mock_ssh_shell = Mock(name='SshShell', spec_set=['run'])
-        mock_ssh_shell.run.return_value = (1, 'command not found')
-
-        # SshClient instance which will return the SshShell mock we just
-        # defined
-        mock_ssh_client = Mock(
-            name='SshClient', spec_set=['login', 'open_shell'])
-        mock_ssh_client.open_shell.return_value = mock_ssh_shell
-
-        # make the mock SshClientClass from patch decorator return the object
-        # we just defined upon instantiation
-        mock_ssh_client_cls.return_value = mock_ssh_client
+        # make the mock for SshShell fail to execute commands
+        self._mock_ssh_shell.run.return_value = (1, 'command not found')
 
         # instantiate the guest class we want to test
         system_name = 'dummy_system'
@@ -282,7 +283,7 @@ class TestGuestLinux(TestCase):
         user = 'root'
         passwd = 'somepwd'
         extensions = {}
-        guest_obj = GuestLinux(
+        guest_obj = linux.GuestLinux(
             system_name, host_name, user, passwd, extensions)
 
         # check if correctly raises the exception
@@ -290,12 +291,12 @@ class TestGuestLinux(TestCase):
 
         # change the mock now to successfully execute the command but report an
         # incorrect kernel name
-        mock_ssh_shell.run.return_value = (
+        self._mock_ssh_shell.run.return_value = (
             0,
             'OtherOS dummy 4.4.6 #1 SMP Wed Mar 16 22:13:40 UTC 2016 x86_64 '
             'x86_64 x86_64 Some/OS'
         )
-        guest_obj = GuestLinux(
+        guest_obj = linux.GuestLinux(
             system_name, host_name, user, passwd, extensions)
 
         # check if correctly raises the exception
@@ -304,5 +305,21 @@ class TestGuestLinux(TestCase):
         )
 
     # test_fail_flow_invalid_distro()
+
+    def test_fail_must_login(self):
+        """
+        Verify that operations will fail if login was not initially performed.
+        """
+        guest_obj = self._check_init()
+        msg = 'You need to login first'
+        with self.assertRaisesRegex(RuntimeError, msg):
+            guest_obj.hotplug(vols=[dict()])
+        with self.assertRaisesRegex(RuntimeError, msg):
+            guest_obj.install_packages([])
+        self.assertRaisesRegex(RuntimeError, msg, guest_obj.open_session)
+        with self.assertRaisesRegex(RuntimeError, msg):
+            guest_obj.push_file('source_url', 'target_path')
+        self.assertRaisesRegex(RuntimeError, msg, guest_obj.stop)
+    # test_fail_must_login()
 
 # TestGuestLinux

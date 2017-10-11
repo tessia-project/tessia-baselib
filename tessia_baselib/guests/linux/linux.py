@@ -25,6 +25,7 @@ from tessia_baselib.guests.base import GuestBase
 from tessia_baselib.guests.linux.distros import generic as genericModule
 from tessia_baselib.guests.linux.distros import DISTRO_MODULES
 from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
+from tessia_baselib.guests.linux.storage.pool import StoragePool
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -72,10 +73,10 @@ class GuestLinux(GuestBase):
         self._logger = get_logger(__name__)
 
         # ssh connection to be initialized by login()
-        self.ssh_conn = None
+        self.__ssh_conn = None
 
         # distro class to use, will be determined by login()
-        self._distro_obj = None
+        self.__distro_obj = None
 
         # log object creation for debugging
         self._logger.debug(
@@ -88,20 +89,62 @@ class GuestLinux(GuestBase):
         )
     # __init__()
 
-    def hotplug(self, method, resources, extensions):
+    @property
+    def _distro_obj(self):
         """
-        Hotplug/unplug a given dictionary of resources to/from the guest.
+        Provide access to distro object
+        """
+        if self.__distro_obj is None:
+            raise RuntimeError("You need to login first")
+        return self.__distro_obj
+    # _distro_obj()
+
+    @property
+    def ssh_conn(self):
+        """
+        Provide access to ssh connection object
+        """
+        if self.__ssh_conn is None:
+            raise RuntimeError("You need to login first")
+        return self.__ssh_conn
+    # ssh_conn()
+
+    def hotplug(self, cpu=None, memory=None, vols=None, extensions=None):
+        """
+        Performs a logical hotplug of resources in the guest operating system.
 
         Args:
-            method (str): attach (hotplug) or detach (hotunplug)
-            resources (dict): in the form:
-                       {'cpu': 2, 'memory': 512, 'disks': [], 'netcards': []}
-            extensions (dict): specific attributes depending on guest type
+            cpu (int): number of new cpus to activate
+            memory (int): MiB of memory to activate, on Linux it has to be a
+                          multiple of a section unit which size is is
+                          architecture dependent
+            vols (list): list of volumes to activate
+            extensions (dict): not used
 
         Raises:
-            NotImplementedError: TODO
+            NotImplementedError: if cpu or memory hotplug is attempted
+            RuntimeError: in case user has not logged in first
+
+        Returns:
+            dict: contains information on the operation result, in the form:
+                  {
+                  # disks activated with their device paths
+                  'vols': {'volume_id1': '/dev/device_path1'}
+                  }
         """
-        raise NotImplementedError()
+        result = {}
+        if cpu:
+            raise NotImplementedError('cpu hotplug not supported yet')
+        if memory:
+            raise NotImplementedError('memory hotplug not supported yet')
+
+        # TODO: validate vols dict against a schema
+        if vols:
+            pool = StoragePool(vols, self.ssh_conn)
+            resp = pool.activate()
+            result['vols'] = resp
+
+        return result
     # hotplug()
 
     def install_packages(self, packages):
@@ -136,7 +179,7 @@ class GuestLinux(GuestBase):
         ssh_conn = SshClient()
         ssh_conn.login(self.host_name, user=self.user, passwd=self.passwd,
                        timeout=timeout)
-        self.ssh_conn = ssh_conn
+        self.__ssh_conn = ssh_conn
 
         # find a suitable distro class for this environment
         shell_obj = self.ssh_conn.open_shell()
@@ -164,7 +207,7 @@ class GuestLinux(GuestBase):
             self.name,
             found.__name__
         )
-        self._distro_obj = found(self.ssh_conn)
+        self.__distro_obj = found(self.ssh_conn)
     # login()
 
     def logoff(self):
@@ -180,7 +223,7 @@ class GuestLinux(GuestBase):
         self._logger.debug("logoff system_name='%s'", self.name)
 
         # remove reference to distro object so that its destructor is called
-        self._distro_obj = None
+        self.__distro_obj = None
         # close ssh connection
         self.ssh_conn.logoff()
     # logoff()
@@ -197,7 +240,7 @@ class GuestLinux(GuestBase):
             GuestSessionLinux: object
 
         Raises:
-            None
+            RuntimeError: in case user has not logged in first
         """
         return GuestSessionLinux(self.ssh_conn.open_shell())
     # open_session()
@@ -216,12 +259,8 @@ class GuestLinux(GuestBase):
         See base class for details.
 
         Raises:
-            RuntimeError: in case method is called without an active connection
-            None
+            RuntimeError: in case user has not logged in first
         """
-        if self.ssh_conn is None:
-            raise RuntimeError("Not connected to the linux host")
-
         self.ssh_conn.push_file(source_url, target_path, write_mode)
     # push_file()
 
@@ -233,10 +272,9 @@ class GuestLinux(GuestBase):
             None
 
         Raises:
-            None
+            RuntimeError: in case user has not logged in first
         """
         shell_obj = self.ssh_conn.open_shell()
         shell_obj.run('nohup halt &')
     # stop()
-
 # GuestLinux

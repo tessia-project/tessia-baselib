@@ -19,16 +19,11 @@ Test module for the pool module.
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.linux import GuestLinux
-from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
-from tessia_baselib.hypervisors.kvm.target_device_manager import \
-    TargetDeviceManager
+from copy import deepcopy
 from tessia_baselib.hypervisors.kvm.storage import pool
-from tessia_baselib.hypervisors.kvm.storage.disk_fcp import DiskFcp
-from time import sleep
 from unittest import mock
-from unittest.mock import patch
 from unittest import TestCase
+from unittest.mock import patch
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -43,6 +38,7 @@ class TestStoragePool(TestCase):
     """
     @staticmethod
     def _disk_id_gen():
+        """Helper generator"""
         counter = 0
         while True:
             yield counter
@@ -54,171 +50,64 @@ class TestStoragePool(TestCase):
         Set up the mocks common to the testcases
         """
         id_generate = self._disk_id_gen()
-        self._mock_disk = mock.Mock(spec_set=DiskFcp)
-        self._mock_disk.side_effect = lambda a, b, c: mock.Mock(
-            volume_id='disk{}'.format(next(id_generate))) # pylint: disable=unnecessary-lambda
+        patcher = patch.object(pool, 'DiskBase', autospec=True)
+        self._mock_disk = patcher.start()
+        self._mock_disk.side_effect = lambda a, b: mock.Mock(
+            volume_id='disk{}'.format(next(id_generate)))
 
-        # DISK dictionary
-        patcher = patch.dict(pool.DISK_TYPEMAP, {'FCP': self._mock_disk})
-        self._mock_typemap = patcher.start()
         self.addCleanup(patcher.stop)
 
         # Target manager
-        self._mock_tgt_mngr = mock.Mock(spec_set=TargetDeviceManager)
-        # host connection
-        self._mock_host_conn = mock.Mock(spec_set=GuestLinux)
-
-        # mock sleep to avoid waiting
-        patcher = patch.object(pool, 'sleep', autospec=True)
-        patcher.start()
-        self.addCleanup(patcher.stop)
+        self._mock_tgt_mngr = mock.Mock()
 
         # create an instance for convenient usage
         self._volumes = [
             {
-                'type': 'FCP',
-                'specs': {
-                    'multipath': False
-                },
+                'type': 'DASD',
+                'volume_id': '09ab'
             },
             {
                 'type': 'FCP',
-                'specs': {
-                    'multipath': True
-                },
+                'volume_id': '4000000000000002220'
             },
         ]
+        # simulate hypervisor dev paths
+        self._dev_paths = {
+            '09ab': '/dev/disk/by-path/ccw-0.0.09ab',
+            '4000000000000002220': '/dev/mapper/3600000000033'
+        }
         self._pool_obj = pool.StoragePool(
-            self._volumes, self._mock_tgt_mngr, self._mock_host_conn)
+            self._volumes, self._dev_paths, self._mock_tgt_mngr)
     # setUp()
-
-    def test_activate_success(self):
-        """
-        Exercise successful activation of disks
-        """
-        mock_session = mock.Mock(spec_set=GuestSessionLinux)
-        self._mock_host_conn.open_session.return_value = mock_session
-        mpath_cmds = [
-            (0, ''), # rm and cp bak file
-            (0, ''), # create conf file from template
-            (0, ''), # 0 here means it's systemd (as opposed to sysv)
-            (0, ''), # restart service
-        ]
-        mock_session.run.side_effect = mpath_cmds
-
-        # mock each disk activate to successfully execute
-        for disk in self._pool_obj._disks:
-            disk.activate.side_effect = lambda: sleep(0.5)
-
-        # perform action and validate behavior
-        self._pool_obj.activate()
-        self.assertEqual(mock_session.run.call_count, len(mpath_cmds))
-        for disk in self._pool_obj._disks:
-            disk.activate.assert_called_with()
-
-        # pretend it's a sysv system
-        mock_session.run.reset_mock()
-        mpath_cmds[2] = (1, '')
-        mock_session.run.side_effect = mpath_cmds
-
-        # perform action and validate behavior
-        self._pool_obj.activate()
-        self.assertEqual(mock_session.run.call_count, len(mpath_cmds))
-    # test_activate_success()
-
-    def test_activate_fail_mpath(self):
-        """
-        Exercise failing to activate multipath service
-        """
-        mock_session = mock.Mock(spec_set=GuestSessionLinux)
-        self._mock_host_conn.open_session.return_value = mock_session
-        mock_session.run.side_effect = [
-            (0, ''), # rm and cp bak file
-            (1, ''), # failed to create conf file
-        ]
-        # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, 'Failed to create /etc/multipath.conf'):
-            self._pool_obj.activate()
-
-        mock_session.run.side_effect = [
-            (0, ''), # rm and cp bak file
-            (0, ''), # failed to create conf file
-            (0, ''), # 0 here means it's systemd (as opposed to sysv)
-            (1, ''), # fail to restart service
-        ]
-        # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, r'Failed to \(re\)start multipath daemon'):
-            self._pool_obj.activate()
-
-    # test_activate_fail_mpath()
-
-    def test_activate_thread_fail(self):
-        """
-        Exercise the scenario where one of the disk activation threads fail
-        """
-        mock_session = mock.Mock(spec_set=GuestSessionLinux)
-        self._mock_host_conn.open_session.return_value = mock_session
-        mpath_cmds = [
-            (0, ''), # rm and cp bak file
-            (0, ''), # create conf file from template
-            (0, ''), # 0 here means it's systemd (as opposed to sysv)
-            (0, ''), # restart service
-        ]
-        mock_session.run.side_effect = mpath_cmds
-
-        # mock one thread to succedeed and other to fail
-        self._pool_obj._disks[0].activate.return_value = None
-        self._pool_obj._disks[1].activate.side_effect = RuntimeError('Failed')
-        failed_id = self._pool_obj._disks[1].volume_id
-
-        # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, 'Failed to activate disk {}'.format(failed_id)):
-            self._pool_obj.activate()
-
-    # test_activate_thread_fail()
 
     def test_init(self):
         """
         Exercise the constructor
         """
-        # verify that multipath was set
-        self.assertIs(self._pool_obj._mpath, True, 'Multipath was not set')
+        # add the expected devpath for verification
+        check_vols = []
+        for check_vol in deepcopy(self._volumes):
+            check_vol['hyp_dev_path'] = self._dev_paths[check_vol['volume_id']]
+            check_vols.append(check_vol)
 
         # verify that correct disks were created
         self._mock_disk.assert_has_calls([
-            mock.call(
-                self._volumes[0], self._mock_tgt_mngr, self._mock_host_conn),
-            mock.call(
-                self._volumes[1], self._mock_tgt_mngr, self._mock_host_conn)
+            mock.call(check_vols[0], self._mock_tgt_mngr),
+            mock.call(check_vols[1], self._mock_tgt_mngr)
         ])
         self.assertEqual(len(self._pool_obj._disks), 2)
-
-        # verify that multipath was NOT set
-        volumes = [
-            {
-                'type': 'FCP',
-            },
-        ]
-        pool_obj = pool.StoragePool(
-            volumes, self._mock_tgt_mngr, self._mock_host_conn)
-        self.assertIs(pool_obj._mpath, False, 'Multipath was set')
-
     # test_init()
 
-    def test_init_invalid_type(self):
+    def test_init_invalid_input(self):
         """
-        Exercise the constructor when an invalid disk type is specified
+        Exercise the scenario where the a device path is missing for a volume.
         """
-        volumes = [
-            {'type': 'INVALID'},
-        ]
-        with self.assertRaisesRegex(RuntimeError, 'Unknown disk type INVALID'):
-            pool.StoragePool(
-                volumes, self._mock_tgt_mngr, self._mock_host_conn)
-    # test_init_invalid_type()
+        msg = 'Missing device path on hypervisor for volume 09ab'
+        with self.assertRaisesRegex(ValueError, msg):
+            self._pool_obj = pool.StoragePool(
+                self._volumes, {}, self._mock_tgt_mngr)
+
+    # test_init_invalid_input()
 
     def test_to_xml(self):
         """

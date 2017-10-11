@@ -58,8 +58,7 @@ class HypervisorKvm(HypervisorBase):
         Raises:
             None
         """
-        super().__init__(system_name, host_name, user,
-                         passwd, parameters)
+        super().__init__(system_name, host_name, user, passwd, parameters)
 
         self._logger = get_logger(__name__)
 
