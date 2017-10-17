@@ -19,8 +19,7 @@ Implementation of hypervisor interface for HMC
 #
 # IMPORTS
 #
-
-from tessia.baselib.config import CONF
+from copy import deepcopy
 from tessia.baselib.common.logger import get_logger
 from tessia.baselib.guests.linux.linux import GuestLinux
 from tessia.baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
@@ -39,10 +38,6 @@ import subprocess
 # TODO: compute the timeout based on the amount of storage memory (i.e. 1TB
 # LPAR will take a long time to load)
 NETBOOT_LOAD_TIMEOUT = 1800 # seconds
-# user and password for the auxiliary image
-# TODO: move this to conf file
-NETBOOT_USER = "root"
-NETBOOT_PASSWORD = "somepasswd"
 
 #
 # CODE
@@ -212,39 +207,43 @@ class HypervisorHmc(HypervisorBase):
             raise ZHmcError('Operation failed with: {}'.format(str(exc)))
     # start()
 
-    def _execute_kexec(self, guest, boot_params):
+    def _execute_kexec(self, guest, kernel_url, initrd_url, cmdline):
         """
         Auxiliary method. Execute kexec command on target host.
         This method is only used for the network boot method.
 
         Args:
             guest (GuestLinux): guest linux object
-            boot_params (dict): dictionary with boot parameters
+            kernel_url (string): url to kernel
+            initrd_url (string): url to initrd image
+            cmdline (string): kernel cmdline
 
         Raises:
             None
         """
         self._logger.debug(
-            "Executing kexec on target ramdisk: args='%s'", boot_params
+            "Executing kexec: guest='%s' kernel_url='%s' initrd_url='%s' "
+            "cmdline='%s'", guest, kernel_url, initrd_url, cmdline
         )
 
-        cmdline = boot_params.get('cmdline')
-        kernel = boot_params.get('kernel_url')
-        initrd = boot_params.get('initrd_url')
-
         # copy files to ramdisk
-        guest.push_file(kernel, "/tmp/kernel")
-        guest.push_file(initrd, "/tmp/initrd")
+        guest.push_file(kernel_url, "/tmp/kernel")
+        if initrd_url:
+            guest.push_file(initrd_url, "/tmp/initrd")
 
         session = guest.open_session()
 
         # Execute kexec and ignore the return since it won't be possible to
         # read it. Also use nohup to prevent a race condition where the ssh
         # connection dies too fast before the command is processed.
+        kexec_cmd = 'nohup kexec /tmp/kernel'
+        if initrd_url:
+            kexec_cmd += ' --initrd=/tmp/initrd'
+        if cmdline:
+            kexec_cmd += " --command-line='{}'".format(cmdline)
+        kexec_cmd += ' &>/tmp/kexec.log'
         session.run(
-            "killall -9 sshd; "
-            "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
-            "&>/tmp/kexec.log".format(cmdline), ignore_ret=True)
+            "killall -9 sshd; {}".format(kexec_cmd), ignore_ret=True)
         time.sleep(1)
     #_execute_kexec()
 
@@ -258,6 +257,7 @@ class HypervisorHmc(HypervisorBase):
             boot_params (dict): options as specified in json schema
 
         Raises:
+            ValueError: if an unsupported boot method is specified
             RuntimeError: for netboot method, in case of load timeout or no aux
                 disk configured
         """
@@ -268,77 +268,72 @@ class HypervisorHmc(HypervisorBase):
                 boot_params['wwpn'],
                 boot_params['lun'],
             )
-
         # perform load of a DASD disk
         elif boot_params['boot_method'] == 'dasd':
             lpar.load(boot_params['devicenr'])
-
-        # perform a simulated network boot
         else:
-            # The HMC API does not support Boot From Removable Media
-            # like in the UI, so the netboot is performed using a custom
-            # ramdisk. Once it is loaded, we configure the network using
-            # the SEND_OS_CMD, connect throught SSH, copy the kernel and
-            # initrd to the host and perform a kexec to load the
-            # downloaded kernel.
+            raise ValueError('Unsupported boot method {}'
+                             .format(boot_params['boot_method']))
 
-            try:
-                disk_id = CONF.get_config()['netdisks'][self.name]
-            except KeyError:
-                raise RuntimeError('No auxiliary disk configured for CPC {}'
-                                   .format(self.name)) from None
+        net_setup = boot_params.get('netsetup', {})
+        net_boot = boot_params.get('netboot')
+        # no network setup requested: nothing else to do
+        if not net_setup:
+            return
 
-            # load and wait operation to finish
-            lpar.load(disk_id, timeout=NETBOOT_LOAD_TIMEOUT)
-            timeout = time.time() + NETBOOT_LOAD_TIMEOUT
-            while lpar.get_properties()['status'] != 'operating':
-                if time.time() >= timeout:
-                    raise RuntimeError(
-                        "Timed out while performing load of auxiliary system"
-                    )
-                time.sleep(1)
+        # make sure lpar is up before trying to execute commands
+        timeout = time.time() + NETBOOT_LOAD_TIMEOUT
+        while lpar.get_properties()['status'] != 'operating':
+            if time.time() >= timeout:
+                raise RuntimeError(
+                    "Timed out while waiting for load of operating system"
+                )
+            time.sleep(1)
 
-            # enable ramdisk network
-            self._setup_ramdisk_network(boot_params, lpar)
+        # password cannot be optional as GuestLinux would fail to connect to a
+        # system without password
+        os_passwd = net_setup['password']
+        # enable network on loaded operating system
+        self._setup_network(net_setup, lpar, os_passwd)
 
-            # network is up; open a ssh session to the system
-            guest = GuestLinux(
-                lpar.name,
-                boot_params['ip'],
-                NETBOOT_USER,
-                NETBOOT_PASSWORD,
-                {}
-            )
+        # network is up; open a ssh session to the system
+        guest = GuestLinux(lpar.name, net_setup['ip'], 'root', os_passwd, {})
+        guest.login()
 
-            guest.login()
-            # perform the kexec to the new kernel
-            self._execute_kexec(guest, boot_params)
-            guest.logoff()
+        # netboot config url provided: perform a kexec to simulate netboot
+        if net_boot:
+            kernel_url = net_boot['kernel_url']
+            initrd_url = net_boot.get('initrd_url')
+            cmdline = net_boot.get('cmdline')
+            self._execute_kexec(guest, kernel_url, initrd_url, cmdline)
+
+        guest.logoff()
     # _load()
 
-    def _setup_ramdisk_network(self, boot_params, lpar):
+    def _setup_network(self, net_setup, lpar, os_passwd):
         """
-        Auxiliary method. Setups the network on target ramdisk.
-        This method is only used for the network boot method.
+        Auxiliary method. Setup the network on the loaded operating system.
 
         Args:
-            boot_params (dict): dictionary with boot parameters
+            net_setup (dict): dictionary with network parameters
             lpar (LogicalPartition): logical partition object
+            os_passwd (string): operating system root password
 
         Raises:
             RuntimeError: in case of timeout while waiting for network to come
                           up
         """
         self._logger.debug(
-            "Setting up ramdisk network: args='%s'", boot_params
+            "Setting up network: args='%s'", net_setup
         )
 
-        mac_addr = boot_params['mac']
-        ip_addr = boot_params['ip']
-        subnet_addr = boot_params['mask']
-        gw_addr = boot_params['gateway']
-        channel = boot_params['device']
-        options = boot_params.get('options', {})
+        mac_addr = net_setup['mac']
+        ip_addr = net_setup['ip']
+        dns_servers = net_setup.get('dns')
+        subnet_addr = net_setup['mask']
+        gw_addr = net_setup['gateway']
+        channel = net_setup['device']
+        options = deepcopy(net_setup.get('options', {}))
         try:
             layer2 = options.pop('layer2')
             layer2 = {
@@ -379,18 +374,22 @@ class HypervisorHmc(HypervisorBase):
                 ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr),
             # set default gateway
             "route add default gw {} && \\".format(gw_addr),
-            # TODO: There is a a very known issue that happens once in a while
-            # that causes LPAR's to be unreachable in the network until a
-            # ping is performed (probably to update some arp table or so).
-            # Once this issue is fixed, remove this.
-            "ping -c 1 {}".format(gw_addr),
         ])
+        if dns_servers:
+            net_cmds.append("echo > /etc/resolv.conf && \\")
+            for dns_entry in dns_servers:
+                net_cmds.append(
+                    "echo 'nameserver {}' >> /etc/resolv.conf && \\"
+                    .format(dns_entry))
+        # sometimes the LPAR is unreachable from the network until a ping is
+        # performed (likely because of arp cache)
+        net_cmds.append("ping -c 1 {}".format(gw_addr))
         timeout = time.time() + NETBOOT_LOAD_TIMEOUT
         while True:
             # the api has a limit of 200 chars per call so we need to split the
             # commands in smaller pieces
-            lpar.send_os_command(NETBOOT_USER)
-            lpar.send_os_command(NETBOOT_PASSWORD)
+            lpar.send_os_command('root')
+            lpar.send_os_command(os_passwd)
             for cmd in net_cmds:
                 lpar.send_os_command(cmd)
             # verify if system is reachable
@@ -406,11 +405,11 @@ class HypervisorHmc(HypervisorBase):
 
             if time.time() >= timeout:
                 raise RuntimeError(
-                    "Timed out while waiting for network on auxiliary system"
-                )
+                    "Timed out while waiting for network on loaded operating "
+                    "system")
             time.sleep(5)
 
-    # _setup_ramdisk_network()
+    # _setup_network()
 
     def _calculate_number_cpus(self, total_cpus, ifl_cpus):
         """

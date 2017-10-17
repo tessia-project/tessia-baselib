@@ -79,15 +79,21 @@ lpar_cpu = 6
 lpar_memory = 4096
 lpar_parameters = {
 "boot_params": {
-    "boot_method" : "network",
-    "kernel_url": "http://repo.domain.com/redhat/RHEL7.2/DVD/images/kernel.img",
-    "initrd_url": "http://repo.domain.com/redhat/RHEL7.2/DVD/images/initrd.img",
-    "cmdline": "root=live:ftp://repo.domain.com/redhat/RHEL7.2/DVD/images/install.img ro ramdisk_size=50000 cio_ignore=all,!condev,rd.dasd=0.0.7e2c readonly=0 rd.znet=qeth,0.0.f500,0.0.f501,0.0.f502,layer2=1 ip=192.168.5.12::192.168.5.1:255.255.255.0:cp23lp12:enccw0.0.f500:none nameserver=192.168.15.241 searchdns=domain.com inst.ks=http://installserver.domain.com/ks.file inst.vnc inst.vncpassword=",
-    "mac": "02:23:12:00:76:00",
-    "ip": "192.168.5.12",
-    "mask": "255.255.255.0",
-    "gateway": "192.168.5.1",
-    "device": "f500,f501,f502"
+    "boot_method" : "dasd",
+    'devicenr': '6500', # this is the pre-allocated disk with the live-image
+    'netsetup': {
+        "mac": "02:23:12:00:76:00",
+        "ip": "192.168.5.12",
+        "mask": "255.255.255.0",
+        "gateway": "192.168.5.1",
+        "device": "f500,f501,f502"
+        "password": "rootpwd",
+        "dns": ['192.168.15.241'],
+    },
+    'netboot': {
+        "cmdline": "root=live:ftp://repo.domain.com/redhat/RHEL7.2/DVD/images/install.img ro ramdisk_size=50000 cio_ignore=all,!condev,rd.dasd=0.0.7e2c readonly=0 rd.znet=qeth,0.0.f500,0.0.f501,0.0.f502,layer2=1 ip=192.168.5.12::192.168.5.1:255.255.255.0:cp23lp12:enccw0.0.f500:none nameserver=192.168.15.241 searchdns=domain.com inst.ks=http://installserver.domain.com/ks.file inst.vnc inst.vncpassword=",
+        "kernel_url": "http://repo.domain.com/redhat/RHEL7.2/DVD/images/kernel.img",
+        "initrd_url": "http://repo.domain.com/redhat/RHEL7.2/DVD/images/initrd.img",
     }
 }
 
