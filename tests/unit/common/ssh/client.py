@@ -21,9 +21,9 @@ client class.
 # IMPORTS
 #
 
-from tessia_baselib.common.ssh import client
-from tessia_baselib.common.ssh import shell as shell_module
-from tessia_baselib.common.ssh.exceptions import SshClientError
+from tessia.baselib.common.ssh import client
+from tessia.baselib.common.ssh import shell as shell_module
+from tessia.baselib.common.ssh.exceptions import SshClientError
 from unittest import main as unittest_main
 from unittest import mock
 from unittest import TestCase
@@ -104,7 +104,7 @@ class TestSshClientConnected(TestCase):
         # class with a mock, this way no actual connection to
         # a real ssh server is needed.
         patcher = mock.patch(
-            target='tessia_baselib.common.ssh.client.paramiko.SSHClient',
+            target='tessia.baselib.common.ssh.client.paramiko.SSHClient',
             autospec=True)
 
         # activate the patch
@@ -117,7 +117,7 @@ class TestSshClientConnected(TestCase):
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
         log_patcher = mock.patch(
-            'tessia_baselib.common.ssh.client.get_logger', autospec=True)
+            'tessia.baselib.common.ssh.client.get_logger', autospec=True)
         log_patcher.start()
         # ensure patch is reverted even if setUp throws an exception
         self.addCleanup(log_patcher.stop)
@@ -361,7 +361,7 @@ class TestSshClientConnected(TestCase):
 
         # Mock our shell class to simplify this test, since the shell
         # will try to run some initial commands.
-        with mock.patch('tessia_baselib.common.ssh.client.SshShell',
+        with mock.patch('tessia.baselib.common.ssh.client.SshShell',
                         autospec=True):
 
             shell = self._client.open_shell(None, None)
@@ -459,7 +459,7 @@ class TestSshClientConnected(TestCase):
 
         # Mock our shell class to simplify this test, since the shell
         # will try to run some initial commands.
-        with mock.patch('tessia_baselib.common.ssh.client.SshShell',
+        with mock.patch('tessia.baselib.common.ssh.client.SshShell',
                         autospec=True):
 
             self._client.path_exists = mock.MagicMock(return_value=True)
@@ -491,7 +491,7 @@ class TestSshClientConnected(TestCase):
 
         # Mock our sell class to simplify this test, since the shell
         # will try to run some initial commands.
-        with mock.patch('tessia_baselib.common.ssh.client.SshShell',
+        with mock.patch('tessia.baselib.common.ssh.client.SshShell',
                         autospec=True):
 
             self._client.path_exists = mock.MagicMock(return_value=True)
@@ -927,7 +927,7 @@ class TestSshClientNotConnected(TestCase):
         # class with a mock, this way no actual connection to
         # a real ssh server is needed.
         patcher = mock.patch(
-            target='tessia_baselib.common.ssh.client.paramiko.SSHClient',
+            target='tessia.baselib.common.ssh.client.paramiko.SSHClient',
             autospec=True)
 
         # Activate the patch. The attribute will hold the mocked class.
@@ -941,7 +941,7 @@ class TestSshClientNotConnected(TestCase):
         # patch the function that gets a logger so that the test does not try
         # to create real log file on the filesystem
         log_patcher = mock.patch(
-            'tessia_baselib.common.ssh.client.get_logger', autospec=True)
+            'tessia.baselib.common.ssh.client.get_logger', autospec=True)
         self._mock_getlogger = log_patcher.start()
         self.addCleanup(log_patcher.stop)
 

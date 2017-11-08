@@ -19,7 +19,7 @@ Unit test for GuestBase
 #
 # IMPORTS
 #
-from tessia_baselib.guests import base
+from tessia.baselib.guests import base
 from unittest import TestCase
 from unittest.mock import sentinel
 

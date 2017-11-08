@@ -19,7 +19,7 @@ Unit test for config module
 #
 # IMPORTS
 #
-from tessia_baselib import config
+from tessia.baselib import config
 from unittest import TestCase
 from unittest import mock
 from unittest.mock import patch

@@ -9,16 +9,15 @@ markdown_extensions:
         permalink: True
 # css/html theme
 theme: cosmo
-site_name: tessia-baselib
-repo_url: https://gitlab.com/tessia-project/tessia_baselib
-#copyright: TBD
+site_name: Tessia base library
+repo_url: https://gitlab.com/tessia-project/tessia-baselib
+copyright: IBM Corp. 2017
 pages:
 - Home: 'index.md'
 - User guide:
     - Build and install: 'users/build.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
     - Hypervisor KVM: 'users/hypervisor_kvm.md'
-    - REST-API: 'users/api.md'
 - Developers:
     - Coding guidelines: 'developers/coding_guidelines.md'
     - Development process: 'developers/dev_process.md'

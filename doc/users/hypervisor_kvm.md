@@ -20,18 +20,18 @@ This page describes the usage of the HypervisorKvm class and provides some use c
 The definition of the parameters format is available in the jsonschema folder:
 
 ```bash
- tessia_baselib/common/params_validators/schemas/kvm
+ tessia/baselib/common/params_validators/schemas/kvm
 ```
 
 ## Start a Guest
 
 ```python
-from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
+from tessia.baselib.hypervisors.kvm.kvm import HypervisorKvm
 
 hypervisor_name = "cpc3lp55"
 hypervisor_hostname = "cpc3lp55.domain.com"
 hypervisor_user = "root"
-hypervisor_pwd = "somepasswd"
+hypervisor_pwd = "somepwd"
 # Currently there are no parameters for instantiating a kvm hypervisor
 hypervisor_params = None
 kvm = HypervisorKvm(hypervisor_name, hypervisor_hostname,
@@ -88,12 +88,12 @@ kvm.logoff()
 ## Start a Guest using network boot
 
 ```python
-from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
+from tessia.baselib.hypervisors.kvm.kvm import HypervisorKvm
 
 hypervisor_name = "cpc3lp55"
 hypervisor_hostname = "cpc3lp55.domain.com"
 hypervisor_user = "root"
-hypervisor_pwd = "somepasswd"
+hypervisor_pwd = "somepwd"
 # Currently there are no parameters for instantiating a kvm hypervisor
 hypervisor_params = None
 kvm = HypervisorKvm(hypervisor_name, hypervisor_hostname,
@@ -142,7 +142,7 @@ guest_parameters = {
         "boot_options": {
             "kernel_uri": "http://installserver.domain.com/redhat/RHEL7.2/DVD/images/kernel.img",
             "initrd_uri": "http://installserver.domain.com/redhat/RHEL7.2/DVD/images/initrd.img",
-            "cmdline": "ro ramdisk_size=40000 inst.repo=http://installserver.domain.com/redhat/RHEL7.2/DVD/ ip=192.168.5.54::192.168.5.1:22:kvm054.domain.com:eth0:none nameserver=192.168.15.241 inst.sshd inst.vnc inst.vncpassword=123456 inst.ks=http://install_server/anaconda-ks.cfg"
+            "cmdline": "ro ramdisk_size=40000 inst.repo=http://installserver.domain.com/redhat/RHEL7.2/DVD/ ip=192.168.5.54::192.168.5.1:22:kvm054.domain.com:eth0:none nameserver=192.168.15.241 inst.sshd inst.vnc inst.vncpassword=123456 inst.ks=http://installserver.domain.com/anaconda-ks.cfg"
         }
     }
 }
@@ -152,12 +152,12 @@ kvm.logoff()
 
 ## Stop a Guest
 ```python
-from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
+from tessia.baselib.hypervisors.kvm.kvm import HypervisorKvm
 
 hypervisor_name = "cpc3lp55"
 hypervisor_hostname = "cpc3lp55.domain.com"
 hypervisor_user = "root"
-hypervisor_pwd = "somepasswd"
+hypervisor_pwd = "somepwd"
 guest_name = "kvm054"
 # Currently there are no parameters for instantiating a kvm hypervisor
 hypervisor_params = None
@@ -172,12 +172,12 @@ kvm.logoff()
 
 ## Reboot a Guest
 ```python
-from tessia_baselib.hypervisors.kvm.kvm import HypervisorKvm
+from tessia.baselib.hypervisors.kvm.kvm import HypervisorKvm
 
 hypervisor_name = "cpc3lp55"
 hypervisor_hostname = "cpc3lp55.domain.com"
 hypervisor_user = "root"
-hypervisor_pwd = "somepasswd"
+hypervisor_pwd = "somepwd"
 guest_name = "kvm054"
 # Currently there are no parameters for instantiating a kvm hypervisor
 hypervisor_params = None

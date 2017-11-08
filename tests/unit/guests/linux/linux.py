@@ -19,7 +19,7 @@ Unit test for linux module
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux import linux
+from tessia.baselib.guests.linux import linux
 from tempfile import NamedTemporaryFile
 from unittest import TestCase
 from unittest.mock import Mock
@@ -243,7 +243,7 @@ class TestGuestLinux(TestCase):
 
         # validate the logging was correct
         # define the content we expect to see in the log file
-        log_prefix = 'DEBUG:tessia_baselib.guests.linux.linux'
+        log_prefix = 'DEBUG:tessia.baselib.guests.linux.linux'
         expected_log = (
             "{0}:create GuestLinux: name='{1.name}' host_name='{1.host_name}' "
             "user='{1.user}' extensions='{1.extensions}'\n".format(

@@ -19,8 +19,8 @@ Module for the TestUtils class.
 #
 # IMPORTS
 #
-from tessia_baselib.common.utils import timer
-from tessia_baselib.common.ssh.shell import SshShell
+from tessia.baselib.common.utils import timer
+from tessia.baselib.common.ssh.shell import SshShell
 from unittest import mock
 
 import unittest
@@ -37,7 +37,7 @@ class TestUtils(unittest.TestCase):
     """
     Class for tests of the utils module.
     """
-    @mock.patch("tessia_baselib.common.utils.sleep", spec_set=True)
+    @mock.patch("tessia.baselib.common.utils.sleep", spec_set=True)
     def test_timer(self, mock_sleep):
         """
         Test the timer function for the general case. It succeeds
@@ -55,7 +55,7 @@ class TestUtils(unittest.TestCase):
                                                  mock.call(3)])
     # test_timer()
 
-    @mock.patch("tessia_baselib.common.utils.sleep", spec_set=True)
+    @mock.patch("tessia.baselib.common.utils.sleep", spec_set=True)
     def test_timer_fails(self, mock_sleep):
         """
         Test the timer function for the case that it should fail, after

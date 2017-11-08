@@ -67,7 +67,7 @@ def main():
         subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format('tests/unit')
         cmds.append(CMD_COVERAGE.format(
             import_method='source',
-            source_path='tessia_baselib',
+            source_path='tessia.baselib',
             subcmd=subcmd_unittest
         ))
 
@@ -76,7 +76,7 @@ def main():
         subcmd_unittest = SUBCMD_UNITTEST_MODULE.format(sys.argv[1])
         cmds.append(CMD_COVERAGE.format(
             import_method='include',
-            source_path=sys.argv[1].replace("tests/unit", "tessia_baselib"),
+            source_path=sys.argv[1].replace("tests/unit", "tessia/baselib"),
             subcmd=subcmd_unittest
         ))
 
@@ -85,7 +85,7 @@ def main():
         subcmd_unittest = SUBCMD_UNITTEST_DISCOVER.format(sys.argv[1])
         cmds.append(CMD_COVERAGE.format(
             import_method='source',
-            source_path=sys.argv[1].replace("tests/unit", "tessia_baselib"),
+            source_path=sys.argv[1].replace("tests/unit", "tessia/baselib"),
             subcmd=subcmd_unittest
         ))
 

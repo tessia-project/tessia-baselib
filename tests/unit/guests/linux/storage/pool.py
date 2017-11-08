@@ -19,9 +19,9 @@ Test module for the pool module.
 #
 # IMPORTS
 #
-from tessia_baselib.common.ssh.client import SshClient
-from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.guests.linux.storage import pool
+from tessia.baselib.common.ssh.client import SshClient
+from tessia.baselib.common.ssh.shell import SshShell
+from tessia.baselib.guests.linux.storage import pool
 from time import sleep
 from unittest import mock
 from unittest.mock import patch

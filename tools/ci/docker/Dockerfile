@@ -3,7 +3,7 @@ FROM ubuntu:latest
 # by default we expect the git repo to be placed by the ci process under /assets
 # but it is also possible to use this dockerfile directly and override the variables
 # to point to another location
-ARG git_repo=/assets/tessia_baselib.git
+ARG git_repo=/assets/tessia-baselib.git
 
 RUN apt-get update -q && \
     # Install the distro dependencies.
@@ -13,19 +13,18 @@ RUN apt-get update -q && \
     python3-pip \
     # used by pbr (in setuptools) to detect module version numbers
     git \
-    # these are needed to build cryptography (dep chain is tessia_baselib -> paramiko ->
-    # cryptography)
+    # these are needed to build cryptography (dep chain is paramiko -> cryptography)
     build-essential \
     libssl-dev \
     libffi-dev \
     python3-dev && \
     # Install the python dependencies.
-    # setuptools for installing applications (including tessia_baselib) - it must be installed
-    # separately first otherwise other packages fail to install
+    # setuptools for installing python applications - it must be installed first
+    # separately otherwise other packages fail to install
     pip3 install -U setuptools && \
     # update the pip version if necessary
     pip3 install -U pip \
-    # pbr is used by tessia_baselib for installation
+    # pbr is used by tessia-baselib for installation
     pbr \
     # dependencies used for testing builds
     pylint \
@@ -33,10 +32,10 @@ RUN apt-get update -q && \
 
 COPY assets /assets/
 
-# tessia_baselib installation
+# library installation
 RUN cd /assets && \
-    git clone $git_repo tessia_baselib && \
-    cd tessia_baselib && \
+    git clone $git_repo tessia-baselib && \
+    cd tessia-baselib && \
     pip3 install -U -r requirements.txt && \
     ./setup.py install && \
     # files settings

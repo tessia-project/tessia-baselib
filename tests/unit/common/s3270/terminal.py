@@ -21,8 +21,8 @@ Terminal unittest
 #
 from unittest.mock import patch
 from unittest import TestCase
-from tessia_baselib.common.s3270.terminal import Terminal
-from tessia_baselib.common.s3270.exceptions import ZvmMessageError
+from tessia.baselib.common.s3270.terminal import Terminal
+from tessia.baselib.common.s3270.exceptions import ZvmMessageError
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -46,7 +46,7 @@ class TestTerminal(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         self.s3270_patcher = patch(
-            'tessia_baselib.common.s3270.terminal.S3270',
+            'tessia.baselib.common.s3270.terminal.S3270',
             autospec=True)
         self.mock_s3270 = self.s3270_patcher.start()
         self.addCleanup(self.s3270_patcher.stop)

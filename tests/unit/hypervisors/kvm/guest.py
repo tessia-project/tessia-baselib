@@ -19,9 +19,9 @@ Test module for the guest module.
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.linux import GuestLinux
-from tessia_baselib.hypervisors.kvm.guest import GuestKvm
-from tessia_baselib.hypervisors.kvm.iface import Iface
+from tessia.baselib.guests.linux.linux import GuestLinux
+from tessia.baselib.hypervisors.kvm.guest import GuestKvm
+from tessia.baselib.hypervisors.kvm.iface import Iface
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import sentinel
@@ -44,19 +44,20 @@ class TestGuestKvm(TestCase):
         # Create the mocks of the objects that are used as parameters
         # in the instantiation of the class.
         patcher = mock.patch(
-            "tessia_baselib.hypervisors.kvm.guest.TargetDeviceManager")
+            "tessia.baselib.hypervisors.kvm.guest.TargetDeviceManager")
         self._mock_tgt_dv_mngr = patcher.start()
         self.addCleanup(patcher.stop)
 
-        patcher = mock.patch("tessia_baselib.hypervisors.kvm.guest.Iface")
+        patcher = mock.patch("tessia.baselib.hypervisors.kvm.guest.Iface")
         self._mock_iface = patcher.start()
         self.addCleanup(patcher.stop)
 
-        patcher = mock.patch("tessia_baselib.hypervisors.kvm.guest.StoragePool")
+        patcher = mock.patch(
+            "tessia.baselib.hypervisors.kvm.guest.StoragePool")
         self._mock_pool = patcher.start()
         self.addCleanup(patcher.stop)
 
-        patcher = mock.patch("tessia_baselib.hypervisors.kvm.guest.open",
+        patcher = mock.patch("tessia.baselib.hypervisors.kvm.guest.open",
                              create=True)
         self._mock_open = patcher.start()
         self._mock_template_file = mock.Mock()
@@ -103,7 +104,7 @@ class TestGuestKvm(TestCase):
             vols=self._parameters['storage_volumes'])
     # test_activate()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.guest.uuid", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.guest.uuid", spec_set=True)
     def test_to_xml(self, mock_uuid):
         """
         Test that the guest object is properly converted to xml.

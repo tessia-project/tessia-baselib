@@ -21,7 +21,7 @@ S3270PipeConnector unittest
 #
 from unittest.mock import patch, Mock
 from unittest import TestCase
-from tessia_baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
+from tessia.baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
 from subprocess import TimeoutExpired
 
 #
@@ -65,7 +65,7 @@ class TestS3270PipeConnector(TestCase):
         ]
 
         self.read_patcher = patch(
-            'tessia_baselib.common.s3270.s3270pipeconnector.read', autospec=True
+            'tessia.baselib.common.s3270.s3270pipeconnector.read', autospec=True
         )
         self.mock_read = self.read_patcher.start()
         self.addCleanup(self.read_patcher.stop)

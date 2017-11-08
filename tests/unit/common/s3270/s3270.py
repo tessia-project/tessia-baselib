@@ -21,8 +21,8 @@ S3270 unittest
 #
 from unittest.mock import patch
 from unittest import TestCase
-from tessia_baselib.common.s3270.s3270 import S3270
-from tessia_baselib.common.s3270.exceptions import S3270StatusError
+from tessia.baselib.common.s3270.s3270 import S3270
+from tessia.baselib.common.s3270.exceptions import S3270StatusError
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -46,7 +46,7 @@ class TestS3270(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         self.pipeconnector_patcher = patch(
-            'tessia_baselib.common.s3270.s3270.S3270PipeConnector',
+            'tessia.baselib.common.s3270.s3270.S3270PipeConnector',
             autospec=True)
         self.mock_pipeconnector = self.pipeconnector_patcher.start()
         self.addCleanup(self.pipeconnector_patcher.stop)

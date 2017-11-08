@@ -19,10 +19,11 @@ Unit test for the cpc module
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
-from tessia_baselib.hypervisors.hmc.zhmc.logical_partition import LogicalPartition
-from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
+from tessia.baselib.hypervisors.hmc.zhmc.cpc import CPC
+from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
+from tessia.baselib.hypervisors.hmc.zhmc.logical_partition import \
+    LogicalPartition
+from tessia.baselib.hypervisors.hmc.zhmc.activation_profile import (
     ActivationProfile
 )
 from unittest import mock

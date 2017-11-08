@@ -19,9 +19,9 @@ Test module for disk module
 #
 # IMPORTS
 #
-from tessia_baselib.common.ssh.client import SshClient
-from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.guests.linux.storage import disk as disk_module
+from tessia.baselib.common.ssh.client import SshClient
+from tessia.baselib.common.ssh.shell import SshShell
+from tessia.baselib.guests.linux.storage import disk as disk_module
 
 from unittest import mock
 from unittest import TestCase

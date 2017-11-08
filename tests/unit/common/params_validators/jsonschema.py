@@ -20,7 +20,7 @@ Module for unit tests of the JsonschemaValidator class.
 #
 # IMPORTS
 #
-from tessia_baselib.common.params_validators.jsonschema import JsonschemaValidator
+from tessia.baselib.common.params_validators.jsonschema import JsonschemaValidator
 from unittest import mock
 
 import unittest
@@ -40,7 +40,7 @@ class TestJsonschemaValidator(unittest.TestCase):
     """
     Unit test for the JsonschemaValidator class
     """
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('tessia.baselib.common.params_validators.base.json', autospec=True)
     @mock.patch('builtins.open', autospec=True)
     def test_schema_not_valid(self, mock_open, mock_json):
         """
@@ -59,7 +59,7 @@ class TestJsonschemaValidator(unittest.TestCase):
         self.assertRaises(ValueError, JsonschemaValidator, "any_place")
     # test_schema_not_valid()
 
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('tessia.baselib.common.params_validators.base.json', autospec=True)
     @mock.patch('builtins.open', autospec=True)
     def test_validation_error(self, mock_open, mock_json):
         """
@@ -79,11 +79,11 @@ class TestJsonschemaValidator(unittest.TestCase):
         self.assertRaises(ValueError, validator.validate, "string")
     # test_validation_error()
 
-    @mock.patch('tessia_baselib.common.params_validators.jsonschema.jsonschema',
+    @mock.patch('tessia.baselib.common.params_validators.jsonschema.jsonschema',
                 autospec=True)
-    @mock.patch('tessia_baselib.common.params_validators.jsonschema.FormatChecker',
+    @mock.patch('tessia.baselib.common.params_validators.jsonschema.FormatChecker',
                 autospec=True)
-    @mock.patch('tessia_baselib.common.params_validators.base.json', autospec=True)
+    @mock.patch('tessia.baselib.common.params_validators.base.json', autospec=True)
     @mock.patch('builtins.open', autospec=True)
     def test_validate(self, mock_open, mock_json, mock_fmt_checker,
                       mock_jsonschema):

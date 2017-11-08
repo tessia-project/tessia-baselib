@@ -20,13 +20,13 @@ This page describes the usage of the HypervisorHmc class and provides some use c
 The definition of the parameters format is available in the jsonschema folder:
 
 ```bash
- tessia_baselib/common/params_validators/schemas/hmc
+ tessia/baselib/common/params_validators/schemas/hmc
 ```
 
 ## Start an LPAR
 
 ```python
-from tessia_baselib.hypervisors.hmc import hmc
+from tessia.baselib.hypervisors.hmc import hmc
 
 hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
 hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
@@ -59,7 +59,7 @@ hmc.logoff()
 ## Start an LPAR using network boot
 
 ```python
-from tessia_baselib.hypervisors.hmc import hmc
+from tessia.baselib.hypervisors.hmc import hmc
 
 hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
 hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
@@ -97,7 +97,7 @@ hmc.logoff()
 
 ## Stop an LPAR
 ```python
-from tessia_baselib.hypervisors.hmc import hmc
+from tessia.baselib.hypervisors.hmc import hmc
 
 hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
 hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
@@ -120,7 +120,7 @@ hmc.logoff()
 ```
 ## Reboot an LPAR
 ```python
-from tessia_baselib.hypervisors.hmc import hmc
+from tessia.baselib.hypervisors.hmc import hmc
 
 hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
 hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running

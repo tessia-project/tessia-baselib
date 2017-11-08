@@ -20,10 +20,10 @@ Test module for disk_fcp module
 # IMPORTS
 #
 from copy import deepcopy
-from tessia_baselib.common import utils
-from tessia_baselib.common.ssh.client import SshClient
-from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.guests.linux.storage import disk_fcp
+from tessia.baselib.common import utils
+from tessia.baselib.common.ssh.client import SshClient
+from tessia.baselib.common.ssh.shell import SshShell
+from tessia.baselib.guests.linux.storage import disk_fcp
 from unittest import mock
 from unittest import TestCase
 

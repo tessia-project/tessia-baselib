@@ -19,8 +19,8 @@ Test module for iface module.
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.kvm.iface import Iface
-from tessia_baselib.hypervisors.kvm.target_device_manager \
+from tessia.baselib.hypervisors.kvm.iface import Iface
+from tessia.baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 from unittest import mock
 from unittest import TestCase
@@ -87,7 +87,7 @@ class TestIface(TestCase):
                       IFACE_PARAMS.get("attributes").get("libvirt"))
     # test_to_xml()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.iface.open",
+    @mock.patch("tessia.baselib.hypervisors.kvm.iface.open",
                 create=True)
     def test_to_xml_read_template(self, mock_open):
         """

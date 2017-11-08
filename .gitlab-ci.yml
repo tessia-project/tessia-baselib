@@ -18,18 +18,18 @@ before_script:
 build:
   stage: build
   script:
-    - git bundle create tools/ci/docker/assets/tessia_baselib.git HEAD
-    - docker build --force-rm -f tools/ci/docker/Dockerfile -t tessia_baselib:${COMMIT_REF} tools/ci/docker
+    - git bundle create tools/ci/docker/assets/tessia-baselib.git HEAD
+    - docker build --force-rm -f tools/ci/docker/Dockerfile -t tessia-baselib:${COMMIT_REF} tools/ci/docker
 
 lint:
   stage: lint
   script:
-    - docker run -t --rm --name tessia_baselib.${COMMIT_REF} --entrypoint /assets/tessia_baselib/tools/run_pylint.py tessia_baselib:${COMMIT_REF}
+    - docker run -t --rm --name tessia-baselib.${COMMIT_REF} --entrypoint /assets/tessia-baselib/tools/run_pylint.py tessia-baselib:${COMMIT_REF}
 
 unittest:
   stage: unittest
   script:
-    - docker run -t --rm --name tessia_baselib.${COMMIT_REF} --entrypoint /assets/tessia_baselib/tools/run_tests.py tessia_baselib:${COMMIT_REF}
+    - docker run -t --rm --name tessia-baselib.${COMMIT_REF} --entrypoint /assets/tessia-baselib/tools/run_tests.py tessia-baselib:${COMMIT_REF}
   coverage: '/^TOTAL.*\s+(\d+\%)$/'
 
 # job used to push new versions of the library for consumption (as an gitlab artifact)
@@ -37,10 +37,10 @@ unittest:
 release:
   stage: deploy
   script:
-    - tar zcvf tessia_baselib-${COMMIT_REF}.tgz --exclude=tools/ci/docker/assets/tessia_baselib.git *
+    - tar zcvf tessia-baselib-${COMMIT_REF}.tgz --exclude=tools/ci/docker/assets/tessia-baselib.git *
   artifacts:
     paths:
-      - tessia_baselib-${COMMIT_REF}.tgz
+      - tessia-baselib-${COMMIT_REF}.tgz
   only:
     - tags
 
@@ -48,10 +48,10 @@ snapshot:
   stage: deploy
   script:
     - echo ${COMMIT_SHA:0:7}
-    - tar zcvf tessia_baselib-master_${COMMIT_SHA:0:7}.tgz --exclude=tools/ci/docker/assets/tessia_baselib.git *
+    - tar zcvf tessia-baselib-master_${COMMIT_SHA:0:7}.tgz --exclude=tools/ci/docker/assets/tessia-baselib.git *
   artifacts:
     paths:
-      - tessia_baselib-master_${COMMIT_SHA:0:7}.tgz
+      - tessia-baselib-master_${COMMIT_SHA:0:7}.tgz
   #only:
   #  - master
   when: manual
@@ -61,7 +61,7 @@ cleanup:
   stage: cleanup
   when: always
   script:
-    - docker rm -v $(docker ps -a -q -f "ancestor=tessia_baselib.${COMMIT_REF}") || true
+    - docker rm -v $(docker ps -a -q -f "ancestor=tessia-baselib.${COMMIT_REF}") || true
     - docker rmi $(docker images -a -q -f "dangling=true") || true
     # use --no-prune to keep the cache for subsequent builds
-    - docker rmi --no-prune tessia_baselib:${COMMIT_REF}
+    - docker rmi --no-prune tessia-baselib:${COMMIT_REF}

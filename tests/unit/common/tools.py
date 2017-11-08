@@ -19,7 +19,7 @@ Unit test from the common.tools module
 #
 # IMPORTS
 #
-from tessia_baselib.common.tools import import_modules
+from tessia.baselib.common.tools import import_modules
 from importlib.machinery import SourceFileLoader
 from tempfile import TemporaryDirectory
 from unittest import TestCase

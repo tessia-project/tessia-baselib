@@ -19,8 +19,8 @@ Module for unit tests of the utility functions of the util module.
 
 #
 # IMPORTS
-from tessia_baselib.common.params_validators.utils import create_params_validator
-from tessia_baselib.common.params_validators.utils import validate_params
+from tessia.baselib.common.params_validators.utils import create_params_validator
+from tessia.baselib.common.params_validators.utils import validate_params
 from unittest import mock
 
 import unittest
@@ -38,7 +38,7 @@ class TestUtils(unittest.TestCase):
     """
     Unit tests for the utility functions of parameters validation.
     """
-    @mock.patch('tessia_baselib.common.params_validators.utils.CONF',
+    @mock.patch('tessia.baselib.common.params_validators.utils.CONF',
                 autospec=True)
     def test_invalid_params_validator(self, mock_conf):
         """
@@ -82,9 +82,9 @@ class TestUtils(unittest.TestCase):
                                VALIDATOR_NOT_IN_LIBS)
     # test_invalid_params_validator_in_arguments()
 
-    @mock.patch("tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS",
+    @mock.patch("tessia.baselib.common.params_validators.utils.VALIDATOR_LIBS",
                 autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.utils.CONF",
+    @mock.patch("tessia.baselib.common.params_validators.utils.CONF",
                 autospec=True)
     def test_create_params_validator_default(self, mock_conf,
                                              mock_validator_libs):
@@ -93,7 +93,7 @@ class TestUtils(unittest.TestCase):
 
         Args:
             mock_conf: Mock of the dictionary containing the
-                       tessia_baselib configuration.
+                       tessia.baselib configuration.
             mock_validator_libs: Mock of the constant dictionary that
                                  contains all the supported json schema
                                  validation libraries.
@@ -121,9 +121,9 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(lib, mock_my_lib)
     # test_create_params_validator_default()
 
-    @mock.patch("tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS",
+    @mock.patch("tessia.baselib.common.params_validators.utils.VALIDATOR_LIBS",
                 autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.utils.CONF",
+    @mock.patch("tessia.baselib.common.params_validators.utils.CONF",
                 autospec=True)
     def test_create_params_validator_argument(self,mock_conf,
                                               mock_validator_libs):
@@ -133,7 +133,7 @@ class TestUtils(unittest.TestCase):
 
         Args:
             mock_conf: Mock of the dictionary containing the
-                       tessia_baselib configuration.
+                       tessia.baselib configuration.
             mock_validator_libs: Mock of the constant dictionary that
                                  contains all the supported json schema
                                  validation libraries.
@@ -167,12 +167,12 @@ class TestUtils(unittest.TestCase):
     # test_create_params_validator_argument()
 
     @mock.patch(
-        'tessia_baselib.common.params_validators.utils.VALIDATOR_LIBS',
+        'tessia.baselib.common.params_validators.utils.VALIDATOR_LIBS',
         autospec=True)
     @mock.patch(
-        'tessia_baselib.common.params_validators.utils.JsonschemaValidator',
+        'tessia.baselib.common.params_validators.utils.JsonschemaValidator',
         autospec=True)
-    @mock.patch('tessia_baselib.common.params_validators.utils.CONF')
+    @mock.patch('tessia.baselib.common.params_validators.utils.CONF')
     def test_default_validator(self, mock_conf, mock_jsonschema, mock_libs):
         """
         Test the case when the default validator is not defined and not
@@ -224,7 +224,7 @@ class TestUtils(unittest.TestCase):
                                validate_params, mock_func)
     # test_func_name_is_not_valid()
 
-    @mock.patch("tessia_baselib.common.params_validators.utils.inspect",
+    @mock.patch("tessia.baselib.common.params_validators.utils.inspect",
                 autospec=True)
     def test_func_argument_not_valid(self, mock_inspect):
         """
@@ -252,12 +252,12 @@ class TestUtils(unittest.TestCase):
                                validate_params, mock_func)
     # test_func_argument_not_valid()
 
-    @mock.patch("tessia_baselib.common.params_validators.utils.inspect",
+    @mock.patch("tessia.baselib.common.params_validators.utils.inspect",
                 autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.utils.os", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators"
+    @mock.patch("tessia.baselib.common.params_validators.utils.os", autospec=True)
+    @mock.patch("tessia.baselib.common.params_validators"
                 ".utils.create_params_validator", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators"
+    @mock.patch("tessia.baselib.common.params_validators"
                 ".utils.SCHEMAS_BASE_DIR", new="BASE_DIR")
     def test_validate_params(self, mock_create_params_validator,
                              mock_os, mock_inspect):

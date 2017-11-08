@@ -19,7 +19,7 @@ Unit test for module guests.base_session
 #
 # IMPORTS
 #
-from tessia_baselib.guests.base_session import GuestSessionBase
+from tessia.baselib.guests.base_session import GuestSessionBase
 from unittest import TestCase
 
 #

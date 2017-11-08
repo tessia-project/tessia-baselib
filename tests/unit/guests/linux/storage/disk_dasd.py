@@ -19,10 +19,10 @@ Test module for disk_dasd module.
 #
 # IMPORTS
 #
-from tessia_baselib.common import utils
-from tessia_baselib.common.ssh.client import SshClient
-from tessia_baselib.common.ssh.shell import SshShell
-from tessia_baselib.guests.linux.storage.disk_dasd import DiskDasd
+from tessia.baselib.common import utils
+from tessia.baselib.common.ssh.client import SshClient
+from tessia.baselib.common.ssh.shell import SshShell
+from tessia.baselib.guests.linux.storage.disk_dasd import DiskDasd
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch

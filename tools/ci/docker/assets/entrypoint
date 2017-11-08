@@ -15,4 +15,4 @@
 
 
 set -x
-python3 -i -c "from tessia_baselib.hypervisors import Hypervisor; from tessia_baselib.guests import Guest"
+python3 -i -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.baselib.guests import Guest"

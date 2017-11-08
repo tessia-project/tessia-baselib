@@ -20,6 +20,6 @@ Go to [documentation](doc/index.md).
 
 # Project Status
 
-- CI (build/lint/unittest): [![build status](https://gitlab.com/tessia-project/tessia_baselib/badges/master/build.svg)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
+- CI (build/lint/unittest): [![build status](https://gitlab.com/tessia-project/tessia-baselib/badges/master/build.svg)](https://gitlab.com/tessia-project/tessia-baselib/commits/master)
 
-- Code coverage: [![coverage report](https://gitlab.com/tessia-project/tessia_baselib/badges/master/coverage.svg?job=unittest)](https://gitlab.com/tessia-project/tessia_baselib/commits/master)
+- Code coverage: [![coverage report](https://gitlab.com/tessia-project/tessia-baselib/badges/master/coverage.svg?job=unittest)](https://gitlab.com/tessia-project/tessia-baselib/commits/master)

@@ -19,7 +19,7 @@ Module for unit tests of the BaseParamsValidator class.
 #
 # IMPORTS
 #
-from tessia_baselib.common.params_validators.base import BaseParamsValidator
+from tessia.baselib.common.params_validators.base import BaseParamsValidator
 from unittest import mock
 
 import unittest
@@ -49,6 +49,18 @@ class TestBaseParamsValidator(unittest.TestCase):
         Raises:
             None
         """
+        patcher = mock.patch(
+            "tessia.baselib.common.params_validators.base.os", autospec=True)
+        self._mock_os = patcher.start()
+        self.addCleanup(patcher.stop)
+        self._mock_os.path.abspath.return_value = SOME_FILE
+        self._patcher_json = mock.patch(
+            "tessia.baselib.common.params_validators.base.json", autospec=True)
+        self._mock_json = self._patcher_json.start()
+        # returns an empty dictionary
+        self._mock_json.load.return_value = {}
+        self.addCleanup(self._patcher_json.stop)
+
         mock_check_schema = mock.Mock()
         self._mock_check_schema = mock_check_schema
         mock_validate = mock.Mock()
@@ -77,22 +89,15 @@ class TestBaseParamsValidator(unittest.TestCase):
     # setUp()
 
     @mock.patch("builtins.open", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.json", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.os", autospec=True)
-    def test_not_implemented_methods(self, mock_os, mock_json, mock_open):
+    def test_not_implemented_methods(self, mock_open):
         """
         Verify if calling not implemented methods from parent correctly raises
         exception.
 
         Args:
-            mock_os (Mock): Mock for the os module.
-            mock_json (Mock): Mock for the json module.
             mock_open (Mock): Mock for the builtin open function.
         """
         mock_fp = mock.Mock()
-        mock_os.path.abspath.return_value = SOME_FILE
-        # returns an empty dictionary
-        mock_json.load.return_value = {}
         mock_open.return_value.__enter__.return_value = mock_fp
 
         self.assertRaises(
@@ -104,33 +109,26 @@ class TestBaseParamsValidator(unittest.TestCase):
     # test_not_implemented_methods()
 
     @mock.patch("builtins.open", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.json", autospec=True)
-    @mock.patch("tessia_baselib.common.params_validators.base.os", autospec=True)
-    def test_init(self, mock_os, mock_json, mock_open):
+    def test_init(self, mock_open):
         """
         Test the initialization of the base class assuming all the arguments
         were properly used.
 
         Args:
-            mock_os (Mock): Mock for the os module.
-            mock_json (Mock): Mock for the json module.
             mock_open (Mock): Mock for the builtin open function.
 
         Raises:
             None
         """
         mock_fp = mock.Mock()
-        mock_os.path.abspath.return_value = SOME_FILE
-        # returns an empty dictionary
-        mock_json.load.return_value = {}
         mock_open.return_value.__enter__.return_value = mock_fp
         base = self._child_cls(SOME_FILE)
 
         #Asserts that we are opening the file correctly.
         mock_open.assert_called_with(SOME_FILE, "r")
         #Asserts that the json was correctly loaded from the file.
-        mock_json.load.assert_called_with(mock_fp)
-        mock_os.path.abspath.assert_called_with(SOME_FILE)
+        self._mock_json.load.assert_called_with(mock_fp)
+        self._mock_os.path.abspath.assert_called_with(SOME_FILE)
 
         #Asserts that the id property of the dictionary was properly set.
         self.assertEqual(base.schema.get("id"), "file://" + SOME_FILE)
@@ -169,7 +167,12 @@ class TestBaseParamsValidator(unittest.TestCase):
         #an invalid json.
         mock_fp.read.return_value = INVALID_JSON
         mock_open.return_value.__enter__.return_value = mock_fp
+        self._patcher_json.stop()
 
         self.assertRaises(ValueError, self._child_cls, "")
+
+        # restart patcher so that cleanup will not fail to stop an unstarted
+        # patcher
+        self._patcher_json.start()
     # test_schema_not_valid_json()
 #TestBaseParamsValidator

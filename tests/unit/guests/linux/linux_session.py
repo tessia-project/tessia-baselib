@@ -19,8 +19,8 @@ Unit test for module linux_session
 #
 # IMPORTS
 #
-from tessia_baselib.common.ssh.exceptions import SshShellError
-from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
+from tessia.baselib.common.ssh.exceptions import SshShellError
+from tessia.baselib.guests.linux.linux_session import GuestSessionLinux
 from unittest import TestCase
 from unittest.mock import Mock
 
