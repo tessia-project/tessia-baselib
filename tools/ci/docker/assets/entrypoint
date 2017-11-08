@@ -13,6 +13,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 set -x
 python3 -i -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.baselib.guests import Guest"
