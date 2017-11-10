@@ -19,7 +19,7 @@ Unit test for HypervisorBase
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors import base
+from tessia.baselib.hypervisors import base
 from unittest import TestCase
 from unittest.mock import sentinel
 

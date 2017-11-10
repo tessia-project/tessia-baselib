@@ -17,7 +17,7 @@ limitations under the License.
 
 Every module must have a corresponding unit test to validate that it works. The tests are located under the folder `tests/unit` and follow the pattern `tests/unit/%{module_location}/%{module_name}.py`.
 
-For example, for the module `tessia_baselib/common/ssh/client.py` the corresponding unit test is `tests/unit/tessia_baselib/common/ssh/client.py`. That helps keeping things organized and makes it easier to determine which test(s) validate a given module/package/functionality.
+For example, for the module `tessia/baselib/common/ssh/client.py` the corresponding unit test is `tests/unit/common/ssh/client.py`. That helps keeping things organized and makes it easier to determine which test(s) validate a given package/module/functionality.
 
 ## How to run tests
 

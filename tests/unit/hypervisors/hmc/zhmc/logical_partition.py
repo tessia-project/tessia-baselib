@@ -21,8 +21,8 @@ Unit test for the logical_partition module
 #
 from unittest import mock
 from unittest import TestCase
-from tessia_baselib.hypervisors.hmc.zhmc import logical_partition
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
+from tessia.baselib.hypervisors.hmc.zhmc import logical_partition
+from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
 
 #
 # CONSTANTS AND DEFINITIONS

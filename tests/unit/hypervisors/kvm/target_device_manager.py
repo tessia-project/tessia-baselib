@@ -19,8 +19,8 @@ Module for TestTargetDeviceManager Class
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.kvm.target_device_manager \
-    import TargetDeviceManager
+from tessia.baselib.hypervisors.kvm.target_device_manager import \
+    TargetDeviceManager
 from unittest import mock
 from unittest import TestCase
 
@@ -29,14 +29,14 @@ import types
 #
 # CONSTANTS AND DEFINITIONS
 #
-_LETTERS = [chr(i) for i in range(ord('a'), ord('z') + 1)]
+LETTERS = [chr(i) for i in range(ord('a'), ord('z') + 1)]
 
 # 26 letters + space
 # we are considering that a device vd_[a-z][a-z] is
 # equal to vd[a-z]_[a-z]
 # where _ is a empty string. This happens 26 * 26 times.
-TOTAL_NUM_VALID_DEVS = ((len(_LETTERS) + 1)**2 * len(_LETTERS)
-                        - (len(_LETTERS) * len(_LETTERS)))
+TOTAL_NUM_VALID_DEVS = ((len(LETTERS) + 1)**2 * len(LETTERS)
+                        - (len(LETTERS) * len(LETTERS)))
 
 #
 # CODE
@@ -51,6 +51,11 @@ class TestTargetDeviceManager(TestCase):
         Executed before the start of each test method. Creates a
         TargetDeviceManager to be used at each test.
         """
+        patcher = mock.patch(
+            "tessia.baselib.hypervisors.kvm.target_device_manager.ElementTree",
+            autospec=True)
+        self._mock_etree = patcher.start()
+        self.addCleanup(patcher.stop)
         self._target_dev_mngr = TargetDeviceManager()
     # setUp()
 
@@ -95,13 +100,11 @@ class TestTargetDeviceManager(TestCase):
                                self._target_dev_mngr.get_valid_dev)
     # test_det_valid_dev_out_of_devices()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_valid_dev_blacklist(self, mock_etree):
+    def test_valid_dev_blacklist(self):
         """
         Test the case that a device is put in the blacklist.
         """
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"dev": "vda"}
         ]
         self.assertEqual(self._target_dev_mngr.update_dev_blacklist("somexml"),
@@ -109,13 +112,11 @@ class TestTargetDeviceManager(TestCase):
         self.assertNotEqual(self._target_dev_mngr.get_valid_dev(), "vda")
     # test_valid_dev_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_dev_already_in_blacklist(self, mock_etree):
+    def test_dev_already_in_blacklist(self):
         """
         Test the case that a device is already in the blacklist.
         """
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"dev": "vda"}]
         self._target_dev_mngr.update_dev_blacklist("somexml")
         self.assertRaisesRegex(ValueError, "Device vda previously",
@@ -123,26 +124,22 @@ class TestTargetDeviceManager(TestCase):
                                "somexml")
     # test_dev_already_in_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_invalid_xml_dev_blacklist(self, mock_etree):
+    def test_invalid_xml_dev_blacklist(self):
         """
         Test the case that a invalid xml was provided.
         """
-        mock_etree.fromstring.return_value.findall.return_value = []
+        self._mock_etree.fromstring.return_value.findall.return_value = []
         self.assertRaisesRegex(ValueError, "Invalid xml",
                                self._target_dev_mngr.update_dev_blacklist,
                                "somexml")
     # test_invalid_xml_dev_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_invalid_dev_format_in_xml(self, mock_etree):
+    def test_invalid_dev_format_in_xml(self):
         """
         Test the case that there is an invalid device name in the xml.
         """
         # this is an invalid format device name.
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"dev": "vd1a"}
         ]
         self.assertRaisesRegex(ValueError, "Invalid device name",
@@ -168,26 +165,22 @@ class TestTargetDeviceManager(TestCase):
                                self._target_dev_mngr.get_valid_devno)
     # test_out_of_valid_devnos()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_devno_in_blacklist(self, mock_etree):
+    def test_devno_in_blacklist(self):
         """
         Test the case that a device number is in the blacklist.
         """
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"devno": "0x0001"}]
         self._target_dev_mngr.update_devno_blacklist("somexml")
         self.assertNotEqual(self._target_dev_mngr.get_valid_devno(),
                             "0x0001")
     # test_devno_in_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_devno_already_in_blacklist(self, mock_etree):
+    def test_devno_already_in_blacklist(self):
         """
         Test the case that a device number is already in blacklist.
         """
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"devno": "0x0001"}]
         self._target_dev_mngr.update_devno_blacklist("somexml")
         self.assertRaisesRegex(ValueError, "Device number 0x0001",
@@ -195,27 +188,23 @@ class TestTargetDeviceManager(TestCase):
                                "somexml")
     # test_devno_already_in_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_invalid_xml_devno_blacklist(self, mock_etree):
+    def test_invalid_xml_devno_blacklist(self):
         """
         Test the case that the xml passed to the update_devno_blacklist
         is invalid.
         """
-        mock_etree.fromstring.return_value.findall.return_value = []
+        self._mock_etree.fromstring.return_value.findall.return_value = []
 
         self.assertRaisesRegex(ValueError, "Invalid xml",
                                self._target_dev_mngr.update_devno_blacklist,
                                "somexml")
     # test_invalid_xml_devno_blacklist()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.target_device_manager.ElementTree",
-                autospec=True)
-    def test_invalid_devno_in_xml(self, mock_etree):
+    def test_invalid_devno_in_xml(self):
         """
         Test the case that the device number present in the xml is not valid.
         """
-        mock_etree.fromstring.return_value.findall.return_value = [
+        self._mock_etree.fromstring.return_value.findall.return_value = [
             {"devno": "0x0001f"}
         ]
 

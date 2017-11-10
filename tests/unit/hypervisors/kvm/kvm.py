@@ -19,7 +19,7 @@ Test module for kvm module
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.kvm import kvm
+from tessia.baselib.hypervisors.kvm import kvm
 from unittest import mock
 
 import unittest
@@ -260,7 +260,7 @@ class TestHypervisorKvm(unittest.TestCase):
                                self._hyp.reboot, guest_name, parameters_reboot)
     # test_reboot_not_defined()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
     def test_start(self, mock_guest):
         """
         Test the start operation.
@@ -284,7 +284,7 @@ class TestHypervisorKvm(unittest.TestCase):
             guest_name)
     # test_start()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
     def test_start_netboot(self, mock_guest):
         """
         Test the start operation in the case a network boot is performed.
@@ -311,7 +311,7 @@ class TestHypervisorKvm(unittest.TestCase):
             START_PARAMETERS_NETBOOT.get("parameters").get("boot_options"))
     # test_start()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
     def test_start_not_logged_in(self, *args, **kwargs):
         """
         Test the start operation when it is not logged in the hypervisor.
@@ -324,7 +324,7 @@ class TestHypervisorKvm(unittest.TestCase):
                                START_PARAMETERS)
     # test_start_not_logged_in()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
     def test_start_clean_up_not_necessary(self, mock_guest):
         """
         Test the start in the case the clean up is not performed.
@@ -348,7 +348,7 @@ class TestHypervisorKvm(unittest.TestCase):
             guest_name)
     # test_start_clean_up_not_necessary()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
+    @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
     def test_start_param_none(self, mock_guest):
         """
         Confirm that the constructor accepts also None as value for the

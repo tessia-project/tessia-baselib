@@ -20,8 +20,8 @@ Testing class for the HMC hypervisor
 # IMPORTS
 #
 from collections import OrderedDict
-from tessia_baselib.hypervisors.hmc import hmc
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
+from tessia.baselib.hypervisors.hmc import hmc
+from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch

@@ -15,11 +15,11 @@ limitations under the License.
 -->
 # Rationale
 
-This document describes the mechanism created for the validation of parameters in the context of the tessia_baselib module.
+This document describes the mechanism created for the validation of parameters.
 
 # Parameters in practice
 
-The classes that are used to manage different types of guests and hypervisors in tessia_baselib implements a common interface that provide actions to perform operations upon these components. The interface provides common methods that are implemented in different forms according to the type of guest or hypervisor. In the following example we can observe the start method used for hypervisors.
+The classes that are used to manage different types of guests and hypervisors implements a common interface that provide actions to perform operations upon these components. The interface provides common methods that are implemented in different forms according to the type of guest or hypervisor. In the following example we can observe the start method used for hypervisors.
 ```python
     def start(self, guest_name, cpu, memory, parameters)
 ```
@@ -35,7 +35,7 @@ For more information about json schemas, please visit the following links:
 
 # Implementation
 
-The parameters provided in the "parameters" arguments need to be validate against some schema that defines a valid format (expected) for these parameters. In tessia_baselib we chose to create a extensible interface to implement the validation of the parameters. It is possible to chose different validation libraries by using the factory function "create_params_validator". The default library used to validate the parameters is set in the tessia_baselib.yml file, in the property "default_schema_validator". It is also possible to chose different validators by setting the "validator" argument.
+The parameters provided in the "parameters" arguments need to be validated against some schema that defines a valid format (expected) for these parameters. We chose to create an extensible interface to implement the validation of the parameters. It is possible to choose different validation libraries by using the factory function "create_params_validator". The default library used to validate the parameters is set in the tessia-baselib.yml file, in the property "default_schema_validator". It is also possible to choose different validators by setting the "validator" argument.
 
 Right now, we only support the jsonschema library:
 
@@ -45,37 +45,34 @@ In the future we may support other libraries due to performance reasons.
 
 In order to provide a more practical mechanism for validation of parameters, we created a decorator that can be applied to methods of classes that implement guests and hypervisors. This decorator detect the type of action that is being performed based on the name of the method  (start, stop, hotplug, __init__), and the type of component that it is being applied for (hmc, kvm, linux, cms) based on the name of the module.
 
-The schemas must be organized as the following hierarchy in the tessia_baselib source tree:
+The schemas must be organized as the following hierarchy in the source tree:
 
-* tessia_baselib/
+* tessia/baselib/common/params_validators/schemas/
     * common/
-        * params_validators/
-            * schemas/
-                * common/
-                    * entities/
-                         * devicenr_type.json
-                         * ...
-                    * actions/
-                         * start.json
-                         * stop.json
-                         * ...
-                * hmc/
-                    * entities/
-                        * boot_params_type.json
-                        * cpc_name_type.json
-                        * ...
-                    * actions/
-                        * start.json
-                        * stop.json
-                * (other kinds of hypervisors/guests)
+        * entities/
+             * devicenr_type.json
+             * ...
+        * actions/
+             * start.json
+             * stop.json
+             * ...
+    * hmc/
+        * entities/
+            * boot_params_type.json
+            * cpc_name_type.json
+            * ...
+        * actions/
+            * start.json
+            * stop.json
+    * (other kinds of hypervisors/guests)
 
 The "schemas" directory has a "common" directory and one directory for each module that implement guests and hypervisors. The name of these directories is equal to the name of the modules. Each of these directories contain the "actions" and "entities" directories. The files in the "actions" directory are json files used to validate the "parameters" argument of the methods with the same name as the files (eg.: start.json validates the "parameters" of the "start" method). The "entities" directory define json schema entities that are only applicable for this domain (eg.: cpc_name_type.json defines the format for the CPC name in HMC hypervisors) and are referenced by the actions. Common entities, that may be referenced by multiple modules, must be defined in the "common" directory (eg.: definition of the format of a device number). For instance, the file "hmc/actions/start.json" contains the json schema that is used for validation of the parameters argument of the "start" method in HMC hypervisor while the file "/common/entities/devicenr_type.json" defines the device number format. This hierarchical structure allow us to easily reuse some definitions.
 
-In the following example, the "validate_params" decorator will use the "tessia_baselib/common/params_validators/schemas/hmc/actions/start.json" file to validate the "parameters" method of the method.
+In the following example, the `validate_params` decorator will use the `tessia/baselib/common/params_validators/schemas/hmc/actions/start.json` file to validate the `parameters` method of the method.
 
 ```python
 #hmc.py
-from tessia_baselib.common.params_validators.utils import validate_params
+from tessia.baselib.common.params_validators.utils import validate_params
 ...
 
     @validate_params

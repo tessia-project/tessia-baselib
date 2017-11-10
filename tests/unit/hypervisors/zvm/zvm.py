@@ -19,7 +19,7 @@ Test module for zvm hypervisor
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.zvm.zvm import HypervisorZvm
+from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -46,7 +46,7 @@ class TestHypervisorZvm(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         self.terminal_patcher = patch(
-            'tessia_baselib.hypervisors.zvm.zvm.Terminal',
+            'tessia.baselib.hypervisors.zvm.zvm.Terminal',
             autospec=True)
         self._mock_terminal = self.terminal_patcher.start()
         self.addCleanup(self.terminal_patcher.stop)

@@ -19,7 +19,7 @@ Unit test for linux.distros.generic module
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.distros.generic import DistroGeneric
+from tessia.baselib.guests.linux.distros.generic import DistroGeneric
 from unittest import TestCase
 from unittest.mock import Mock
 

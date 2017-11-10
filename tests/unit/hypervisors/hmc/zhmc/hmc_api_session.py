@@ -19,9 +19,9 @@ Unit test for the hmc_api_session module
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
-from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
-from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import READ_TIMEOUT
+from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcRequestError
+from tessia.baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
+from tessia.baselib.hypervisors.hmc.zhmc.hmc_api_session import READ_TIMEOUT
 from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch
@@ -50,7 +50,7 @@ class TestHmcApiSession(TestCase):
         """
         # mock the libs required at the Services class
         requests_patcher = patch(
-            'tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session.REQUESTS'
+            'tessia.baselib.hypervisors.hmc.zhmc.hmc_api_session.REQUESTS'
         )
 
         self._mock_requests = requests_patcher.start()

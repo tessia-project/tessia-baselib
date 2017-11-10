@@ -21,8 +21,8 @@ shell class.
 # IMPORTS
 #
 
-from tessia_baselib.common.ssh import shell as shell_module
-from tessia_baselib.common.ssh.exceptions import SshShellError
+from tessia.baselib.common.ssh import shell as shell_module
+from tessia.baselib.common.ssh.exceptions import SshShellError
 from unittest import main as unittest_main
 from unittest import mock
 from unittest import TestCase
@@ -575,7 +575,7 @@ class TestSshShell(TestCase):
         '''
 
         with mock.patch(
-            'tessia_baselib.common.ssh.shell.get_logger') as get_logger_mock:
+            'tessia.baselib.common.ssh.shell.get_logger') as get_logger_mock:
 
             bad_charmap = 'UTF-9'
 
@@ -614,7 +614,7 @@ class TestSshShell(TestCase):
         Raises:
         '''
         with mock.patch(
-            'tessia_baselib.common.ssh.shell.get_logger') as get_logger_mock:
+            'tessia.baselib.common.ssh.shell.get_logger') as get_logger_mock:
 
             self._dummy_socket.recv.side_effect = (
                 [self._make_output('', '\n')]

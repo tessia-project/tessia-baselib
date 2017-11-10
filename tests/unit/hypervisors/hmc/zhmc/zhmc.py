@@ -19,10 +19,10 @@ Unit test for the zhmc module
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
-from tessia_baselib.hypervisors.hmc.zhmc.cpc import CPC
-from tessia_baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
-from tessia_baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
+from tessia.baselib.hypervisors.hmc.zhmc.zhmc import ZHmc
+from tessia.baselib.hypervisors.hmc.zhmc.cpc import CPC
+from tessia.baselib.hypervisors.hmc.zhmc.hmc_api_session import HmcApiSession
+from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 from unittest import TestCase
 from unittest.mock import patch
 
@@ -49,7 +49,7 @@ class TestZHmc(TestCase):
         """
         # mock the libs required at the HmcApiSession class
         requests_patcher = patch(
-            'tessia_baselib.hypervisors.hmc.zhmc.zhmc.HmcApiSession',
+            'tessia.baselib.hypervisors.hmc.zhmc.zhmc.HmcApiSession',
             spec_set=True
         )
 

@@ -19,9 +19,9 @@ Module for TestVirsh class.
 #
 # IMPORTS
 #
-from tessia_baselib.guests.linux.linux import GuestLinux
-from tessia_baselib.guests.linux.linux_session import GuestSessionLinux
-from tessia_baselib.hypervisors.kvm import virsh
+from tessia.baselib.guests.linux.linux import GuestLinux
+from tessia.baselib.guests.linux.linux_session import GuestSessionLinux
+from tessia.baselib.hypervisors.kvm import virsh
 from unittest import mock
 from unittest.mock import sentinel
 
@@ -42,6 +42,22 @@ class TestVirsh(unittest.TestCase):
         """
         Create mock objects and instantiate a Virsh object.
         """
+        patcher = mock.patch(
+            "tessia.baselib.hypervisors.kvm.virsh.ElementTree", autospec=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch("tessia.baselib.hypervisors.kvm.virsh.open")
+        self._mock_open = patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch(
+            "tessia.baselib.hypervisors.kvm.virsh.mkstemp", autospec=True)
+        self._mock_mkstemp = patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher = mock.patch(
+            "tessia.baselib.hypervisors.kvm.virsh.os.remove", autospec=True)
+        self._mock_remove = patcher.start()
+        self.addCleanup(patcher.stop)
+
         self._mock_guest_linux = mock.Mock(spec_set=GuestLinux)
         self._mock_session = mock.Mock(spec_set=GuestSessionLinux)
         self._mock_guest_linux.open_session.return_value = self._mock_session
@@ -57,10 +73,7 @@ class TestVirsh(unittest.TestCase):
             self._virsh._cmd_channel, self._mock_session)
     # test_init()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    def test_define(self, mock_remove, mock_mkstemp, mock_open):
+    def test_define(self):
         """
         Test the definition of a libvirt domain xml.
         """
@@ -68,7 +81,7 @@ class TestVirsh(unittest.TestCase):
         mock_file_descriptor = mock.Mock()
         path = "some path"
         source_url = "file://" + path
-        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        self._mock_mkstemp.return_value = (mock_file_descriptor, path)
         mock_tmpdir = '/random_dir'
         domain_file = '{}/{}'.format(mock_tmpdir, virsh.DOMAIN_FILENAME)
         self._mock_session.run.side_effect = [
@@ -81,13 +94,13 @@ class TestVirsh(unittest.TestCase):
 
         self._virsh.define(xml)
 
-        self.assertTrue(mock_mkstemp.called)
+        self.assertTrue(self._mock_mkstemp.called)
         self._mock_guest_linux.push_file.assert_called_with(
             source_url, domain_file)
-        mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
-        mock_open.return_value.write.assert_called_with(xml)
-        mock_open.return_value.close.assert_called_with()
-        mock_remove.assert_called_with(path)
+        self._mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
+        self._mock_open.return_value.write.assert_called_with(xml)
+        self._mock_open.return_value.close.assert_called_with()
+        self._mock_remove.assert_called_with(path)
         cmd = "virsh define {}".format(domain_file)
         self._mock_session.run.assert_any_call(cmd)
 
@@ -105,11 +118,7 @@ class TestVirsh(unittest.TestCase):
 
     # test_define()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    def test_define_rm_tmpfile_fails(self, mock_remove, mock_mkstemp,
-                                     mock_open):
+    def test_define_rm_tmpfile_fails(self):
         """
         Test the definition of a libvirt domain xml.
         """
@@ -117,7 +126,7 @@ class TestVirsh(unittest.TestCase):
         mock_file_descriptor = mock.Mock()
         path = "some path"
         source_url = "file://" + path
-        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        self._mock_mkstemp.return_value = (mock_file_descriptor, path)
         mock_tmpdir = '/random_dir'
         domain_file = '{}/{}'.format(mock_tmpdir, virsh.DOMAIN_FILENAME)
         self._mock_session.run.side_effect = [
@@ -125,22 +134,18 @@ class TestVirsh(unittest.TestCase):
 
         self._virsh.define(xml)
 
-        self.assertTrue(mock_mkstemp.called)
+        self.assertTrue(self._mock_mkstemp.called)
         self._mock_guest_linux.push_file.assert_called_with(source_url,
                                                             domain_file)
-        mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
-        mock_open.return_value.write.assert_called_with(xml)
-        mock_open.return_value.close.assert_called_with()
-        mock_remove.assert_called_with(path)
+        self._mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
+        self._mock_open.return_value.write.assert_called_with(xml)
+        self._mock_open.return_value.close.assert_called_with()
+        self._mock_remove.assert_called_with(path)
         cmd = "virsh define {}".format(domain_file)
         self._mock_session.run.assert_any_call(cmd)
     # test_define_rm_tmpfile_fails()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spec_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.ElementTree", spec_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spec_set=True)
-    def test_define_netboot(self, mock_mkstemp, *args, **kwargs):
+    def test_define_netboot(self):
         """
         Test the definition of a domain xml used for network boot.
         """
@@ -156,7 +161,7 @@ class TestVirsh(unittest.TestCase):
 
         mock_file_descriptor = mock.Mock()
         path = "some path"
-        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        self._mock_mkstemp.return_value = (mock_file_descriptor, path)
         domain_file = "some tmp file"
 
         self._mock_session.run.side_effect = [
@@ -171,12 +176,7 @@ class TestVirsh(unittest.TestCase):
             boot_params.get("initrd_uri"), mock_initrd)
     # test_define_netboot()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.ElementTree", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    def test_define_netboot_tmp_files_exists(
-            self, mock_mkstemp, *args, **kwargs):
+    def test_define_netboot_tmp_files_exists(self):
         """
         Test the case that temporary files exist.
         """
@@ -192,7 +192,7 @@ class TestVirsh(unittest.TestCase):
 
         mock_file_descriptor = mock.Mock()
         path = "some path"
-        mock_mkstemp.return_value = (mock_file_descriptor, path)
+        self._mock_mkstemp.return_value = (mock_file_descriptor, path)
 
         self._mock_session.run.side_effect = [
             (0, mock_tmpdir), (0, ""), (0, ""), (0, "")]
@@ -242,16 +242,13 @@ class TestVirsh(unittest.TestCase):
 
     # test_clean_tmp_netboot_files()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    def test_define_mktemp_fails(self, mock_mkstemp, *args, **kwargs):
+    def test_define_mktemp_fails(self):
         """
         Test the case where the creation of a temporary dir in the hypervisor
         fails.
         """
         mock_file_descriptor = mock.Mock()
-        mock_mkstemp.return_value = (mock_file_descriptor, "")
+        self._mock_mkstemp.return_value = (mock_file_descriptor, "")
         xml = "some xml"
         self._mock_session.run.return_value = (1, "")
 
@@ -259,16 +256,13 @@ class TestVirsh(unittest.TestCase):
                                self._virsh.define, xml)
     # teste_define_mktemp_fails()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    def test_define_chmod_fails(self, mock_mkstemp, *args, **kwargs):
+    def test_define_chmod_fails(self):
         """
         Test the case where setting permissions for the temporary dir in the
         hypervisor fails.
         """
         mock_file_descriptor = mock.Mock()
-        mock_mkstemp.return_value = (mock_file_descriptor, "")
+        self._mock_mkstemp.return_value = (mock_file_descriptor, "")
         xml = "some xml"
         self._mock_session.run.side_effect = [
             (0, ""), # mktemp -d
@@ -280,16 +274,13 @@ class TestVirsh(unittest.TestCase):
                                self._virsh.define, xml)
     # teste_define_mktemp_fails()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.open", create=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.os.remove", spect_set=True)
-    @mock.patch("tessia_baselib.hypervisors.kvm.virsh.mkstemp", spect_set=True)
-    def test_define_define_fails(self, mock_mkstemp, *args, **kwargs):
+    def test_define_define_fails(self):
         """
         Test the case that the definition of the domain in the hypervisor
         fails.
         """
         mock_file_descriptor = mock.Mock()
-        mock_mkstemp.return_value = (mock_file_descriptor, "")
+        self._mock_mkstemp.return_value = (mock_file_descriptor, "")
         xml = "some xml"
         self._mock_session.run.side_effect = [
             (0, ""), # mktemp -d

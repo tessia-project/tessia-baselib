@@ -15,18 +15,18 @@ limitations under the License.
 -->
 ![Logo](img/logo_128.png)
 
-# tessia-baselib
+# Tessia base library - tessia-baselib
 
-This tool manages the communication with various types of hypervisors and guest systems in order to perform actions like activate, deactivate, hotplug resources, and others.
+An abstraction layer to manage the communication with different types of IBM Z hypervisors and guest systems in order to perform actions like activate, deactivate,
+hotplug resources,and others.
 
-The following sections are available:
+This library is part of the tessia solution but can also be used standalone by developers/system administrators seeking for a python library to automate their IBM Z environments.
 
 **User guide**
 
 - [Building](users/build.md)
 - [Hypervisor HMC](users/hypervisor_hmc.md)
 - [Hypervisor KVM](users/hypervisor_kvm.md)
-- [Rest-like API](users/api.md)
 
 **Developers**
 

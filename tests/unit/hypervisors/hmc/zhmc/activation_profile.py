@@ -22,7 +22,7 @@ Unit test for the activation_profile module
 
 from unittest import mock
 from unittest import TestCase
-from tessia_baselib.hypervisors.hmc.zhmc.activation_profile import (
+from tessia.baselib.hypervisors.hmc.zhmc.activation_profile import (
     ActivationProfile
 )
 

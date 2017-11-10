@@ -19,8 +19,8 @@ Test module for disk module
 #
 # IMPORTS
 #
-from tessia_baselib.hypervisors.kvm.storage import disk as disk_module
-from tessia_baselib.hypervisors.kvm.target_device_manager \
+from tessia.baselib.hypervisors.kvm.storage import disk as disk_module
+from tessia.baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
 
 from unittest import mock
@@ -113,7 +113,7 @@ class TestDisk(TestCase):
         self.assertIs(system_attrs.get("libvirt"), disk.to_xml())
     # test_to_xml_with_libvirt_xml()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk.open",
+    @mock.patch("tessia.baselib.hypervisors.kvm.storage.disk.open",
                 create=True)
     def test_to_xml_read_template(self, mock_open):
         """
@@ -134,7 +134,7 @@ class TestDisk(TestCase):
             boot_tag="")
     # test_to_xml_reading_template()
 
-    @mock.patch("tessia_baselib.hypervisors.kvm.storage.disk.open",
+    @mock.patch("tessia.baselib.hypervisors.kvm.storage.disk.open",
                 create=True)
     def test_to_xml_read_template_with_boot_tag(self, mock_open):
         """
