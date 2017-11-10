@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 # What is it?
-A python library to manage the communication with various types of hypervisors and guest systems in order to perform actions like activate, deactivate, hotplug resources, and others.
+
+A python library which provides an abstraction layer to manage the communication with various types of hypervisors and guest systems on IBM Z in order to perform
+actions like activate, deactivate, hotplug resources, and others.
 
 Go to [documentation](doc/index.md).
 

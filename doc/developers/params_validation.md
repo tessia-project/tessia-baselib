@@ -15,7 +15,7 @@ limitations under the License.
 -->
 # Rationale
 
-This document describes the mechanism created for the validation of parameters in the context of the baselib module.
+This document describes the mechanism created for the validation of parameters.
 
 # Parameters in practice
 
@@ -35,7 +35,7 @@ For more information about json schemas, please visit the following links:
 
 # Implementation
 
-The parameters provided in the "parameters" arguments need to be validate against some schema that defines a valid format (expected) for these parameters. We chose to create an extensible interface to implement the validation of the parameters. It is possible to choose different validation libraries by using the factory function "create_params_validator". The default library used to validate the parameters is set in the tessia-baselib.yml file, in the property "default_schema_validator". It is also possible to chose different validators by setting the "validator" argument.
+The parameters provided in the "parameters" arguments need to be validated against some schema that defines a valid format (expected) for these parameters. We chose to create an extensible interface to implement the validation of the parameters. It is possible to choose different validation libraries by using the factory function "create_params_validator". The default library used to validate the parameters is set in the tessia-baselib.yml file, in the property "default_schema_validator". It is also possible to choose different validators by setting the "validator" argument.
 
 Right now, we only support the jsonschema library:
 
@@ -68,7 +68,7 @@ The schemas must be organized as the following hierarchy in the source tree:
 
 The "schemas" directory has a "common" directory and one directory for each module that implement guests and hypervisors. The name of these directories is equal to the name of the modules. Each of these directories contain the "actions" and "entities" directories. The files in the "actions" directory are json files used to validate the "parameters" argument of the methods with the same name as the files (eg.: start.json validates the "parameters" of the "start" method). The "entities" directory define json schema entities that are only applicable for this domain (eg.: cpc_name_type.json defines the format for the CPC name in HMC hypervisors) and are referenced by the actions. Common entities, that may be referenced by multiple modules, must be defined in the "common" directory (eg.: definition of the format of a device number). For instance, the file "hmc/actions/start.json" contains the json schema that is used for validation of the parameters argument of the "start" method in HMC hypervisor while the file "/common/entities/devicenr_type.json" defines the device number format. This hierarchical structure allow us to easily reuse some definitions.
 
-In the following example, the "validate_params" decorator will use the "tessia/baselib/common/params_validators/schemas/hmc/actions/start.json" file to validate the "parameters" method of the method.
+In the following example, the `validate_params` decorator will use the `tessia/baselib/common/params_validators/schemas/hmc/actions/start.json` file to validate the `parameters` method of the method.
 
 ```python
 #hmc.py
