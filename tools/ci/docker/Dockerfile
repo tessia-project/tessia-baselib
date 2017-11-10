@@ -24,8 +24,6 @@ RUN apt-get update -q && \
     pip3 install -U setuptools && \
     # update the pip version if necessary
     pip3 install -U pip \
-    # pbr is used by tessia-baselib for installation
-    pbr \
     # dependencies used for testing builds
     pylint \
     coverage
@@ -38,6 +36,7 @@ RUN cd /assets && \
     cd tessia-baselib && \
     pip3 install -U -r requirements.txt && \
     ./setup.py install && \
+    ./setup.py install_data && \
     # files settings
     install -m 600 /usr/local/etc/tessia/* /etc/tessia && \
     rm -rf /usr/local/etc/tessia && \
