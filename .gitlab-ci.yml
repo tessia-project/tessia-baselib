@@ -20,6 +20,8 @@ build:
   script:
     - git bundle create tools/ci/docker/assets/tessia-baselib.git HEAD
     - docker build --force-rm -f tools/ci/docker/Dockerfile -t tessia-baselib:${COMMIT_REF} tools/ci/docker
+    # make sure the library was properly installed and can be imported
+    - docker run --env TESSIA_BASELIB_INTERACTIVE=no --rm --name tessia-baselib.${COMMIT_REF} tessia-baselib:${COMMIT_REF}
 
 lint:
   stage: lint

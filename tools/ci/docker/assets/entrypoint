@@ -13,5 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+interactive=""
+if [ ${TESSIA_BASELIB_INTERACTIVE:-yes} == "yes" ]; then
+    interactive="-i "
+fi
+
 set -x
-python3 -i -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.baselib.guests import Guest"
+python3 $interactive -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.baselib.guests import Guest"
