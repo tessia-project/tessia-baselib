@@ -23,12 +23,7 @@ RUN apt-get update -q && \
     # separately otherwise other packages fail to install
     pip3 install -U setuptools && \
     # update the pip version if necessary
-    pip3 install -U pip \
-    # pbr is used by tessia-baselib for installation
-    pbr \
-    # dependencies used for testing builds
-    pylint \
-    coverage
+    pip3 install -U pip
 
 COPY assets /assets/
 
@@ -36,8 +31,9 @@ COPY assets /assets/
 RUN cd /assets && \
     git clone $git_repo tessia-baselib && \
     cd tessia-baselib && \
-    pip3 install -U -r requirements.txt && \
+    pip3 install -U -r requirements.txt -r dev-requirements.txt && \
     ./setup.py install && \
+    ./setup.py install_data && \
     # files settings
     install -m 600 /usr/local/etc/tessia/* /etc/tessia && \
     rm -rf /usr/local/etc/tessia && \

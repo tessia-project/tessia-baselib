@@ -2,7 +2,7 @@
 .*.swp
 __pycache__/
 .eggs/
-tessia_baselib.egg-info/
+*.egg-info/
 build/
 .tox/
 .coverage
