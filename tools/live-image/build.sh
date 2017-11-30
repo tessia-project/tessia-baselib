@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# Copyright 2017 IBM Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# perform the build of the live image using debirf inside a debian container
+
+# configurable variables
+BUILD_DOCKER_IMAGE="debian:latest"
+
+set -e
+
+echocmd() {
+    echo "\$ $@"
+}
+
+execcmd() {
+    echocmd $@
+    $@
+}
+
+build() {
+    local root_pwd="$1"
+
+    # start container
+    run_cmd="docker run -d -v $(realpath `dirname $0`):/usr/local/bin --privileged $BUILD_DOCKER_IMAGE tail -f /dev/null"
+    echocmd $run_cmd
+    container_name=$($run_cmd)
+
+    # execute build
+    bootstrap_cmd="cd /root && _bootstrap.sh"
+    if [ -n "$root_pwd" ]; then
+        bootstrap_cmd="$bootstrap_cmd -p $root_pwd"
+    fi
+    echocmd docker exec -ti $container_name /bin/bash -c "$bootstrap_cmd"
+    docker exec -ti $container_name /bin/bash -c "$bootstrap_cmd"
+
+    # copy resulting tarball from container
+    execcmd docker cp $container_name:/root/live-image.tgz .
+
+    # clean up
+    execcmd docker kill $container_name
+    execcmd docker rm $container_name
+
+    echo 'Success!' "Live image tarball available at $(pwd)/live-image.tgz"
+}
+
+usage() {
+    echo "Usage: $(basename $0) [OPTION]"
+    echo "Build the tessia live image tarball using a docker container"
+    echo ""
+    echo "OPTIONs:"
+    echo "  -p           image's root password"
+    echo "  -h           show this help"
+}
+
+root_pwd=""
+while getopts :hp: option; do
+    case "$option" in
+        h)
+            usage
+            exit 0
+            ;;
+        p)
+            root_pwd="$OPTARG"
+            ;;
+        :)
+            echo "error: missing argument for -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+        ?)
+            echo "error: invalid option -$OPTARG" >&2
+            usage
+            exit 1
+            ;;
+    esac
+done
+
+build $root_pwd
