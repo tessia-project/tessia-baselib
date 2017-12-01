@@ -31,12 +31,7 @@ COPY assets /assets/
 RUN cd /assets && \
     git clone $git_repo tessia-baselib && \
     cd tessia-baselib && \
-    pip3 install -U -r requirements.txt -r dev-requirements.txt && \
-    ./setup.py install && \
-    ./setup.py install_data && \
-    # files settings
-    install -m 600 /usr/local/etc/tessia/* /etc/tessia && \
-    rm -rf /usr/local/etc/tessia && \
+    pip3 install -U -r requirements.txt -r dev-requirements.txt . && \
     # remove unneeded dependencies used only for building paramiko and uwsgi
     DEBIAN_FRONTEND=noninteractive apt-get -yq purge --auto-remove \
         build-essential libssl-dev libffi-dev python3-dev
