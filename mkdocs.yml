@@ -18,6 +18,7 @@ pages:
     - Build and install: 'users/build.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
     - Hypervisor KVM: 'users/hypervisor_kvm.md'
+    - Live image to enable HMC netboot: 'users/live_image.md'
 - Developers:
     - Coding guidelines: 'developers/coding_guidelines.md'
     - Development process: 'developers/dev_process.md'
