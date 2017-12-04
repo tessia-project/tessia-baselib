@@ -27,6 +27,7 @@ This library is part of the tessia solution but can also be used standalone by d
 - [Building](users/build.md)
 - [Hypervisor HMC](users/hypervisor_hmc.md)
 - [Hypervisor KVM](users/hypervisor_kvm.md)
+- [Live image to enable HMC netboot](users/live_image.md)
 
 **Developers**
 

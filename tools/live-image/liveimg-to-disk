@@ -1,0 +1,238 @@
+#!/usr/bin/env bash
+# Copyright 2017 IBM Corp.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+LIVE_IMG_PATH="/usr/local/share/live-image.tgz"
+
+confirm() {
+    local disk_desc="$1"
+    read -p "This script will erase all data on ${disk_desc}, are you sure? [y|n]:" answer
+    if [ "${answer,Y}" != "y" ]; then
+        echo "aborted!" >&2
+        exit 10
+    fi
+}
+
+deploy() {
+    local disk_label="$1"
+    local disk_path="$2"
+
+    # partition/format
+    runcmd parted -s $disk_path mklabel $disk_label
+    if [ "$disk_label" == "dasd" ]; then
+        runcmd parted -s $disk_path mkpart ext2 1 100%
+    else
+        runcmd parted -s $disk_path mkpart primary ext2 0 100%
+    fi
+    sleep_wait "${disk_path}1" "error: timeout waiting for partition ${disk_path}1" 5
+    runcmd mkfs.ext4 -q -F ${disk_path}1
+
+    # from this point a trap must be set to make sure
+    # the disk is unmount and temp dir removed in case of failure
+    local mnt_dir=$(mktemp -d)
+    clean_mount() {
+        runcmd umount $mnt_dir || true
+        runcmd rmdir $mnt_dir
+    }
+    trap clean_mount EXIT
+
+    # mount, extract files and install boot loader
+    runcmd mount ${disk_path}1 $mnt_dir
+    runcmd tar zxvf $LIVE_IMG_PATH -C $mnt_dir
+    runcmd zipl -t $mnt_dir -i ${mnt_dir}/kernel -r ${mnt_dir}/initrd -p ${mnt_dir}/parmfile
+
+    clean_mount
+    # remove trap
+    trap EXIT
+}
+
+install_dasd() {
+    local dasd_id="$1"
+    # short format: add prefix 0.0
+    if [[ ! "$dasd_id" =~ "." ]]; then
+        dasd_id="0.0.${dasd_id}"
+    fi
+
+    local disk_desc="DASD $dasd_id"
+    confirm "$disk_desc"
+
+    # stop if any command fail
+    set -e
+
+    # attach disk
+    runcmd cio_ignore -r $dasd_id
+    runcmd chccwdev -e $dasd_id
+
+    # find dev path
+    dev_path=$(lsdasd $dasd_id | awk "/^${dasd_id}/ {print \$3}")
+    dev_path="/dev/$dev_path"
+
+    deploy dasd "$dev_path"
+
+    echo "Live image successfully deployed on $disk_desc"
+}
+
+install_fcp() {
+    # validate input
+    if [[ ! "$1" =~ .+,.+,.+ ]]; then
+        echo "error: wrong format for FCP disk" >&2
+        echo ""
+        usage
+        exit 1
+    fi
+
+    # adapter entry
+    local adapter=$(echo $1 | awk -F, '{print $1}')
+    # short format: add prefix 0.0
+    if [[ ! "$adapter" =~ "." ]]; then
+        adapter="0.0.${adapter}"
+    fi
+
+    # wwpn entry
+    local wwpn=$(echo $1 | awk -F, '{print $2}')
+    # add prefix 0x
+    if [[ ! "$wwpn" =~ ^0x ]]; then
+        wwpn=0x${wwpn}
+    fi
+
+    # lun entry
+    local lun=$(echo $1 | awk -F, '{print $3}')
+    # add prefix 0x
+    if [[ ! "$lun" =~ ^0x ]]; then
+        lun=0x${lun}
+    fi
+
+    local disk_desc="FCP ${adapter}/${wwpn}/${lun}"
+    confirm "$disk_desc"
+
+    # stop if any command fail
+    set -e
+
+    local zfcp_path="/sys/bus/ccw/drivers/zfcp"
+
+    # activate adapter
+    runcmd modprobe zfcp
+    runcmd cio_ignore -r $adapter
+    runcmd chccwdev -e $adapter
+    sleep_wait "${zfcp_path}/${adapter}" "error: timeout waiting for activation of adapter $adapter" 2
+
+    # activate wwpn (if needed)
+    local wwpn_path="${zfcp_path}/${adapter}/${wwpn}"
+    if [ ! -e "$wwpn_path" ]; then
+        # old interface
+        if [ -e "${zfcp_path}/${adapter}/port_add" ]; then
+            echo $wwpn > ${zfcp_path}/${adapter}/port_add
+        # rescan ports
+        elif [ -e "${zfcp_path}/${adapter}/port_rescan" ]; then
+            echo 1 > ${zfcp_path}/${adapter}/port_rescan
+        else
+            echo "error: WWPN $wwpn not found" >&2
+            exit 3
+        fi
+
+        # verify if it's available now
+        sleep_wait "$wwpn_path" "error: timeout waiting for activation of WWPN $wwpn" 3
+    fi
+
+    # activate lun
+    local lun_path="${wwpn_path}/${lun}"
+    if [ ! -e "$lun_path" ]; then
+        echo $lun > ${wwpn_path}/unit_add
+        sleep_wait "$lun_path" "error: timeout waiting for activation of LUN $lun" 4
+    fi
+
+    # find device path of lun
+    local scsi_channel=""
+    local dev_path=""
+    local timeout=15
+    local counter=0
+    while [ -z "$dev_path" ]; do
+        sleep 1
+        counter=$((counter+1))
+        if [ $counter -eq $timeout ]; then
+            echo "error: timeout waiting for scsi device of fcp disk" >&2
+            exit 8
+        fi
+        scsi_channel=$(lszfcp -D -b $adapter -p $wwpn -l $lun | awk '{print $NF}')
+        dev_path=$(lsscsi $scsi_channel | awk '{print $NF}')
+    done
+
+    # remove device from map in case multipath is present
+    local check_mpath=$(which multipathd)
+    if [ -n "$check_mpath" ]; then
+        runcmd multipathd reconfigure
+        sleep 1
+        runcmd multipathd del path ${dev_path}
+    fi
+    deploy msdos "$dev_path"
+    if [ -n "$check_mpath" ]; then
+        runcmd multipathd reconfigure
+    fi
+
+    echo "Live image successfully deployed on $disk_desc"
+}
+
+runcmd() {
+    echo "\$ $@"
+    $@
+}
+
+sleep_wait() {
+    local wait_path="$1"
+    local error_msg="$2"
+    local error_code="$3"
+
+    local timeout=15
+    local counter=0
+    while [ ! -e "$wait_path" ]; do
+        sleep 1
+        counter=$((counter+1))
+        if [ $counter -eq $timeout ]; then
+            echo "$error_msg" >&2
+            exit $error_code
+        fi
+    done
+}
+
+usage() {
+    echo "Usage: $(basename $0) DISK_TYPE DISK_PATH"
+    echo "Install the tessia live image on a DASD or FCP disk"
+    echo ""
+    echo "DISK_TYPEs:"
+    echo "  dasd           install to a DASD disk"
+    echo "  fcp            install to a FCP/SCSI disk"
+    echo ""
+    echo "DISK_PATHs:"
+    echo "  for DASD: x.y.zzzz or zzzz"
+    echo "  for FCP: adapter,wwpn,lun"
+}
+
+case "$1" in
+    dasd)
+        shift 1
+        install_dasd "$1"
+        ;;
+    fcp)
+        shift 1
+        install_fcp "$1"
+        ;;
+    -h|--help)
+        usage
+        exit 0
+        ;;
+    *)
+        usage
+        exit 1
+        ;;
+esac
