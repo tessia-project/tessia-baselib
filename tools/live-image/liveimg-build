@@ -60,7 +60,7 @@ usage() {
     echo "Build the tessia live image tarball using a docker container"
     echo ""
     echo "OPTIONs:"
-    echo "  -p           image's root password"
+    echo "  -p           image's root password [required]"
     echo "  -h           show this help"
 }
 
@@ -87,4 +87,8 @@ while getopts :hp: option; do
     esac
 done
 
+if [ -z "$root_pwd" ]; then
+    echo "error: root password not specified" >&2
+    exit 1
+fi
 build $root_pwd

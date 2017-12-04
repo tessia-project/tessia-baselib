@@ -36,7 +36,7 @@ The process is automated by a builder script and done in a docker container, all
 Simply execute:
 
 ```
-$ cd tessia-baselib && tools/live-image/build.sh
+$ cd tessia-baselib && tools/live-image/liveimg-build -p '_the_root_password'
 ```
 
 The result is a tarball which should be later extracted to an FTP server, as explained in the section [How to install the live image](#how-to-install-the-live-image).
@@ -80,8 +80,8 @@ At the end a successful message is displayed.
 
 ![HMC console success installation screen](../img/hmc_console_success.png)
 
-The installation process is complete. If you are using the baselib library as a standalone solution you have to point to this disk when doing the library
-calls to network boot an LPAR. See the API reference section [Start an LPAR using network boot](hypervisor_hmc.md#start-an-lpar-using-network-boot) for details.
+The installation process is complete. If you are using the baselib library as a standalone solution you have to point to this disk and use the password used in the build
+when doing the library calls to network boot an LPAR. See the API reference section [Start an LPAR using network boot](hypervisor_hmc.md#start-an-lpar-using-network-boot) for details.
 
 If you installed the disk to use with a tessia server then the installed disk must be associated with the CPC system entry so that the server knows which
 disk to use when LPARs on that CPC are to be installed. See the tessia server documentation for details.
