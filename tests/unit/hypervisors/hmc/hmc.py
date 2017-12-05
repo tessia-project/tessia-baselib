@@ -48,31 +48,37 @@ class TestHypervisorHmc(TestCase):
         self.parameters = {}
 
         # mock the ZHmc class
-        self._patcher_zhmc = patch.object(hmc, 'ZHmc')
-        self._mock_zhmc_cls = self._patcher_zhmc.start()
+        patcher_zhmc = patch.object(hmc, 'ZHmc')
+        self._mock_zhmc_cls = patcher_zhmc.start()
         self._mock_zhmc_obj = self._mock_zhmc_cls.return_value
-        self.addCleanup(self._patcher_zhmc.stop)
+        self.addCleanup(patcher_zhmc.stop)
+
         # useful references to mock objects
         self._mock_cpc = self._mock_zhmc_obj.get_cpc.return_value
         self._mock_lpar = self._mock_cpc.get_lpar.return_value
 
         # subprocess used to ping target system
-        self._patcher_subprocess = patch.object(hmc, 'subprocess')
-        self._mock_subprocess = self._patcher_subprocess.start()
-        self.addCleanup(self._patcher_subprocess.stop)
+        patcher_subprocess = patch.object(hmc, 'subprocess')
+        self._mock_subprocess = patcher_subprocess.start()
+        self.addCleanup(patcher_subprocess.stop)
+
+        # guestlinux used when performing kexec
+        patcher_guest_linux = patch.object(hmc, 'GuestLinux')
+        self._mock_guest_linux = patcher_guest_linux.start()
+        self.addCleanup(patcher_guest_linux.stop)
 
         # mock the logger returned by get_logger
-        self._patcher_logger = patch.object(hmc, 'get_logger')
-        self._mock_get_logger = self._patcher_logger.start()
-        self.addCleanup(self._patcher_logger.stop)
+        patcher_logger = patch.object(hmc, 'get_logger')
+        self._mock_get_logger = patcher_logger.start()
+        self.addCleanup(patcher_logger.stop)
         self._mock_logger = mock.Mock(
             spec=['info', 'warning', 'error', 'debug'])
         self._mock_get_logger.return_value = self._mock_logger
 
         # mock the time functions to skip waiting for sleeps
-        self._patcher_time = patch.object(hmc, 'time', autospec=True)
-        self._mock_time = self._patcher_time.start()
-        self.addCleanup(self._patcher_time.stop)
+        patcher_time = patch.object(hmc, 'time', autospec=True)
+        self._mock_time = patcher_time.start()
+        self.addCleanup(patcher_time.stop)
         def time_generator():
             """Generator for increasing time counter"""
             start = 1.1
@@ -91,6 +97,93 @@ class TestHypervisorHmc(TestCase):
             self.parameters
         )
     # setUp()
+
+    def _assert_net_boot(self, net_boot):
+        """
+        Assert that the netboot occurred as expected.
+
+        Args:
+            net_boot (dict): boot parameters used containing kernel info
+        """
+        calls = [
+            mock.call(net_boot.get("kernel_url"), "/tmp/kernel"),
+            mock.call(net_boot.get("initrd_url"), "/tmp/initrd")
+        ]
+
+        self._mock_guest_linux.return_value.push_file.assert_has_calls(calls)
+
+        session = self._mock_guest_linux.return_value.open_session.return_value
+        session.run.assert_called_with(
+            "killall -9 sshd; "
+            "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
+            "&>/tmp/kexec.log".format(net_boot["cmdline"]),
+            ignore_ret=True
+        )
+    # _assert_net_boot()
+
+    def _assert_net_setup(self, net_setup):
+        """
+        Assert that network setup was properly done.
+
+        Args:
+            net_setup (dict): network parameters used
+        """
+        ch_list = net_setup.get("device").split(",")
+        if len(ch_list) > 1:
+            cio_expected = net_setup.get("device")
+        else:
+            chan_2 = hex(int(net_setup.get("device"), 16)+1).strip("0x")
+            chan_3 = hex(int(net_setup.get("device"), 16)+2).strip("0x")
+            cio_expected = '{},{},{}'.format(
+                net_setup.get("device"), chan_2, chan_3)
+
+        znet_expected = 'znetconf -a {}'.format(ch_list[0])
+        options = net_setup.get('options')
+        if not options or not options.get('layer2'):
+            znet_expected += ' -o layer2=1'
+        else:
+            for option, value in options.items():
+                znet_expected += ' -o {}={}'.format(option, value)
+        znet_expected += ' && \\'
+        # build the list of expected calls
+        net_cmd_calls = [
+            mock.call("root"),
+            mock.call(net_setup['password']),
+            mock.call(
+                "cio_ignore -r {} && \\".format(cio_expected)),
+            mock.call(znet_expected),
+        ]
+        if ' layer2=1 ' in znet_expected:
+            net_cmd_calls.append(
+                mock.call("ifconfig enc{} hw ether {} && \\".format(
+                    ch_list[0], net_setup.get("mac")))
+            )
+        net_cmd_calls.extend([
+            mock.call("ifconfig enc{} {} netmask {} && \\".format(
+                ch_list[0], net_setup.get("ip"), net_setup.get("mask"))),
+            mock.call("route add default gw {} && \\".format(
+                net_setup.get("gateway"))),
+        ])
+        dns_servers = net_setup.get('dns')
+        if dns_servers:
+            net_cmd_calls.append(mock.call("echo > /etc/resolv.conf && \\"))
+            for dns_entry in dns_servers:
+                net_cmd_calls.append(
+                    mock.call("echo 'nameserver {}' >> /etc/resolv.conf && \\"
+                              .format(dns_entry)))
+
+        net_cmd_calls.append(
+            mock.call("ping -c 1 {}".format(net_setup.get('gateway'))))
+        self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+
+        # verify that we tried to reach target system
+        self._mock_subprocess.run.assert_called_with(
+            'ping -c 1 -w 5 ' + net_setup.get("ip"),
+            shell=True, check=True,
+            stdout=self._mock_subprocess.DEVNULL,
+            stderr=self._mock_subprocess.DEVNULL)
+
+    # _assert_net_setup()
 
     def test_attributes(self):
         """
@@ -231,6 +324,8 @@ class TestHypervisorHmc(TestCase):
         self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
         self._mock_lpar.activate.assert_called_with()
         self._mock_lpar.load.assert_called_with('9999')
+        # make sure no network config was attempted
+        self._mock_lpar.send_os_command.assert_not_called()
     # test_start_dasd_update_profile()
 
     def test_start_scsi_no_update(self):
@@ -263,6 +358,8 @@ class TestHypervisorHmc(TestCase):
         self._mock_lpar.activate.assert_called_with()
         self._mock_lpar.scsi_load.assert_called_with(
             '1234', '4321', '1324')
+        # make sure no network config was attempted
+        self._mock_lpar.send_os_command.assert_not_called()
     # test_start_scsi_no_update()
 
     def test_start_no_login(self):
@@ -308,6 +405,104 @@ class TestHypervisorHmc(TestCase):
         with self.assertRaises(ZHmcError):
             self.hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_start_operation_error()
+
+    def test_start_netsetup(self):
+        """
+        Test start operation with auto network setup
+        """
+        # perform the operation when the image profile do not need update
+        # using a SCSI disk
+        lpar_name = 'dummy_lpar'
+        parameters = {
+            'boot_params': {
+                'boot_method': 'scsi',
+                'zfcp_devicenr':'1234',
+                'wwpn': '4321',
+                'lun': '1324',
+                'netsetup': {
+                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    "device": "f500,f501,f502",
+                    "password": "super_password",
+                    "dns": ['9.9.9.25', '9.9.9.30']
+                }
+            },
+            'ifl_cpus': 1
+        }
+        cpu = 6
+        memory = 4096
+        self._mock_lpar.status = 'not-activated'
+        self._mock_lpar.get_properties.return_value = {
+            'status': 'operating'
+        }
+        self.hmc_object.login()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.scsi_load.assert_called_with(
+            '1234', '4321', '1324')
+
+        # validate network setup was executed
+        self._assert_net_setup(parameters['boot_params']['netsetup'])
+
+        # validate netboot was not performed
+        self._mock_guest_linux.return_value.open_session.assert_not_called()
+    # test_start_netsetup()
+
+    def test_start_netsetup_netboot(self):
+        """
+        Test variation of start operation with netsetup and netboot
+        """
+        lpar_name = 'dummy_lpar'
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999',
+                'netsetup': {
+                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    "device": "f500,f501,f502",
+                    "password": "super_password",
+                },
+                'netboot': {
+                    "cmdline": "some_cmdline",
+                    "kernel_url": "some_url",
+                    "initrd_url": "some_url",
+                }
+            },
+            'ifl_cpus': 1
+        }
+        cpu = 6
+        memory = 4096
+        self._mock_lpar.status = 'not-activated'
+        self._mock_lpar.get_properties.return_value = {
+            'status': 'operating'
+        }
+        self.hmc_object.login()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.load.assert_called_with(
+            parameters['boot_params']['devicenr'])
+
+        # validate network setup was executed
+        self._assert_net_setup(parameters['boot_params']['netsetup'])
+
+        # validate netboot occurred
+        self._assert_net_boot(parameters['boot_params']['netboot'])
+    # test_start_netsetup_netboot()
 
     def test_stop(self):
         """
@@ -372,10 +567,10 @@ class TestHypervisorHmc(TestCase):
             self.hmc_object.reboot('dummy', {})
     # test_reboot()
 
-    def test_netboot(self):
+    def test_start_netboot_additional(self):
         """
-        Check if the start() method works as expected when using
-        network boot
+        Check if the start() method works as expected when using network
+        boot with additional options
 
         Args:
             None
@@ -389,15 +584,22 @@ class TestHypervisorHmc(TestCase):
 
         parameters = {
             "boot_params": {
-                "boot_method": "network",
-                "cmdline": "some_url",
-                "kernel_url": "some_url",
-                "initrd_url": "some_url",
-                "mac": "ff:ff:ff:ff:ff:ff",
-                "ip": "9.9.9.9",
-                "mask": "255.255.255.255",
-                "gateway": "8.8.8.8",
-                "device": "f500,f501,f502"
+                "boot_method": "dasd",
+                'devicenr': 'FFFF',
+                'netsetup': {
+                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    # test with a different channel format
+                    "device": "f500",
+                    "password": "somepwd",
+                },
+                'netboot': {
+                    "cmdline": "some_cmdline",
+                    "kernel_url": "some_url",
+                    "initrd_url": "some_url",
+                }
             }
         }
 
@@ -409,152 +611,29 @@ class TestHypervisorHmc(TestCase):
             'number-shared-ifl-processors': 1
         }
 
-        patcher_guest_linux = patch.object(hmc, 'GuestLinux')
-        mock_guest_linux = patcher_guest_linux.start()
-
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {self.system_name.upper(): "FFFF"}
-        }
-
         self._mock_lpar.get_properties.return_value = {
             'status': 'operating'
         }
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
-
-        # verify behavior
-        self._mock_zhmc_obj.get_cpc.assert_called_with(
-            self.system_name.upper())
-        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
-
-        self._mock_lpar.load.assert_called_with(
-            'FFFF', timeout=hmc.NETBOOT_LOAD_TIMEOUT)
-        boot_params = parameters.get('boot_params')
-
-        ch_list = boot_params.get("device").split(",")
-        # test network setup
-        net_cmd_calls = [
-            mock.call("root"),
-            mock.call("somepasswd"),
-            mock.call(
-                "cio_ignore -r {} && \\".format(boot_params.get("device"))),
-            mock.call(
-                "znetconf -a {} -o layer2=1 && \\".format(ch_list[0])),
-            mock.call("ifconfig enc{} hw ether {} && \\".format(
-                ch_list[0], boot_params.get("mac"))),
-            mock.call("ifconfig enc{} {} netmask {} && \\".format(
-                ch_list[0], boot_params.get("ip"), boot_params.get("mask"))),
-            mock.call("route add default gw {} && \\".format(
-                boot_params.get("gateway"))),
-            mock.call("ping -c 1 {}".format(boot_params.get('gateway')))
-        ]
-        self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
-
-        # verify that we tried to reach target system
-        self._mock_subprocess.run.assert_called_with(
-            'ping -c 1 -w 5 ' + boot_params.get("ip"),
-            shell=True, check=True,
-            stdout=self._mock_subprocess.DEVNULL,
-            stderr=self._mock_subprocess.DEVNULL)
-
-        calls = [
-            mock.call(boot_params.get("kernel_url"), "/tmp/kernel"),
-            mock.call(boot_params.get("initrd_url"), "/tmp/initrd")
-        ]
-
-        mock_guest_linux.return_value.push_file.assert_has_calls(calls)
-
-        session = mock_guest_linux.return_value.open_session.return_value
-        session.run.assert_called_with(
-            "killall -9 sshd; "
-            "nohup kexec /tmp/kernel --initrd=/tmp/initrd --command-line='{}' "
-            "&>/tmp/kexec.log".format(boot_params.get("cmdline")),
-            ignore_ret=True
-        )
-
-        # test with a different channel format
-        parameters["boot_params"]['device'] = "f500"
-        self._mock_lpar.send_os_command.reset_mock()
-        self.hmc_object.start(lpar_name, cpu, memory, parameters)
-        f501 = hex(int("f500", 16)+1).strip("0x")
-        f502 = hex(int("f500", 16)+2).strip("0x")
-        # replace expected command
-        net_cmd_calls[2] = mock.call(
-            "cio_ignore -r {} && \\".format("f500," + f501 + "," +f502)
-        )
-        self._mock_lpar.send_os_command.has_calls(net_cmd_calls)
+        net_setup = parameters['boot_params']['netsetup']
+        self._assert_net_setup(net_setup)
 
         # test with layer2 off and additional options
         # by using an ordered dict and placing layer2 on second position we
         # validate that layer2 always comes first
-        parameters["boot_params"]['options'] = OrderedDict()
-        parameters["boot_params"]['options']['portname'] = 'osaport'
-        parameters["boot_params"]['options']['layer2'] = '0'
-        parameters["boot_params"]['options']['portno'] = '0'
-        parameters["boot_params"]['options']['buffer_count'] = '128'
+        net_setup['options'] = OrderedDict()
+        net_setup['options']['layer2'] = '0'
+        net_setup['options']['portname'] = 'osaport'
+        net_setup['options']['portno'] = '0'
+        net_setup['options']['buffer_count'] = '128'
         self._mock_lpar.send_os_command.reset_mock()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
-        # replace expected commands
-        net_cmd_calls[3] = mock.call(
-            "znetconf -a {} -o layer2=0 -o portname=osaport -o portno=0 "
-            "-o buffer_count=128 && \\".format(ch_list[0])
-        )
-        # mac address is not set when layer2 is off
-        net_cmd_calls.pop(4)
-        self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
+        self._assert_net_setup(net_setup)
 
-    # test_netboot()
+    # test_start_netboot_additional()
 
-    def test_netboot_no_disk(self):
-        """
-        Exercise the scenario where there is no auxiliary disk for the given
-        cpc.
-        """
-        # instantiate an object to use a different cpc name
-        cpc_name = 'YY22'
-        hmc_object = hmc.HypervisorHmc(
-            cpc_name, self.host_name, self.user, self.passwd, self.parameters)
-        # mock get_cpc to return the cpc name
-        self._mock_cpc.name = cpc_name
-        # mock configuration file
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {'XX11': "FFFF"}
-        }
-
-        lpar_name = "dummy_lpar"
-        cpu = 6
-        memory = 4096
-        parameters = {
-            "boot_params": {
-                "boot_method": "network",
-                "cmdline": "some_url",
-                "kernel_url": "some_url",
-                "initrd_url": "some_url",
-                "mac": "ff:ff:ff:ff:ff:ff",
-                "ip": "9.9.9.9",
-                "mask": "255.255.255.255",
-                "gateway": "8.8.8.8",
-                "device": "f500,f501,f502"
-            }
-        }
-
-        # execute action and verify
-        hmc_object.login()
-        with self.assertRaisesRegex(
-            ZHmcError,
-            'Operation failed with: No auxiliary disk configured for '
-            'CPC {}'.format(cpc_name)):
-            hmc_object.start(lpar_name, cpu, memory, parameters)
-
-    # test_netboot_no_disk()
-
-    def test_netboot_load_timeout(self):
+    def test_start_netboot_load_timeout(self):
         """
         Check if the start() method works as expected when using
         network boot and a timeout happens during load
@@ -578,14 +657,6 @@ class TestHypervisorHmc(TestCase):
             'number-shared-general-purpose-processors': 5,
             'number-shared-ifl-processors': 1
         }
-        # mock conf file to return aux disk for CPC
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {'CP23': "FFFF"}
-        }
-
 
         # perform call and validate error
         lpar_name = "dummy_lpar"
@@ -593,26 +664,31 @@ class TestHypervisorHmc(TestCase):
         memory = 4096
         parameters = {
             "boot_params": {
-                "boot_method": "network",
-                "cmdline": "some_url",
-                "kernel_url": "some_url",
-                "initrd_url": "some_url",
-                "mac": "ff:ff:ff:ff:ff:ff",
-                "ip": "9.9.9.9",
-                "mask": "255.255.255.255",
-                "gateway": "8.8.8.8",
-                "device": "f500,f501,f502"
+                'boot_method': 'dasd',
+                'devicenr': '9999',
+                'netsetup': {
+                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    "device": "f500,f501,f502",
+                },
+                'netboot': {
+                    "cmdline": "some_cmdline",
+                    "kernel_url": "some_url",
+                    "initrd_url": "some_url",
+                }
             }
         }
         hmc_object.login()
         with self.assertRaisesRegex(
             ZHmcError,
-            'Operation failed with: Timed out while performing load of '
-            'auxiliary system'):
+            'Operation failed with: Timed out while waiting for load of '
+            'operating system'):
             hmc_object.start(lpar_name, cpu, memory, parameters)
-    # test_netboot_load_timeout()
+    # test_start_netboot_load_timeout()
 
-    def test_netboot_network_timeout(self):
+    def test_start_netboot_network_timeout(self):
         """
         Check if the start() method works as expected when using
         network boot and a timeout happens during setting up network on
@@ -630,15 +706,24 @@ class TestHypervisorHmc(TestCase):
 
         parameters = {
             "boot_params": {
-                "boot_method": "network",
-                "cmdline": "some_url",
-                "kernel_url": "some_url",
-                "initrd_url": "some_url",
-                "mac": "ff:ff:ff:ff:ff:ff",
-                "ip": "9.9.9.9",
-                "mask": "255.255.255.255",
-                "gateway": "8.8.8.8",
-                "device": "f500,f501,f502"
+                'boot_method': 'scsi',
+                'zfcp_devicenr':'1234',
+                'wwpn': '4321',
+                'lun': '1324',
+                'netsetup': {
+                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    "device": "f500,f501,f502",
+                    "password": "super_password",
+                    "dns": ['9.9.9.25', '9.9.9.30']
+                },
+                'netboot': {
+                    "cmdline": "some_cmdline",
+                    "kernel_url": "some_url",
+                    "initrd_url": "some_url",
+                }
             }
         }
 
@@ -651,13 +736,6 @@ class TestHypervisorHmc(TestCase):
             'number-shared-general-purpose-processors': 5,
             'number-shared-ifl-processors': 1
         }
-        # config file
-        patcher_conf = patch.object(hmc, 'CONF')
-        mock_conf = patcher_conf.start()
-        self.addCleanup(patcher_conf.stop)
-        mock_conf.get_config.return_value = {
-            'netdisks': {self.system_name.upper(): "FFFF"}
-        }
         # set the mock so that the load operation works
         self._mock_lpar.get_properties.return_value = {'status': 'operating'}
         # set the subprocess mock so that the network configuration fails
@@ -668,8 +746,8 @@ class TestHypervisorHmc(TestCase):
         with self.assertRaisesRegex(
             ZHmcError,
             'Operation failed with: Timed out while waiting for network on '
-            'auxiliary system'):
+            'loaded operating system'):
             self.hmc_object.start(lpar_name, cpu, memory, parameters)
-    # test_netboot_network_timeout()
+    # test_start_netboot_network_timeout()
 
 # TestHypervisorHmc

@@ -4,14 +4,36 @@
             "properties": {
                 "devicenr": {
                     "$ref": "../../common/entities/devicenr_type.json"
+                },
+                "netboot": {
+                    "$ref": "#/definitions/netboot"
+                },
+                "netsetup": {
+                    "$ref": "../../common/entities/netsetup_type.json"
                 }
             },
             "required": [
                 "devicenr"
             ]
         },
-        "network": {
-            "$ref": "../entities/netboot_params_type.json"
+        "netboot": {
+            "properties": {
+                "cmdline": {
+                    "maxLength": 4096,
+                    "type": "string"
+                },
+                "initrd_url": {
+                    "format": "uri",
+                    "type": "string"
+                },
+                "kernel_url": {
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "kernel_url"
+            ]
         },
         "scsi": {
             "properties": {
@@ -23,6 +45,12 @@
                 },
                 "zfcp_devicenr": {
                     "$ref": "../../common/entities/devicenr_type.json"
+                },
+                "netboot": {
+                    "$ref": "#/definitions/netboot"
+                },
+                "netsetup": {
+                    "$ref": "../../common/entities/netsetup_type.json"
                 }
             },
             "required": [
@@ -36,8 +64,7 @@
         "boot_method": {
             "enum": [
                 "scsi",
-                "dasd",
-                "network"
+                "dasd"
             ],
             "type": "string"
         },
@@ -47,9 +74,6 @@
             },
             {
                 "$ref": "#/definitions/dasd"
-            },
-            {
-                "$ref": "#/definitions/network"
             }
         ]
     },

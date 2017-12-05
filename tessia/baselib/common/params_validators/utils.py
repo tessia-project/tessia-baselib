@@ -21,7 +21,6 @@ Module for utility functions
 #
 from tessia.baselib.common.params_validators.jsonschema import \
     JsonschemaValidator
-from tessia.baselib.config import CONF
 
 import inspect
 import os
@@ -31,49 +30,10 @@ import os
 ARGUMENT_TO_VALIDATE = "parameters"
 SCHEMAS_BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + "/schemas"
 VALID_ACTIONS = ("start", "stop", "hotplug", "__init__", "reboot")
-VALIDATOR_LIBS = {
-    "jsonschema": JsonschemaValidator
-}
 
 #
 # CODE
 #
-
-def create_params_validator(json_schema_file, validator=None):
-    """
-    This functions is a factory for json schema validators.
-    Args:
-        json_schema_file (str): Path to the file containing the json schema.
-        validator (str):        Name of the validator that will be
-                                instantiated.
-                   If no name is provided, it will use the default validator
-                   defined in the configuration file.
-
-    Return:
-        object: An instance of the chosen parameters validator.
-
-    Raises:
-        ValueError: It the default validator is not defined in the
-                    configuration file or it is not a supported validator.
-    """
-    if validator is None:
-        try:
-            validator_lib = CONF.get_config()["default_schema_validator"]
-        # config file not available or missing option: use jsonschema
-        except (KeyError, IOError):
-            validator_lib = 'jsonschema'
-    else:
-        validator_lib = validator
-
-    if validator_lib not in VALIDATOR_LIBS.keys():
-        raise ValueError(
-            "{} is not a valid validator. Use one of {}".format(
-                validator_lib, ', '.join(VALIDATOR_LIBS.keys()))
-        )
-
-    return VALIDATOR_LIBS[validator_lib](json_schema_file)
-# create_params_validator()
-
 def validate_params(func):
     """
     A function decorator that is used to validate the "parameters" argument
@@ -117,7 +77,7 @@ def validate_params(func):
     schema_file = SCHEMAS_BASE_DIR + "/" + func_dir_name \
                   + "/actions/" + func_name + ".json"
 
-    validator = create_params_validator(schema_file)
+    validator = JsonschemaValidator(schema_file)
 
     def validate(*params):
         """

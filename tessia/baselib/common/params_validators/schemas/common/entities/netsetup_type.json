@@ -8,6 +8,12 @@
             "maxLength": 14,
             "type": "string"
         },
+        "dns": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
         "gateway": {
             "maxLength": 16,
             "type": "string"
@@ -34,16 +40,17 @@
         },
         "options": {
             "type": "object"
+        },
+        "password": {
+            "type": "string"
         }
     },
     "required": [
-        "kernel_url",
-        "initrd_url",
-        "cmdline",
         "mac",
         "ip",
         "mask",
         "gateway",
-        "device"
+        "device",
+        "password"
     ]
 }
