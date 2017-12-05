@@ -22,17 +22,23 @@ hotplug resources,and others.
 
 This library is part of the tessia solution but can also be used standalone by developers/system administrators seeking for a python library to automate their IBM Z environments.
 
-**User guide**
+# Users
 
-- [Building](users/build.md)
-- [Hypervisor HMC](users/hypervisor_hmc.md)
-- [Hypervisor KVM](users/hypervisor_kvm.md)
-- [Live image to enable HMC netboot](users/live_image.md)
+- Installation
+    - [How to install](users/install.md)
+    - [Live image to enable HMC netboot](users/live_image.md)
+- API documentation
+    - [Hypervisors API](users/api_hypervisors.md)
+    - [Guests API](users/api_guests.md)
+- Usage examples
+    - [Hypervisor HMC](users/hypervisor_hmc.md)
+    - [Hypervisor KVM](users/hypervisor_kvm.md)
 
-**Developers**
+# Developers
 
+- [How to contribute (development process)](developers/contributing.md)
+- [How to setup a development environment](developers/dev_env.md)
 - [Coding guidelines](developers/coding_guidelines.md)
-- [Development process](developers/dev_process.md)
-- [Unit tests](developers/unit_tests.md)
+- [Tests](developers/tests.md)
 - [Working with documentation](developers/documentation.md)
 - [Validation of parameters with json schemas](developers/params_validation.md)

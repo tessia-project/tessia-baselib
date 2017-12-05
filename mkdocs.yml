@@ -2,26 +2,28 @@
 docs_dir: doc
 # where to store output files
 site_dir: build/html
-site_favicon: img/favicon.ico
 # enable permalinks for each header
 markdown_extensions:
     - toc:
         permalink: True
 # css/html theme
-theme: cosmo
+theme: readthedocs
 site_name: Tessia base library
 repo_url: https://gitlab.com/tessia-project/tessia-baselib
-copyright: IBM Corp. 2017
+copyright: Copyright IBM Corp. 2016, 2017
 pages:
 - Home: 'index.md'
-- User guide:
-    - Build and install: 'users/build.md'
+- Users:
+    - How to install: 'users/install.md'
+    - Live image to enable HMC netboot: 'users/live_image.md'
+    - Hypervisors API: 'users/api_hypervisors.md'
+    - Guests API: 'users/api_guests.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
     - Hypervisor KVM: 'users/hypervisor_kvm.md'
-    - Live image to enable HMC netboot: 'users/live_image.md'
 - Developers:
+    - How to contribute (development process): 'developers/contributing.md'
     - Coding guidelines: 'developers/coding_guidelines.md'
-    - Development process: 'developers/dev_process.md'
-    - Unit tests: 'developers/unit_tests.md'
+    - How to setup a development environment: 'developers/dev_env.md'
+    - Tests: 'developers/tests.md'
     - Working with documentation: 'developers/documentation.md'
     - Validation of parameters with json schemas: 'developers/params_validation.md'
