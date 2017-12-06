@@ -26,13 +26,17 @@ For explanation on the markdown syntax, see [Gitlab explanation](https://github.
 
 While you are doing changes to the documentation files, it's easy to visualize the resulting html in real-time. The first possibility is to use gitlab web interface and its preview function. The second is to edit the files locally and use mkdocs and its option to run a simple html server which detects updates to the files and rebuilds them automatically. To start the server in a virtualenv (the recommended way), use tox:
 
-`$ tox -e doc serve`
+```
+$ tox -e doc serve
+```
 
 You should see a line like this: `[I 160615 16:31:32 server:281] Serving on http://127.0.0.1:8000`, you can now open the browser and point it to that address.
 
 If you don't want to use tox, you can start the mkdocs server with:
 
-`$ tools/mkdocs.py serve`
+```
+$ tools/mkdocs.py serve
+```
 
 In this case, make sure you have mkdocs installed on your system.
 
@@ -44,5 +48,11 @@ For example, if you did your work using gitlab, then start mkdocs server and rev
 If you want to upload the documentation and need to build it, use the same mkdocs command but replace `serve` by `build`. By default the files will be stored under the folder `build/html` at the root of the repository.
 You can specify a different location with the `-d` parameter. Examples:
 
-- `$ tox -e doc build`
-- `tools/mkdocs.py build -d /tmp/html`
+```
+# using a 'doc' virtualenv via tox
+# without -d the output will be in the build folder
+$ tox -e doc build
+
+# using the helper script
+$ tools/mkdocs.py build -d /tmp/html
+```

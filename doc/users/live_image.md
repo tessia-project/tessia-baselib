@@ -18,7 +18,7 @@ limitations under the License.
 The HMC in classic mode does not expose the FTP network boot capability through its API so in order to
 circumvent this limitation we make use of a Linux live image to simulate the functionality.
 
-This works by pre-allocating a DASD/FCP disk for each CPC on which LPARs will must be netbooted.
+This works by pre-allocating a DASD or FCP disk on each CPC where LPARs are going to be netbooted.
 Here's an overview of the process:
 
 - a target LPAR is IPLed with the pre-allocated disk containing the Linux live image;
@@ -80,8 +80,8 @@ At the end a successful message is displayed.
 
 ![HMC console success installation screen](../img/hmc_console_success.png)
 
-The installation process is complete. If you are using the baselib library as a standalone solution you have to point to this disk and use the password used in the build
-when doing the library calls to network boot an LPAR. See the API reference section [Start an LPAR using network boot](hypervisor_hmc.md#start-an-lpar-using-network-boot) for details.
+The installation process is complete. If you are using the baselib library as a standalone solution you have to point to this disk and use the root password used in the build
+when doing the library calls to network boot an LPAR. See the usage example [Start an LPAR using network boot](hypervisor_hmc.md#start-an-lpar-using-network-boot) for details.
 
-If you installed the disk to use with a tessia server then the installed disk must be associated with the CPC system entry so that the server knows which
+If you installed the disk to use with a tessia server, then the installed disk must be associated with the CPC system entry so that the server knows which
 disk to use when LPARs on that CPC are to be installed. See the tessia server documentation for details.
