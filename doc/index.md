@@ -33,6 +33,8 @@ This library is part of the tessia solution but can also be used standalone by d
 - Usage examples
     - [Hypervisor HMC](users/hypervisor_hmc.md)
     - [Hypervisor KVM](users/hypervisor_kvm.md)
+- Misc
+    - Library's [versioning scheme](users/versioning.md)
 
 # Developers
 
