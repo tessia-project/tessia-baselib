@@ -20,6 +20,7 @@ pages:
     - Guests API: 'users/api_guests.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
     - Hypervisor KVM: 'users/hypervisor_kvm.md'
+    - Versioning scheme: 'users/versioning.md'
 - Developers:
     - How to contribute (development process): 'developers/contributing.md'
     - Coding guidelines: 'developers/coding_guidelines.md'
