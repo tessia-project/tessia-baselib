@@ -160,9 +160,9 @@ class S3270(object):
                 (status, output) = self._s3270.run('Connect('+host_name+')',
                                                    180)
             except TimeoutError:
-                self._logger.exception('Host '+host_name+' is taking so '
-                                       'long to answer: ')
-                raise TimeoutError('Host is taking so long to answer')
+                self._logger.exception(
+                    'Host %s is taking too long to answer: ', host_name)
+                raise TimeoutError('Host is taking too long to answer')
 
             if status:
                 if 'No address associated with hostname' in output:

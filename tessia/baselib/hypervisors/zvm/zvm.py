@@ -99,7 +99,7 @@ class HypervisorZvm(HypervisorBase):
         output = self._terminal.login(
             self.host_name, self.user, self.passwd, self.parameters, timeout
         )
-        self._logger.debug("LOGIN process: \n"+output)
+        self._logger.debug("LOGIN process: \n%s", output)
     # login()
 
     def logoff(self):
