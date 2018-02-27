@@ -15,14 +15,19 @@
 """
 Terminal unittest
 """
-# pylint: disable=no-member,attribute-defined-outside-init
 #
 # IMPORTS
 #
-from unittest.mock import patch
-from unittest import TestCase
-from tessia.baselib.common.s3270.terminal import Terminal
+from tessia.baselib.common.s3270 import terminal
+from tessia.baselib.common.s3270.exceptions import S3270StatusError
 from tessia.baselib.common.s3270.exceptions import ZvmMessageError
+from unittest import mock
+from unittest import TestCase
+from unittest.mock import patch
+
+import os
+import yaml
+
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -35,448 +40,588 @@ class TestTerminal(TestCase):
     Unit test for the Terminal class
     """
 
+    @classmethod
+    def setUpClass(cls):
+        """
+        Store the console output data to be used in the tests.
+        """
+        data_file = '{}/terminal.yaml'.format(
+            os.path.dirname(os.path.abspath(__file__)))
+        with open(data_file, 'r', encoding='utf-8') as data_fd:
+            cls._data = yaml.load(data_fd.read())
+    # setUpClass()
+
     def setUp(self):
         """
         Mock S3270
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        self.s3270_patcher = patch(
-            'tessia.baselib.common.s3270.terminal.S3270',
-            autospec=True)
-        self.mock_s3270 = self.s3270_patcher.start()
-        self.addCleanup(self.s3270_patcher.stop)
+        # patch the S3270 object
+        patcher = patch.object(terminal, 'S3270', autospec=True)
+        self._mock_s3270 = patcher.start().return_value
+        self._mock_s3270.host_name = None
+        def mock_connect(host_name, *args, **kwargs):
+            """
+            Set the hostname when called, like the original method.
+            """
+            self._mock_s3270.host_name = host_name
+        self._mock_s3270.connect = mock_connect
+        self.addCleanup(patcher.stop)
+
+        # patch the logger object
+        patcher = patch.object(terminal, 'get_logger', autospec=True)
+        self._mock_logger = patcher.start().return_value
+        self.addCleanup(patcher.stop)
+
+        # patch time.time
+        patcher = patch.object(terminal, 'time', autospec=True)
+        self._mock_time = patcher.start()
+        self.addCleanup(patcher.stop)
+        def time_gen():
+            """
+            Generator to simulate a call to time.time()
+            """
+            start = 1.0
+            while True:
+                yield start
+                start += 0.5
+        # time_gen
+        mock_time = time_gen()
+        self._mock_time.side_effect = lambda: next(mock_time)
+
+        # patch sleep
+        patcher = patch.object(terminal, 'sleep', autospec=True)
+        patcher.start()
+        self.addCleanup(patcher.stop)
 
         # set s3270 output
-        (self.mock_s3270.return_value
-         .ascii.return_value) = 'data: ok\ndata: RUNNING\n'
+        self._mock_s3270.ascii.return_value = 'data: ok\ndata: RUNNING\n'
+
+        # instance of terminal for convenience
+        self._term = terminal.Terminal()
     # setUp()
+
+    def test_cmds_without_connection(self):
+        """
+        Exercise executing various commands without a connection established to
+        the host
+        """
+        # set s3270 output
+        self._mock_s3270.query.return_value = (
+            'data:                             \n'
+            'L U U N N 4 24 80 0 0 0x0 -                    \n'
+            'ok                           \n'
+        )
+
+        # no connection means no hostname set
+        self.assertIs(self._term.host_name, None)
+
+        with self.assertRaises(RuntimeError):
+            self._term.disconnect()
+        with self.assertRaises(RuntimeError):
+            self._term.logoff()
+        with self.assertRaises(RuntimeError):
+            self._term.send_cmd('any_command')
+        with self.assertRaises(RuntimeError):
+            self._term.transfer('any_command')
+    # test_cmds_without_connection()
 
     def test_connect_ok(self):
         """
         Exercise a normal connect command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
         # set s3270 output
-        self.mock_s3270.return_value.query.return_value = 'data: \n     \nok\n'
+        self._mock_s3270.query.return_value = 'data: \n     \nok\n'
 
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        terminal.connect("hostname.com")
-        self.assertEqual('hostname.com', terminal.host_name)
+        self._term.connect("hostname.com")
+        self.assertEqual('hostname.com', self._term.host_name)
     # test_connect_ok()
 
     def test_connect_second_time(self):
         """
-        Exercise a normal connect command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise a connect executed two times, the first connection should be
+        dropped and a new one established.
         """
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
+        self._mock_s3270.query.side_effect = [
             'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
         ]
 
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        terminal.connect("hostname.com")
-        terminal.connect("hostname.com")
-        self.assertEqual('hostname.com', terminal.host_name)
-        self.mock_s3270.return_value.disconnect.assert_called_once_with()
+        self._term.connect("hostname.com")
+        self._term.connect("hostname.com")
+        self.assertEqual('hostname.com', self._term.host_name)
+        self._mock_s3270.disconnect.assert_called_once_with()
     # test_connect_second_time()
 
-    def test_login_ok(self):
+    def test_disconnect(self):
         """
-        Exercise a normal login command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise a normal disconnect command
         """
-        # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: VM READ\nok\n',
-            'data: ok\ndata: RUNNING\nU F U C(hostname.com) \nok\n',
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+        self._mock_s3270.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+            'data: \nL U U N N 4 24 80 0 0 0x0 -\nok\n'
         ]
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # perform action
+        self._term.login("hostname.com", "user", "password")
+        self._term.disconnect()
 
-        # simple command execution
-        output = terminal.login("hostname.com", "user", "password")
-        self.assertEqual(' ok\n', output)
-    # test_login_ok()
+        # validate behavior
+        self._mock_s3270.quit.assert_called_once_with()
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('#cp disconnect'),
+        ])
+    # test_disconnect()
+
+    def test_empty_output(self):
+        """
+        Test the scenario where a command generates empty output. Should not
+        happen in real usage as the ascii() always returns some output but it
+        is worth to validate that the code can handle such case.
+        """
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+        self._mock_s3270.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        ]
+
+        # perform action
+        self._term.login("hostname.com", "user", "password")
+        self._mock_s3270.ascii.side_effect = None
+        self._mock_s3270.ascii.return_value = ''
+        output = self._term.send_cmd("dummy")
+
+        # validate behavior
+        self.assertEqual(output, ('', None))
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('dummy'),
+        ])
+    # test_empty_output()
 
     def test_login_already_logged_on(self):
         """
         Exercise a login when user is already logged on
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
         # set s3270 output
-        (self.mock_s3270.return_value
-         .ascii.return_value) = 'data: HCPLGA054E\nok\n'
+        self._mock_s3270.ascii.side_effect = self._data['login_already_logged']
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # validate result
+        with self.assertRaisesRegex(ZvmMessageError, 'Already logged'):
+            self._term.login('hostname.com', 'user', 'password')
 
-        # simple command execution
-        self.assertRaises(ZvmMessageError, terminal.login,
-                          'test.host.com', 'user', 'password')
+        # validate behavior (commands entered)
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+        ])
     # test_login_already_logged_on()
+
+    def test_login_generic_error(self):
+        """
+        Exercise the scenario where a generic error message occurs during logon
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data['login_generic_error']
+
+        # validate result
+        with self.assertRaisesRegex(
+            ZvmMessageError, 'HCP052E Error in CP directory'):
+            self._term.login('hostname.com', 'user', 'password')
+
+        # validate behavior (commands entered)
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+        ])
+
+        # test whether the generic error regex also catches an error without
+        # description
+        self._mock_s3270.ascii.side_effect = self._data[
+            'login_generic_error_no_desc']
+        with self.assertRaisesRegex(ZvmMessageError, 'HCP003E $'):
+            self._term.login('hostname.com', 'user', 'password')
+
+    # test_login_generic_error()
+
+    def test_login_ok(self):
+        """
+        Exercise a normal login command
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+
+        # perform action
+        output = self._term.login("hostname.com", "user", "password")
+
+        # validate result
+        self.assertIn('RECONNECTED AT', output)
+
+        # validate behavior (commands entered)
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+        ])
+    # test_login_ok()
+
+    def test_login_ok_cp_read(self):
+        """
+        Exercise a normal login command where terminal waits in CP READ (as we
+        specify noipl). This test also covers usage of extra parameters for
+        login.
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data['login_ok_cp_read']
+
+        # perform action
+        output = self._term.login("hostname.com", "user", "password",
+                                  parameters={"here": True, "noipl": True})
+
+        # validate result
+        self.assertIn('RECONNECTED AT', output)
+
+        # validate behavior (commands entered)
+        self.assertListEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user here noipl'),
+            mock.call('password'),
+            mock.call('begin'),
+        ])
+    # test_login_ok_cp_read()
+
+    def test_login_ok_pending(self):
+        """
+        Exercise a normal login command where guest reports LOGOFF/FORCE
+        pending after user is entered. This test also covers the case where CMS
+        is ipled automatically after the login.
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data[
+            'login_ok_pending']
+
+        # perform action
+        output = self._term.login("hostname.com", "user", "password")
+
+        # validate result
+        self.assertIn('LOGON AT', output)
+
+        # validate behavior (commands entered)
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('l user'),
+            mock.call('password'),
+        ])
+    # test_login_ok_pending()
+
+    def test_login_ok_pending_after_pwd(self):
+        """
+        Exercise a normal login command where guest reports LOGOFF/FORCE
+        pending after password is entered. This test also covers the case where
+        CMS is ipled automatically after the login.
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data[
+            'login_ok_pending_after_pwd']
+
+        # perform action
+        output = self._term.login("hostname.com", "user", "password")
+
+        # validate result
+        self.assertIn('LOGON AT', output)
+
+        # validate behavior (commands entered)
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('l user'),
+            mock.call('password'),
+        ])
+    # test_login_ok_pending_after_pwd()
+
+    def test_login_pending_forever(self):
+        """
+        Exercise the scenario where the pending user is never released.
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.return_value = self._data[
+            'login_ok_pending'][0]
+
+        # perform action
+        with self.assertRaisesRegex(
+            TimeoutError, 'LOGOFF/FORCE pending for user'):
+            self._term.login("hostname.com", "user", "password")
+    # test_login_pending_forever()
 
     def test_login_with_open_connection(self):
         """
         Exercise a login when a connection is already in place
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        (self.mock_s3270.return_value
-         .ascii.return_value) = 'data: ok\ndata: RUNNING\nL U U\nok\n'
+        # set s3270 output
+        self._mock_s3270.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        ]
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # perform action
+        self._term.connect("hostname.com")
+        output = self._term.login("hostname.com", "user", "password")
 
-        # simple command execution
-        terminal.connect("hostname.com")
-        output = terminal.login("hostname.com", "user", "password")
-        self.assertEqual(' ok\n', output)
+        # validate result
+        self.assertIn('RECONNECTED AT', output)
+
+        # validate behavior
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+        ])
     # test_login_with_open_connection()
 
     def test_login_with_logonby(self):
         """
         Exercise a login with byuser
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: CP READ\nok\n',
-            'data: ok\ndata: RUNNING\nU F U C(hostname.com) \nok\n',
-        ]
-        # create new instance of terminal
-        terminal = Terminal()
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
 
-        # simple command execution
-        terminal.connect("hostname.com")
-        output = terminal.login("hostname.com", "user", "password",
-                                parameters={"byuser":"newuser"})
-        self.assertEqual(' ok\n', output)
-        (self.mock_s3270.return_value
-         .string.assert_any_call("l user by newuser"))
+        # perform action
+        self._term.connect("hostname.com")
+        output = self._term.login("hostname.com", "user", "password",
+                                  parameters={"byuser":"newuser"})
+
+        # validate result
+        self.assertIn('RECONNECTED AT', output)
+
+        # validate behavior
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user by newuser'),
+            mock.call('password'),
+        ])
     # test_login_with_logonby()
 
-    def test_login_here(self):
+    def test_login_wrong_password(self):
         """
-        Exercise a login here
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
-        """
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        terminal.connect("hostname.com")
-        output = terminal.login("hostname.com", "user", "password",
-                                parameters={"here":True})
-        self.assertEqual(' ok\n', output)
-        (self.mock_s3270.return_value
-         .string.assert_any_call("l user here"))
-    # test_login_here()
-
-    def test_disconnect_ok(self):
-        """
-        Exercise a normal disconnect command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise wrong password provided at logon
         """
         # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: VM READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
-        ]
+        self._mock_s3270.ascii.side_effect = self._data['login_wrong_password']
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # validate result
+        with self.assertRaisesRegex(
+            ZvmMessageError, 'incorrect userid and/or password'):
+            self._term.login('hostname.com', 'user', 'password')
 
-        # simple command execution
-        output = terminal.login("hostname.com", "user", "password")
-        output = terminal.disconnect()
-
-        self.assertIs(output, True)
-    # test_disconnect_ok()
-
-    def test_disconnect_with_problem(self):
-        """
-        Exercise a disconnect that fails keeping connected
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
-        """
-        # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: VM READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
-        ]
-        # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
-        ]
-
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        output = terminal.login("hostname.com", "user", "password")
-        output = terminal.disconnect()
-
-        self.assertIs(output, False)
-    # test_disconnect_with_problem()
+        # validate behavior
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+        ])
+    # test_login_wrong_password()
 
     def test_logoff_ok(self):
         """
         Exercise a normal logoff command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
         # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: VM READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+        self._mock_s3270.query.side_effect = [
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
+            'data: \nL U U N N 4 24 80 0 0 0x0 -\nok\n'
         ]
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # perform action
+        self._term.login("hostname.com", "user", "password")
+        self._term.logoff()
 
-        # simple command execution
-        output = terminal.login("hostname.com", "user", "password")
-        output = terminal.logoff()
-
-        self.assertIs(output, True)
+        # validate behavior
+        self._mock_s3270.quit.assert_called_once_with()
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('#cp logoff'),
+        ])
     # test_logoff_ok()
-
-    def test_logoff_with_problem(self):
-        """
-        Exercise a logoff that fails keeping connected
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
-        """
-        # set s3270 output
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: ok\nU F U C(hostname.com) \nok\n',
-            'data: VM READ\nok\n',
-            'data: ok\nU F U C(hostname.com) \nok\n',
-        ]
-        # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
-        ]
-
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        output = terminal.login("hostname.com", "user", "password")
-        output = terminal.logoff()
-
-        self.assertIs(output, False)
-    # test_logoff_with_problem()
 
     def test_send_cmd_cms(self):
         """
         Exercise send_cmd with a CMS command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
+        # set return value so that the connection appears to be always
+        # active
+        self._mock_s3270.query.return_value = (
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        )
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
-        ]
+        self._mock_s3270.ascii.side_effect = (
+            self._data['login_ok'] + self._data['send_cmd_cms'])
 
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: \nU F U C(hostname.com) \nok\n', # middle of login method
-            'data: \nU F U C(hostname.com) \nok\n', # _check_status at login
-            'data: \nU F U C(hostname.com) \nok\n', # end of login method
-            'data: MORE...             \nU F U C(hostname.com) \nok\n',
-            'data: HOLDING             \nU F U C(hostname.com) \nok\n',
-            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
+        # start cms
+        self._term.login("hostname.com", "user", "password")
+        re_wait_for = 'Ready;'
+        output, re_match = self._term.send_cmd(
+            'i cms', use_cp=True, wait_for=[re_wait_for])
+        # raises attribute error in case nothing was matched
+        self.assertEqual(re_match.re.pattern, re_wait_for)
+        # output check is according to the content in the yaml file
+        self.assertIn('OSA  F5F2', output)
 
-        ]
+        # execute command
+        output, re_match = self._term.send_cmd("profile", wait_for=re_wait_for)
+        self.assertEqual(re_match.re.pattern, re_wait_for)
+        # entry in the first 'page'
+        self.assertIn('OSA  F5F4', output)
+        # entry in the middle 'page'
+        self.assertIn('OSA  F6F4', output)
+        # entry in the last 'page'
+        self.assertIn('OSA  F7F2', output)
 
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        terminal.login("hostname.com", "user", "password")
-
-        cmd_output = terminal.send_cmd("profile", wait_for="Ready;")
-        content = " profile\n"
-        self.assertEqual(content, cmd_output[0])
+        # validate behavior
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('#cp i cms'),
+            mock.call('profile'),
+        ])
     # test_send_cmd_cms()
+
+    def test_send_cmd_cms_no_wait_for(self):
+        """
+        Exercise send_cmd without wait_for to make sure all available output is
+        consumed.
+        """
+        # set return value so that the connection appears to be always
+        # active
+        self._mock_s3270.query.return_value = (
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        )
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = (
+            self._data['login_ok'] + self._data['send_cmd_cms'])
+
+        # start cms
+        self._term.login("hostname.com", "user", "password")
+        output, re_match = self._term.send_cmd(
+            'i cms', use_cp=True)
+        self.assertIs(re_match, None)
+        # output check is according to the content in the yaml file
+        self.assertIn('OSA  F5F2', output)
+
+        # execute command
+        output, re_match = self._term.send_cmd("profile")
+        self.assertIs(re_match, None)
+        # entry in the first 'page'
+        self.assertIn('OSA  F5F4', output)
+        # entry in the middle 'page'
+        self.assertIn('OSA  F6F4', output)
+        # entry in the last 'page'
+        self.assertIn('OSA  F7F2', output)
+
+        # validate behavior
+        self.assertEqual(self._mock_s3270.string.mock_calls, [
+            mock.call('l user'),
+            mock.call('password'),
+            mock.call('#cp i cms'),
+            mock.call('profile'),
+        ])
+    # test_send_cmd_cms_no_wait_for()
 
     def test_send_cmd_cms_with_timeout(self):
         """
-        Exercise send_cmd with a CMS command when a timeout occurs
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise send_cmd with a CMS command while setting a wait_for which
+        never occurs.
         """
+        # set return value so that the connection appear to be always
+        # active
+        self._mock_s3270.query.return_value = (
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n'
+        )
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
-        ]
+        self._mock_s3270.ascii.side_effect = (
+            self._data['login_ok'] + self._data['send_cmd_cms'])
 
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: \nU F U C(hostname.com) \nok\n', # middle of login method
-            'data: \nU F U C(hostname.com) \nok\n', # _check_status at login
-            'data: \nU F U C(hostname.com) \nok\n', # end of login method
-            'data: MORE...             \nU F U C(hostname.com) \nok\n',
-            'data: HOLDING             \nU F U C(hostname.com) \nok\n',
-            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
-
-        ]
-
-        self.time_patcher = patch('time.time', autospec=True)
-        self.mock_time = self.time_patcher.start()
-        self.addCleanup(self.time_patcher.stop)
-
-        self.mock_time.side_effect = [
-            1475010078.6838996,
-            1475010111.7996376,
-            1475010511.7996376,
-        ]
-
-        # create new instance of terminal
-        terminal = Terminal()
-
-        # simple command execution
-        terminal.login("hostname.com", "user", "password")
-
-        cmd_output = terminal.send_cmd("profile", wait_for="Ready;")
-        self.assertIs(cmd_output[1], True)
+        # start cms
+        self._term.login("hostname.com", "user", "password")
+        # set a pattern that will never happen
+        re_wait_for = 'THIS WILL NEVER HAPPEN'
+        # set the timeout to loop the number of times needed to consume all the
+        # 'side effect' output
+        output, re_match = self._term.send_cmd(
+            'i cms', use_cp=True, wait_for=[re_wait_for], timeout=2.6)
+        # validate result - match is None as the expected output didn't happen
+        self.assertEqual(re_match, None)
+        # check whether all expected output was consumed
+        self.assertIn('OSA  F5F2', output)
+        # entry in the first 'page'
+        self.assertIn('OSA  F5F4', output)
+        # entry in the middle 'page'
+        self.assertIn('OSA  F6F4', output)
+        # entry in the last 'page'
+        self.assertIn('OSA  F7F2', output)
     # test_send_cmd_cms_with_timeout()
 
-    def test_send_cmd_cp(self):
+    def test_transfer(self):
         """
-        Exercise send_cmd with a CP command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Test whether the transfer command is correctly executed.
         """
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
-        ]
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+        self._mock_s3270.query.return_value = (
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n')
 
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
-        ]
+        # set mock to return output of transfer call
+        self._mock_s3270.transfer.return_value = (
+            'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.008\n'
+            'ok                                             \n'
+        )
 
-        # create new instance of terminal
-        terminal = Terminal()
+        # perform action
+        args = ['/some/file', 'DEST FILE A']
+        self._term.login("hostname.com", "user", "password")
+        output = self._term.transfer(*args)
+        # validate result
+        self.assertEqual(output, '')
+        # validate behavior
+        self._mock_s3270.transfer.assert_called_with(*args)
 
-        # simple command execution
-        terminal.login("hostname.com", "user", "password")
+        # try transfer with extra parameters
+        kwargs = {
+            'local_path': '/some/file',
+            'remote_path': 'SRC FILE A',
+            'direction': 'receive',
+            'mode': 'ascii',
+            'recfm': 'variable',
+            'extra1': 'value1'
+        }
+        output = self._term.transfer(**kwargs)
+        # validate result
+        self.assertEqual(output, '')
+        # validate behavior
+        self._mock_s3270.transfer.assert_called_with(**kwargs)
+    # test_transfer()
 
-        cmd_output = terminal.send_cmd("profile", True)
-        self.assertEqual(' profile\n', cmd_output[0])
-    # test_send_cmd_cp()
-
-    def test_send_cmd_without_connection(self):
+    def test_transfer_error(self):
         """
-        Exercise send_cmd without a conneciton to host
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise a transfer command which fails.
         """
         # set s3270 output
-        self.mock_s3270.return_value.query.side_effect = [
-            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n',
-        ]
+        self._mock_s3270.ascii.side_effect = self._data['login_ok']
+        self._mock_s3270.query.return_value = (
+            'data: host hostname.com 23\nU F U C(hostname.com) \nok\n')
 
-        self.mock_s3270.return_value.ascii.side_effect = [
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: \nU F U C(hostname.com) \nok\n',
-            'data: profile\ndata: Ready;\nU F U C(hostname.com) \nok\n',
-        ]
+        # set mock to return output of transfer call
+        base_error = "Local file '/some/file': No such file or directory"
+        self._mock_s3270.transfer.side_effect = S3270StatusError(
+            'Failed to execute Transfer command',
+            "data: {}    \n"
+            "U F U C(hostname.com) I 4 43 80 41 0 0x0 -\n"
+            "error                                          \n".format(
+                base_error)
+        )
 
-        # create new instance of terminal
-        terminal = Terminal()
-
-        self.assertRaises(RuntimeError, terminal.send_cmd,
-                          'profile', True)
-    # test_send_cmd_without_connection()
+        # perform action
+        args = ['/some/file', 'DEST FILE A']
+        self._term.login("hostname.com", "user", "password")
+        with self.assertRaisesRegex(
+            RuntimeError, 'Transfer failed, output: {}'.format(base_error)):
+            self._term.transfer(*args)
+    # test_transfer_error()
 
 # TestTerminal

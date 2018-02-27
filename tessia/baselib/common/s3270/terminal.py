@@ -1,4 +1,4 @@
-# Copyright 2016, 2017 IBM Corp.
+# Copyright 2016, 2017, 2018 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,15 +18,20 @@ Terminal module
 #
 # IMPORTS
 #
-import time
-
 from tessia.baselib.common.logger import get_logger
+from tessia.baselib.common.s3270.exceptions import S3270StatusError
 from tessia.baselib.common.s3270.exceptions import ZvmMessageError
 from tessia.baselib.common.s3270.s3270 import S3270
+from time import time
+from time import sleep
+
+import re
+
 #
 # CONSTANTS AND DEFINITIONS
 #
 # zVM messages and codes
+ERROR_REGEX = r'(HCP(?:[a-zA-Z]{0,8})\d{1,4}[E]{1})( .*)?'
 ZVM_CODES = {
     "RPIMGR042I": "PASSWORD EXPIRED",
     "RPIMGR046T": "User ID access has been revoked.",
@@ -34,6 +39,7 @@ ZVM_CODES = {
     "HCPLGA050E": "LOGON unsuccessful--incorrect userid and/or password",
     "HCPLGA054E": "Already logged on",
     "HCPUSO361E": "LOGOFF/FORCE pending for user",
+    "HCPLGA361E": "LOGOFF/FORCE pending for user",
 }
 
 
@@ -58,11 +64,9 @@ class Terminal(object):
         # intialize logger object
         self._logger = get_logger(__name__)
 
-        # connection parameters
-        self.host_name = None
-
-        # create a new s3270 object
-        self._s3270 = S3270()
+        # variable to hold s3270 object, initialized when connection is
+        # established
+        self._s3270 = None
     # __init__()
 
     @staticmethod
@@ -74,18 +78,25 @@ class Terminal(object):
             text (str): text to be checked
 
         Returns:
-            str: message corresponding to the code
+            tuple: error_code, message corresponding to the code
             None: No error code found
-
-        Raises:
-            None
         """
         # check line by line of text
         for line in text.splitlines():
-            # check if error message is in the beggining of the line
+            # check if error message is in the beginning of the line
             if line[1:11] in ZVM_CODES:
                 # return error message
-                return ZVM_CODES[line[1:11]]
+                return line[1:11], ZVM_CODES[line[1:11]]
+
+            # check for general errors
+            re_match = re.search(ERROR_REGEX, line)
+            if re_match:
+                error_code = re_match.group(1)
+                error_msg = re_match.group(2)
+                if error_msg is None:
+                    error_msg = ''
+                return error_code, error_msg.strip()
+
         # return None if no error code was found
         return None
     # _check_output()
@@ -136,7 +147,7 @@ class Terminal(object):
         output = output[:output.rfind('\n')+1]
 
         return output
-    # _clenaup_status_line()
+    # _cleanup_status_line()
 
     @staticmethod
     def _format_output(text, strip=False):
@@ -156,18 +167,24 @@ class Terminal(object):
         """
         output = ""
 
+        lines = text.strip().splitlines()
+        # no text to format: nothing to do
+        if not lines:
+            return output
+
+        # ignore last 2 lines (flags and status)
+        if lines[-1].startswith('ok'):
+            lines.pop()
+        if (lines[-1].startswith('U F U') or
+                lines[-1].startswith('U U U') or
+                lines[-1].startswith('L U U')):
+            lines.pop()
+
         # check line by line of text
-        for line in text.splitlines():
+        for line in lines:
             # remove 'data:' from the beginning
             if line.startswith('data:'):
                 line = line[5:]
-            # ignore last 2 lines (flags and status)
-            elif (
-                    line.startswith('U F U') or
-                    line.startswith('ok') or
-                    line.startswith('L U U')
-                ):
-                continue
             # remove blank lines when strip is specified
             if strip:
                 if line.strip():
@@ -179,7 +196,7 @@ class Terminal(object):
 
     def _is_connected(self):
         """
-        Check if current object is connected to a host by quering the host
+        Check if current object is connected to a host by querying the host
         attribute. When there is a connection opened, query will return the
         hostname. When there is not a connection opened, query will return
         an empty string.
@@ -193,8 +210,8 @@ class Terminal(object):
         Raises:
             None
         """
-        # If hostname was not set yet, a connection was not opened.
-        if not self.host_name:
+        # no s3270 process: no open connection
+        if not self._s3270:
             return False
 
         # query host
@@ -204,7 +221,7 @@ class Terminal(object):
         output = self._format_output(output, strip=True)
 
         # check if object has a connection
-        if self.host_name in output:
+        if self._s3270.host_name and self._s3270.host_name in output:
             return True
         return False
     #_is_connected()
@@ -231,67 +248,99 @@ class Terminal(object):
 
         # look at status area
         status = self._check_status(output)
-
-        # if output is full return True
         if status in cp_status:
             return True
+
         return False
     # _is_output_full()
 
-    def _parse_output(self, wait_for='', timeout=60):
+    def _parse_output(self, wait_for=None, timeout=60):
         """
         Parse the output looking for 'wait_for'.
 
         Args:
-            wait_for (str): string to stop parsing
+            wait_for (list): [regex_str1, regex_str2]
             timeout (int): how many seconds to wait for action to complete
 
         Returns:
-            tuple: (str, bool) str: full output until 'wait_for' was found or
-                                    timeout occurred
-                               bool: True if time expired
-
-        Raises:
-            None
+            tuple: (str1, SRE_Match)
+                str: full output until any of 'wait_for' matches or
+                     timeout occurred
+                SRE_Match: regex matched object
         """
-        time_expired = False
-        output = ""
+        # matched regex
+        matched_obj = None
 
+        output = ''
         if wait_for:
-            # variable for wait_for control
-            found = False
             # define the timeout limit
-            timeout = time.time() + timeout
+            timeout = time() + timeout
 
-            # while wait_for not found on current_output
-            while not found and not time_expired:
-                # read the current information on terminal
-                current_output = self._s3270.ascii()
-                # remove unnecessary data
-                current_output = self._format_output(
-                    current_output, strip=True)
+            buf_output = None
+            while time() < timeout:
+                # read the current information on terminal and remove
+                # unnecessary data
+                buf_output = self._format_output(
+                    self._s3270.ascii(), strip=True)
+
+                # try to match collected output with any of the regexes
+                # specified
+                for match_re in wait_for:
+                    matched_obj = re.search(match_re, buf_output)
+                    # regex matched: stop processing
+                    if matched_obj:
+                        break
 
                 # terminal is full: clear it
-                if self._is_output_full(current_output):
+                if self._is_output_full(buf_output):
                     # append current information to the output
-                    output += self._cleanup_status_line(current_output)
+                    output += self._cleanup_status_line(buf_output)
                     self._s3270.clear()
+                    # clear buffer so that it won't be appended twice to the
+                    # collected output when we leave the loop
+                    buf_output = None
+                # machine in halted state: set again to running so that
+                # pending output can be consumed
+                elif self._check_status(buf_output) == 'VM READ':
+                    output += self._cleanup_status_line(buf_output)
+                    self._s3270.enter()
+                    # clear buffer so that it won't be appended twice to the
+                    # collected output when we leave the loop
+                    buf_output = None
 
-                # 'wait_for' found: set variable to stop processing
-                if wait_for in current_output:
-                    # append current information to the output
-                    output += self._cleanup_status_line(current_output)
-                    found = True
+                # expected pattern matched: stop waiting
+                if matched_obj:
+                    break
 
-                # check if we reached a timeout
-                if time.time() > timeout:
-                    time_expired = True
+                # sleep for a while to avoid cpu consumption
+                sleep(0.2)
+
+            # leftover output available: append it to collected output
+            if buf_output:
+                output += self._cleanup_status_line(buf_output)
+
         else:
-            output = self._s3270.ascii()
-            output = self._format_output(output, strip=True)
-            output = self._cleanup_status_line(output)
+            # fetch all available output
+            output_full = True
+            while output_full:
+                buf_output = self._format_output(
+                    self._s3270.ascii(), strip=True)
 
-        return (output, time_expired)
+                # machine in halted state: set again to running so that
+                # pending output can be consumed
+                if self._check_status(buf_output) == 'VM READ':
+                    output += self._cleanup_status_line(buf_output)
+                    self._s3270.enter()
+                    continue
+
+                # in case output is not full we will leave the loop as all
+                # available output was already collected
+                output_full = self._is_output_full(buf_output)
+                output += self._cleanup_status_line(buf_output)
+                # clear screen to consume more output
+                self._s3270.clear()
+
+        return (output, matched_obj)
     # _parse_output()
 
     def connect(self, host_name, timeout=60):
@@ -313,56 +362,67 @@ class Terminal(object):
             )
             self._s3270.disconnect()
 
-        # save hostname for later use
-        self.host_name = host_name
+        # process object does not exist yet: create it
+        if not self._s3270:
+            self._s3270 = S3270()
 
         # create a s3270 connection to the host using our s3270 module
-        self._s3270.connect(self.host_name, timeout)
+        self._s3270.connect(host_name, timeout)
     # connect()
 
     def disconnect(self):
         """
         Disconnect from user.
-
-        Args:
-            None
-
-        Returns:
-            bool: True if connection was closed, False otherwise
-
-        Raises:
-            TimeoutError: if we have a timeout on connector
         """
-        # disconnect process
+        if not self._is_connected():
+            raise RuntimeError('Not connected or connection to host was lost.')
+
+        # disconnect and quit
         self._s3270.clear()
         self._s3270.string("#cp disconnect")
         self._s3270.enter()
-
-        # check if connection was closed
-        if not self._is_connected():
-            return True
-
-        # connection was not closed
-        return False
+        # cleanup process and object
+        self._s3270.quit()
+        self._s3270 = None
     # disconnect()
 
-    def send_cmd(self, cmd, use_cp=False, wait_for=''):
+    @property
+    def host_name(self):
+        """
+        Return the hostname of the current connection
+
+        Returns:
+            str: hostname currently connected
+        """
+        if self._s3270:
+            return self._s3270.host_name
+        return None
+    # host_name
+
+    def send_cmd(self, cmd, use_cp=False, wait_for=None, timeout=60):
         """
         Issue a command on zVM.
 
         Args:
             cmd (str): command to be executed
             use_cp (bool): whether the command should be executed on CP
-            wait_for (str): process until wait_for is found
+            wait_for (list): [regex_str1, regex_str2] or regex_str1
+            timeout (int): how many seconds to wait for command to execute
 
         Returns:
-            str: command output
+            tuple: (str1, SRE_Match)
+                str: full output until any of 'wait_for' matches or
+                     timeout occurred
+                SRE_Match: regex match object
 
         Raises:
             RuntimeError: if connection to the host was lost
         """
         if not self._is_connected():
-            raise RuntimeError('Connection to host lost.')
+            raise RuntimeError('Not connected or connection to host was lost.')
+
+        if isinstance(wait_for, str):
+            wait_for = [wait_for]
 
         # make sure we have a clear screen for output
         self._s3270.clear()
@@ -374,10 +434,8 @@ class Terminal(object):
         # issue the command
         self._s3270.enter()
 
-        # read output of command issued
-        output = self._parse_output(wait_for)
-
-        return output
+        # return output and matched regex of command issued
+        return self._parse_output(wait_for, timeout)
     # send_cmd()
 
     def login(self, host_name, user, password, parameters=None, timeout=60):
@@ -395,38 +453,60 @@ class Terminal(object):
             str: output of login
 
         Raises:
-            TimeoutError: if we have a timeout on connector
+            TimeoutError: a timeout on connector or force pending never
+                          releases
             S3270StatusError: if protocol error occurred
             ZvmMessageError: if we have a zVM message code
         """
+        login_cmd = 'l ' + user
         # setup aditional login parameters
-        byuser = ''
-        here = ''
         if parameters:
             # check if we will do a logon by
             if parameters.get('byuser'):
-                byuser = ' by ' + parameters.get('byuser')
+                login_cmd += ' by ' + parameters.get('byuser')
             # check if we will do a logon here
             if parameters.get('here'):
-                here = ' here'
+                login_cmd += ' here'
+            # noipl specified: do not ipl user directory entry
+            if parameters.get('noipl'):
+                login_cmd += ' noipl'
+
+        time_limit = time() + timeout
 
         # create an s3270 connection to the host
         self.connect(host_name, timeout)
-
-        # login process
         self._s3270.clear()
-        self._s3270.string("l " + user + byuser + here)
-        self._s3270.enter()
-        self._s3270.string(password)
-        self._s3270.enter()
 
-        output = self._s3270.ascii()
+        cur_cmd = login_cmd
+        while True:
+            self._s3270.string(cur_cmd)
+            self._s3270.enter()
+            output = self._s3270.ascii()
+            error_msg = self._check_output(self._format_output(output))
+            # no errors: process next command
+            if not error_msg:
+                # no more commands: login process finished
+                if cur_cmd == password:
+                    break
+                # move to next step, enter password
+                cur_cmd = password
+                continue
 
-        # look for error messages during login
-        err_message = self._check_output(self._format_output(output))
+            # in case a pending logoff/force occurs try to wait until it's
+            # finished
+            if error_msg[0] in ['HCPUSO361E', 'HCPLGA361E']:
+                if time() > time_limit:
+                    raise TimeoutError('{} {}'.format(*error_msg))
+                # remove error message from output before trying again
+                self._s3270.clear()
+                # start over, enter user
+                cur_cmd = login_cmd
+                # wait a while and try again
+                sleep(0.2)
+                continue
 
-        if err_message:
-            raise ZvmMessageError(err_message)
+            # another type of error occurred: cannot continue
+            raise ZvmMessageError('{} {}'.format(*error_msg))
 
         # look for vm or cp read status in CP status area.
         status = self._check_status()
@@ -443,31 +523,42 @@ class Terminal(object):
         output = self._s3270.ascii()
         output = self._format_output(output, True)
         output = self._cleanup_status_line(output)
+        self._s3270.clear()
+
         return output
     # login()
 
     def logoff(self):
         """
         Logoff from user.
-
-        Args:
-            None
-
-        Returns:
-            bool: True if connection was closed, False otherwise
-
-        Raises:
-            TimeoutError: if we have a timeout on connector
         """
-        # logoff process
+        if not self._is_connected():
+            raise RuntimeError('Not connected or connection to host was lost.')
+
+        # logoff and quit
         self._s3270.clear()
         self._s3270.string("#cp logoff")
         self._s3270.enter()
-
-        # check if connection was closed
-        if not self._is_connected():
-            return True
-
-        # connection was not closed
-        return False
+        # cleanup process and object
+        self._s3270.quit()
+        self._s3270 = None
     # logoff()
+
+    def transfer(self, *args, **kwargs):
+        """
+        Send/receive a file to/from the host via the transfer command. See
+        S3270.transfer() for details.
+        """
+        if not self._is_connected():
+            raise RuntimeError('Not connected or connection to host was lost.')
+        try:
+            output = self._s3270.transfer(*args, **kwargs)
+        except S3270StatusError as exc:
+            # format the output consumed until the exception happened
+            output = self._format_output(exc.output, True).strip()
+            raise RuntimeError(
+                'Transfer failed, output: {}'.format(output))
+
+        return self._format_output(output, True)
+    # transfer()
+# Terminal
