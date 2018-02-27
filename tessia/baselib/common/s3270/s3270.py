@@ -293,7 +293,7 @@ class S3270(object):
             raise S3270StatusError('Error while sending Query command')
 
         return output
-    # quit()
+    # query()
 
     def quit(self, timeout=60):
         """
@@ -312,7 +312,8 @@ class S3270(object):
             self._logger.exception('Timeout while executing Quit:')
             raise
 
-        # clean object and free s3270 defunct process
+        # clean object
+        self.host_name = None
         self._s3270 = None
     # quit()
 
@@ -377,46 +378,52 @@ class S3270(object):
         return output
     # string()
 
-    def terminate(self, timeout=60):
+    def transfer(self, local_path, remote_path, direction='send', timeout=180,
+                 mode='binary', recfm='fixed', **extra_params):
         """
-        Terminate s3270 process and clean up object
-
-        Args:
-            None
-
-        Raises:
-            None
-        """
-        self._s3270.terminate(timeout)
-
-        # clean object
-        self._s3270 = None
-    # terminate()
-
-    def transfer(self, timeout=60):
-        """
-        ### TO BE IMPLEMENTED                  ###
-        ### Sending a clear as a dummy command ###
         Send a file to host/receive a file from host
 
         Args:
+            local_path (str): file name on local filesystem
+            remote_path (str): file name on target host
+            direction (str): send (local -> host), receive (host -> local)
             timeout (int): how many seconds to wait for action to complete
+            mode (str): binary or ascii
+            recfm (str): fixed or variable
+            extra_params (dict): additional option=value parameters accepted by
+                                 s3270
 
         Returns:
-            output: output of run command
+            output: output of transfer command
 
         Raises:
             TimeoutError: if we have a timeout on connector
             S3270StatusError: if protocol error occurred
+            ValueError: if an invalid value is specified for an option
         """
-        try:
-            (status, output) = self._s3270.run('Clear', timeout)
-        except TimeoutError:
-            self._logger.exception('Timeout while executing Transfer:')
-            raise
+        # sanity checks
+        if direction.lower() not in ('send', 'receive'):
+            raise ValueError("Invalid direction '{}'".format(direction))
+        if mode.lower() not in ('ascii', 'binary'):
+            raise ValueError("Invalid mode '{}'".format(mode))
+        if recfm.lower() not in ('fixed', 'variable'):
+            raise ValueError("Invalid recfm option '{}'".format(recfm))
+
+        params_str = (
+            'Direction={}, "LocalFile={}", "HostFile={}", Mode={}, Recfm={}, '
+            'Host=vm'.format(direction, local_path, remote_path, mode, recfm)
+        )
+        for key, value in extra_params.items():
+            params_str += ', {}="{}"'.format(key, value)
+        self._logger.debug('calling Transfer with params: %s', params_str)
+
+        status, output = self._s3270.run(
+            'Transfer({})'.format(params_str), timeout=timeout)
 
         if 'ok' not in status:
-            raise S3270StatusError('Error while sending Transfer command')
+            raise S3270StatusError(
+                'Failed to execute Transfer command', output)
 
         return output
     # transfer()
+# S3270

@@ -31,7 +31,17 @@ class S3270StatusError(Exception):
     """
     Exception used by s3270 when a status is different from 'ok'.
     """
-    pass
+    def __init__(self, msg, output=None):
+        """
+        Store the output of the failed command.
+
+        Args:
+            msg (str): exception's error message
+            output (str): output collected when error occurred
+        """
+        super().__init__(msg)
+        self.output = output
+    # __init__()
 # S3270StatusError
 
 class ZvmMessageError(Exception):

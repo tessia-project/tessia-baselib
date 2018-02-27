@@ -15,7 +15,7 @@
 """
 S3270 unittest
 """
-# pylint: disable=attribute-defined-outside-init,no-member,invalid-name
+
 #
 # IMPORTS
 #
@@ -272,11 +272,11 @@ class TestS3270(TestCase):
         # set status to timeout
         self.mock_pipeconnector.return_value.run.return_value = ['', '']
 
-        self.time_patcher = patch('time.time', autospec=True)
-        self.mock_time = self.time_patcher.start()
-        self.addCleanup(self.time_patcher.stop)
+        time_patcher = patch('time.time', autospec=True)
+        mock_time = time_patcher.start()
+        self.addCleanup(time_patcher.stop)
 
-        self.mock_time.side_effect = [
+        mock_time.side_effect = [
             1475010078.6838996,
             1475010111.7996376,
             1475010511.7996376,
@@ -305,11 +305,11 @@ class TestS3270(TestCase):
             ('break', ''),
             ]
 
-        self.time_patcher = patch('time.time', autospec=True)
-        self.mock_time = self.time_patcher.start()
-        self.addCleanup(self.time_patcher.stop)
+        time_patcher = patch('time.time', autospec=True)
+        mock_time = time_patcher.start()
+        self.addCleanup(time_patcher.stop)
 
-        self.mock_time.side_effect = [
+        mock_time.side_effect = [
             1475010078.6838996,
             1475010111.7996376,
             1475010511.7996376,
@@ -634,6 +634,7 @@ class TestS3270(TestCase):
         # simple command execution
         s3270.quit()
         self.assertIsNone(s3270._s3270)
+        self.assertIsNone(s3270.host_name)
     # test_quit_ok()
 
     def test_quit_timeout(self):
@@ -812,24 +813,6 @@ class TestS3270(TestCase):
         self.assertRaises(TimeoutError, s3270.string, 'ascii')
     # test_string_timeout()
 
-    def test_terminate_ok(self):
-        """
-        Exercise terminate  command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
-        """
-        # create new instance of s3270
-        s3270 = S3270()
-
-        # simple command execution
-        s3270.terminate()
-        self.assertIsNone(s3270._s3270)
-    # test_terminate_ok()
-
     def test_transfer_ok(self):
         """
         Exercise a normal transfer command
@@ -840,12 +823,24 @@ class TestS3270(TestCase):
         Raises:
             AssertionError: if the session object does not behave as expected
         """
+        mock_output = (
+            'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.008\n'
+            'ok                                             \n'
+        )
+        self.mock_pipeconnector.return_value.run.return_value = (
+            'ok', mock_output)
+
         # create new instance of s3270
         s3270 = S3270()
 
-        # simple command execution
-        output = s3270.transfer()
-        self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
+        args = ['/some/file', 'DEST FILE A']
+
+        output = s3270.transfer(*args, timeout=10)
+        self.assertEqual(output, mock_output)
+        self.mock_pipeconnector.return_value.run.assert_called_with(
+            'Transfer(Direction=send, "LocalFile={}", "HostFile={}", '
+            'Mode=binary, Recfm=fixed, Host=vm)'.format(args[0], args[1]),
+            timeout=10)
     # test_transfer_ok()
 
     def test_transfer_error(self):
@@ -859,15 +854,86 @@ class TestS3270(TestCase):
             AssertionError: if the session object does not behave as expected
         """
         # set status to error
-        self.mock_pipeconnector.return_value.run.return_value = [
-            'error\n', 'L U U N N 4 24 80 0 0 0x0 -\nerror\n'
-        ]
+        mock_output = (
+            "data: Local file '/some/file': No such file or directory    \n"
+            "U F U C(hostname.com) I 4 43 80 41 0 0x0 -\n"
+            "error                                          \n"
+        )
+        self.mock_pipeconnector.return_value.run.return_value = (
+            "error", mock_output)
+
         # create new instance of s3270
         s3270 = S3270()
 
-        # simple command execution
-        self.assertRaises(S3270StatusError, s3270.transfer)
+        # perform action
+        args = ['/some/file', 'DEST FILE A']
+        with self.assertRaisesRegex(
+            S3270StatusError, 'Failed to execute Transfer command'):
+            s3270.transfer(*args)
     # test_transfer_error()
+
+    def test_transfer_extra_params(self):
+        """
+        Exercise a call to transfer using extra parameters
+        """
+        mock_output = (
+            'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.008\n'
+            'ok                                             \n'
+        )
+        self.mock_pipeconnector.return_value.run.return_value = (
+            'ok', mock_output)
+
+        s3270 = S3270()
+
+        # perform action
+        kwargs = {
+            'local_path': '/some/file',
+            'remote_path': 'SRC FILE A',
+            'direction': 'receive',
+            'mode': 'ascii',
+            'recfm': 'variable',
+            'timeout': 100,
+            'extra1': 'value1'
+        }
+        expected_args = (
+            'Direction={direction}, "LocalFile={local_path}", '
+            '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
+            'Host=vm, extra1="value1"'.format(**kwargs))
+
+        output = s3270.transfer(**kwargs)
+        self.assertEqual(output, mock_output)
+        self.mock_pipeconnector.return_value.run.assert_called_with(
+            'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
+
+    # test_transfer_extra_params()
+
+    def test_transfer_invalid_value(self):
+        """
+        Exercise a wrong call to transfer by specifying invalid values
+        """
+        s3270 = S3270()
+
+        # specify invalid direction's value
+        kwargs = {
+            'local_path': '/some/file',
+            'remote_path': 'SRC FILE A',
+            'direction': 'wrong_value',
+        }
+        with self.assertRaisesRegex(ValueError, 'Invalid direction'):
+            s3270.transfer(**kwargs, timeout=10)
+
+        # invalid mode
+        kwargs.pop('direction')
+        kwargs['mode'] = 'wrong_value'
+        with self.assertRaisesRegex(ValueError, 'Invalid mode'):
+            s3270.transfer(**kwargs, timeout=10)
+
+        # invalid recfm
+        kwargs.pop('mode')
+        kwargs['recfm'] = 'wrong_value'
+        with self.assertRaisesRegex(ValueError, 'Invalid recfm'):
+            s3270.transfer(**kwargs, timeout=10)
+    # test_transfer_invalid_value()
 
     def test_transfer_timeout(self):
         """
@@ -886,6 +952,7 @@ class TestS3270(TestCase):
         s3270 = S3270()
 
         # simple command execution
-        self.assertRaises(TimeoutError, s3270.transfer)
+        with self.assertRaises(TimeoutError):
+            s3270.transfer('/some/file', 'DEST FILE A')
     # test_string_timeout()
 # TestS3270
