@@ -1,0 +1,79 @@
+{
+    "definitions": {
+        "osa": {
+            "properties": {
+                "id": {
+                    "pattern": "^[a-fA-F0-9]{4},[a-fA-F0-9]{4},[a-fA-F0-9]{4}$",
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "osa"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "pci": {
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "pci"
+                    ]
+                }
+            },
+            "required": [
+                "id",
+                "type"
+            ],
+            "additionalProperties": false
+        },
+        "virtual": {
+            "properties": {
+                "count": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "system": {
+                    "type": "string"
+                },
+                "type": {
+                    "enum": [
+                        "hiper",
+                        "qdio",
+                        "iedn",
+                        "inmn"
+                    ]
+                }
+            },
+            "required": [
+                "count",
+                "id",
+                "system",
+                "type"
+            ],
+            "additionalProperties": false
+        }
+    },
+    "oneOf": [
+        {
+            "$ref": "#/definitions/osa"
+        },
+        {
+            "$ref": "#/definitions/pci"
+        },
+        {
+            "$ref": "#/definitions/virtual"
+        }
+    ],
+    "type": "object"
+}

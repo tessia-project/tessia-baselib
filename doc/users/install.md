@@ -25,7 +25,8 @@ $ apt-get update && apt-get install \
     build-essential \
     libssl-dev \
     libffi-dev \
-    python3-dev
+    python3-dev \
+    s3270
 $ pip3 install -U pip setuptools
 ```
 
