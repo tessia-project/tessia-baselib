@@ -60,6 +60,7 @@ class S3270PipeConnector(object):
                 's3270',
                 '-model',
                 '3278-4',
+                '-utf8',
             ],
             bufsize=0,
             stdin=subprocess.PIPE,
@@ -145,7 +146,7 @@ class S3270PipeConnector(object):
         output = output.decode()
 
         # remove trailing newline as it is added by logger later
-        self._logger.info(output.rstrip('\n'))
+        self._logger.info('[output]:%s', output.rstrip('\n'))
 
         # return status and output
         return (output.rsplit()[-1], output)
@@ -164,7 +165,7 @@ class S3270PipeConnector(object):
             TimeoutError: if stdin is not available
         """
         # remove trailing newline as it is added by logger later
-        self._logger.info('s3270 console: %s', cmd.rstrip('\n'))
+        self._logger.info('[input]:%s', cmd.rstrip('\n'))
 
         # command arrives without newline control character
         cmd = cmd+'\n'
@@ -209,9 +210,6 @@ class S3270PipeConnector(object):
 
         # clean up process
         self.terminate()
-
-        # remove trailing newline as it is added by logger later
-        self._logger.info('prompt: Quiting!')
     # quit()
 
     def run(self, cmd, timeout=120):
@@ -235,9 +233,6 @@ class S3270PipeConnector(object):
         # read status and output from stdout
         (status, output) = self._read(timeout)
 
-        # remove trailing newline as it is added by logger later
-        self._logger.info('prompt: %s', cmd)
-
         return (status, output)
     # run()
 
@@ -257,7 +252,7 @@ class S3270PipeConnector(object):
         except subprocess.TimeoutExpired:
             # kill the process otherwise
             self._s3270.kill()
-            # and try to communicate again to clen up defunct
+            # and try to communicate again to clean up defunct
             self._s3270.communicate(timeout=timeout)
 
         # clean up object
