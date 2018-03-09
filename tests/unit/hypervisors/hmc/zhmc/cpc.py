@@ -244,4 +244,26 @@ class TestCPC(TestCase):
         with self.assertRaises(NotImplementedError):
             self.cpc.get_group_profile('dummy_profile')
     # test_get_group_profile()
+
+    def test_get_cpus(self):
+        """
+        Test if get_cpus() method work as expected.
+
+        Args:
+            None
+
+        Raises:
+            AssertionError: if validation fails
+        """
+        # set fake response
+        session = self.cpc._hmc.session
+
+        fake_response = {'status': 'dummy_status',
+                         'processor-count-ifl': 4,
+                         'processor-count-general-purpose': 4}
+
+        session.json_request.return_value = fake_response
+
+        self.assertEqual({'cpus_cp': 4, 'cpus_ifl': 4}, self.cpc.get_cpus())
+    # test_get_cpus()
 # TestCPC

@@ -3,12 +3,16 @@
         "boot_params": {
             "$ref": "../entities/boot_params_type.json"
         },
-        "ifl_cpus": {
+        "cpus_cp": {
+            "type": "number"
+        },
+        "cpus_ifl": {
             "type": "number"
         }
     },
     "required": [
         "boot_params"
     ],
-    "type": "object"
+    "type": "object",
+    "additionalProperties": false
 }

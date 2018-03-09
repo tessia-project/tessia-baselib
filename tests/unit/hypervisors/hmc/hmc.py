@@ -255,6 +255,7 @@ class TestHypervisorHmc(TestCase):
         'parameter' attribute and works correctly.
         """
         # setting up the mock objects
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
         mock_image_profile = self._mock_cpc.get_image_profile.return_value
         mock_image_profile.get_properties.return_value = {
             'central-storage': 4096,
@@ -288,7 +289,9 @@ class TestHypervisorHmc(TestCase):
     def test_start_dasd_update_profile(self):
         """
         Check if the start() method works as expected for a DASD based
-        activation and update of the image profile
+        activation and update of the image profile. It also validates that the
+        dynamic cpu allocation works correctly by assigning all available IFLs
+        before assigning CPs.
 
         Args:
             None
@@ -297,6 +300,7 @@ class TestHypervisorHmc(TestCase):
             AssertionError: if validation fails
         """
         # setting up the mock objects
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
         mock_image_profile = self._mock_cpc.get_image_profile.return_value
         mock_image_profile.get_properties.return_value = {
             'central-storage': 4096,
@@ -308,7 +312,7 @@ class TestHypervisorHmc(TestCase):
         # perform the operation when the image profile needs to update cpu
         # and memory using a DASD disk
         lpar_name = 'dummy_lpar'
-        cpu = 10
+        cpu = 14
         memory = 1024
         parameters = {
             'boot_params': {
@@ -326,15 +330,32 @@ class TestHypervisorHmc(TestCase):
         self._mock_lpar.load.assert_called_with('9999')
         # make sure no network config was attempted
         self._mock_lpar.send_os_command.assert_not_called()
+        # validate that profile was correctly updated
+        mock_image_profile.update.assert_called_with({
+            'central-storage': 1024,
+            'number-shared-general-purpose-processors': 4,
+            'number-shared-ifl-processors': 10
+        })
     # test_start_dasd_update_profile()
 
     def test_start_scsi_no_update(self):
         """
         Check if the start() method works as expected for a SCSI based
-        activation and no update of the image profile
+        activation and no update of the image profile. It also validates that
+        the static cpu allocation works correctly by verifying that the
+        calculated CPU numbers match the already assigned numbers in the
+        activation profile leading to no update being necessary.
+
         """
         # perform the operation when the image profile do not need update
         # using a SCSI disk
+        mock_profile = self._mock_cpc.get_image_profile.return_value
+        mock_profile.get_properties.return_value = {
+            'central-storage': 4096,
+            'number-shared-general-purpose-processors': 6,
+            'number-shared-ifl-processors': 1
+        }
+
         lpar_name = 'dummy_lpar'
         parameters = {
             'boot_params': {
@@ -343,11 +364,14 @@ class TestHypervisorHmc(TestCase):
                 'wwpn': '4321',
                 'lun': '1324'
             },
-            'ifl_cpus': 1
+            'cpus_ifl': 1,
+            'cpus_cp': 6,
         }
-        cpu = 6
+        cpu = 0
         memory = 4096
         self._mock_lpar.status = 'not-activated'
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
 
@@ -360,6 +384,9 @@ class TestHypervisorHmc(TestCase):
             '1234', '4321', '1324')
         # make sure no network config was attempted
         self._mock_lpar.send_os_command.assert_not_called()
+        # no update to activation profile
+        mock_profile.update.assert_not_called()
+
     # test_start_scsi_no_update()
 
     def test_start_no_login(self):
@@ -392,7 +419,7 @@ class TestHypervisorHmc(TestCase):
                 'wwpn': '4321',
                 'lun': '1324'
             },
-            'ifl_cpus': 1
+            'cpus_ifl': 1
         }
         cpu = 6
         memory = 4096
@@ -429,7 +456,7 @@ class TestHypervisorHmc(TestCase):
                     "dns": ['9.9.9.25', '9.9.9.30']
                 }
             },
-            'ifl_cpus': 1
+            'cpus_ifl': 1
         }
         cpu = 6
         memory = 4096
@@ -437,6 +464,8 @@ class TestHypervisorHmc(TestCase):
         self._mock_lpar.get_properties.return_value = {
             'status': 'operating'
         }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
 
@@ -478,7 +507,7 @@ class TestHypervisorHmc(TestCase):
                     "initrd_url": "some_url",
                 }
             },
-            'ifl_cpus': 1
+            'cpus_ifl': 1
         }
         cpu = 6
         memory = 4096
@@ -486,6 +515,8 @@ class TestHypervisorHmc(TestCase):
         self._mock_lpar.get_properties.return_value = {
             'status': 'operating'
         }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
 
@@ -614,6 +645,8 @@ class TestHypervisorHmc(TestCase):
         self._mock_lpar.get_properties.return_value = {
             'status': 'operating'
         }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
         self.hmc_object.login()
         self.hmc_object.start(lpar_name, cpu, memory, parameters)
         net_setup = parameters['boot_params']['netsetup']
@@ -680,6 +713,8 @@ class TestHypervisorHmc(TestCase):
                 }
             }
         }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
         hmc_object.login()
         with self.assertRaisesRegex(
             ZHmcError,
@@ -741,6 +776,7 @@ class TestHypervisorHmc(TestCase):
         # set the subprocess mock so that the network configuration fails
         self._mock_subprocess.CalledProcessError = Exception
         self._mock_subprocess.run.side_effect = Exception()
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
 
         self.hmc_object.login()
         with self.assertRaisesRegex(
@@ -750,4 +786,71 @@ class TestHypervisorHmc(TestCase):
             self.hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_start_netboot_network_timeout()
 
+    def test_cpu_dynamic_not_enough(self):
+        """
+        Check if the dynamic strategy correctly reports error when the
+        requested number of generic CPUs exceed the quantity available in the
+        CPC.
+        """
+        # setting up the mock objects
+        avail = {'cpus_cp': 2, 'cpus_ifl': 2}
+        self._mock_cpc.get_cpus.return_value = avail
+
+        hmc_object = hmc.HypervisorHmc(
+            self.system_name, self.host_name, self.user, self.passwd, None)
+
+        lpar_name = 'dummy_lpar'
+        cpu = 5
+        memory = 1024
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999'
+            }
+        }
+        hmc_object.login()
+        error_msg = (
+            'Not enough CPUs available in CPC. Requested: {} CPUs. '
+            'Available: {} CPs, {} IFLs.'.format(
+                cpu, avail['cpus_cp'], avail['cpus_ifl'])
+        )
+        with self.assertRaisesRegex(RuntimeError, error_msg):
+            hmc_object.start(lpar_name, cpu, memory, parameters)
+    # test_cpu_dynamic_not_enough()
+
+    def test_cpu_static_not_enough(self):
+        """
+        Check if the static strategy correctly reports error when the
+        requested number of defined-type CPUs exceed the quantity available in
+        the CPC.
+        """
+        # setting up the mock objects
+        avail = {'cpus_cp': 2, 'cpus_ifl': 2}
+        self._mock_cpc.get_cpus.return_value = avail
+
+        hmc_object = hmc.HypervisorHmc(
+            self.system_name, self.host_name, self.user, self.passwd, None)
+
+        lpar_name = 'dummy_lpar'
+        cpu = 5
+        memory = 1024
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999'
+            },
+            'cpus_cp': 2,
+            'cpus_ifl': 10
+        }
+        hmc_object.login()
+        error_msg = (
+            'Not enough CPUs available in CPC. Requested: {} CPs, {} '
+            'IFLs. Available: {} CPs, {} IFLs.'.format(
+                parameters['cpus_cp'], parameters['cpus_ifl'],
+                avail['cpus_cp'], avail['cpus_ifl'])
+        )
+
+        with self.assertRaisesRegex(RuntimeError, error_msg):
+            hmc_object.start(lpar_name, cpu, memory, parameters)
+    # test_cpu_static_not_enough()
 # TestHypervisorHmc

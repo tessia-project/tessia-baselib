@@ -237,4 +237,27 @@ class CPC(object):
 
         raise NotImplementedError()
     # get_group_profile()
+
+    def get_cpus(self):
+        """
+        This method returns counters of active general purpose and
+        Integrated Facility for Linux (IFL) processors
+
+        Args:
+            None
+
+        Returns:
+            dict: CPU's counters
+
+        Raises:
+            None
+        """
+        properties = self.get_properties()
+        ret_cpus = {
+            'cpus_ifl': properties['processor-count-ifl'],
+            'cpus_cp': properties['processor-count-general-purpose']
+        }
+
+        return ret_cpus
+    # get_cpus()
 # CPC
