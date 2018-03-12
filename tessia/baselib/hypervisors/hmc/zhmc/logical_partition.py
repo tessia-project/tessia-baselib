@@ -99,6 +99,11 @@ class LogicalPartition(object):
             time.sleep(1)
             job_dict = self._hmc.session.json_request("GET", job_uri)
             if job_dict['status'] == 'complete':
+                if job_dict['job-status-code'] == 500:
+                    raise ZHmcRequestError(
+                        job_dict['job-status-code'],
+                        job_dict['job-reason-code'],
+                        job_dict['job-results']['message'])
                 break
             elif timeout and time.time() >= timeout_date:
                 raise ZHmcRequestError(
@@ -127,7 +132,7 @@ class LogicalPartition(object):
         return properties
     # get_properties()
 
-    def activate(self, image_profile=None):
+    def activate(self, image_profile=None, timeout=0):
         """
         This method activates the lpar, putting it in a 'not-operating' status.
 
@@ -135,6 +140,9 @@ class LogicalPartition(object):
             image_profile (str): image activation profile name. If not set, HMC
                                  will use the profile present in the parameter
                                  'next-activation-profile'
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -155,16 +163,20 @@ class LogicalPartition(object):
             arg_dict=param
         )
 
+        self._wait_for_job(job['job-uri'], timeout)
+
         return job
     # activate()
 
-    def deactivate(self):
+    def deactivate(self, timeout=0):
         """
         This method deactivates the lpar, putting it in a 'not-activated'
         status.
 
         Args:
-            None
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -182,6 +194,8 @@ class LogicalPartition(object):
             arg_dict=param
         )
 
+        self._wait_for_job(job['job-uri'], timeout)
+
         return job
     # deactivate()
 
@@ -192,8 +206,9 @@ class LogicalPartition(object):
 
         Args:
             load_address (str): disk address to perform the IPL.
-            timeout (int): how long to wait for job completion, a value equal
-                or less than 0 means to operate asynchronously (the default)
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             dict: containing key 'job-uri' to retrieve job status
@@ -227,8 +242,9 @@ class LogicalPartition(object):
                         be used for this operation, in hexadecimal.
             lun (str): hexadecimal logical unit number to be used for the SCSI
                        Load.
-            timeout (int): how long to wait for job completion, a value equal
-                or less than 0 means to operate asynchronously (the default)
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             dict: containing key 'job-uri' to retrieve job status
@@ -279,13 +295,15 @@ class LogicalPartition(object):
         return job
     # send_os_command()
 
-    def stop(self):
+    def stop(self, timeout=0):
         """
         This method is used to perform the 'stop' operation on a LPAR.
         The 'stop' operation stops the processors from processing instructions.
 
         Args:
-            None
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             dict: contains what the hmc returns after executing the operation,
@@ -297,10 +315,12 @@ class LogicalPartition(object):
 
         job = self._issue_operation("stop")
 
+        self._wait_for_job(job['job-uri'], timeout)
+
         return job
     # stop()
 
-    def reset_clear(self):
+    def reset_clear(self, timeout=0):
         """
         This method is used to perform the 'reset-clear' operation on a LPAR.
         The Reset Clear operation initializes system or logical partition by
@@ -310,7 +330,9 @@ class LogicalPartition(object):
         memory of the system or logical partition.
 
         Args:
-            None
+            timeout (int): how long to wait for job completion, a value of 0
+                           means wait forever and negative values mean not to
+                           wait
 
         Returns:
             job: contains what the hmc returns after executing the operation,
@@ -326,6 +348,8 @@ class LogicalPartition(object):
             "reset-clear",
             arg_dict=param
         )
+
+        self._wait_for_job(job['job-uri'], timeout)
 
         return job
     # reset_clear()

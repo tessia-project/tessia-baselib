@@ -148,7 +148,7 @@ class TestLogicalPartition(TestCase):
         """
 
         # test with image_profile name set
-        self.lpar.activate(image_profile='dummy_profile')
+        self.lpar.activate(image_profile='dummy_profile', timeout=-1)
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             'POST',
@@ -170,7 +170,7 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        self.lpar.deactivate()
+        self.lpar.deactivate(timeout=-1)
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             'POST',
@@ -445,7 +445,7 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        self.lpar.stop()
+        self.lpar.stop(timeout=-1)
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             "POST", self.lpar_uri + "/operations/stop", body=None
@@ -462,7 +462,7 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        self.lpar.reset_clear()
+        self.lpar.reset_clear(timeout=-1)
         session = self.lpar._hmc.session
         session.json_request.assert_called_with(
             "POST",
@@ -472,4 +472,52 @@ class TestLogicalPartition(TestCase):
             }
         )
     # test_reset_clear()
+
+    def test_bad_job_status(self):
+        """
+        Test if _wait_for_job() method correctly raises exception when
+        an operation failed or was rejected.
+
+        Args:
+            None
+
+        Raises:
+            AssertionError: if operation fails
+        """
+        self._mock_hmc.session.json_request.side_effect = [
+            # response to POST /api/operations/load
+            {"job-uri": "/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {"status": "running"},
+            # response to GET /api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240
+            {
+                "status": "complete",
+                "job-status-code": 500,
+                "job-reason-code": 263,
+                "job-results": {"message": "There are not enough processors "
+                                           "available to activate partition"}
+            },
+        ]
+        with self.assertRaisesRegex(
+            ZHmcRequestError,
+            "500, 263, 'There are not enough processors available to "
+            "activate partition'"):
+            self.lpar.load('1500', timeout=30)
+
+        self._mock_hmc.session.json_request.assert_has_calls([
+            mock.call(
+                'POST',
+                self.lpar_uri + '/operations/load',
+                body={'load-address': '1500', 'force': True}
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+            mock.call(
+                'GET',
+                '/api/jobs/cda161ce-d8d6-11e6-af32-5ef3fcb4c240',
+            ),
+        ])
+        # test_bad_job_status()
 # TestLogicalPartition
