@@ -68,7 +68,10 @@ confidence=
 # from abstract ones that do nothing.
 # * protected-access: sometimes it's acceptable to access a protected
 # member (specially in unit tests).
-disable=wrong-import-order,arguments-differ,useless-super-delegation,protected-access
+# * similarities: first because it's not reliably reported (only when one
+# process is used by pylint), second because it reports things that can't/won't
+# be refactored.
+disable=wrong-import-order,arguments-differ,useless-super-delegation,protected-access,similarities
 
 
 [REPORTS]
