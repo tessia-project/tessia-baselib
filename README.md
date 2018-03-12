@@ -26,9 +26,13 @@ actions like activate, deactivate, hotplug resources, and others.
 Hypervisors supported:
 
 - zHMC (classic mode)
+- z/VM
 - KVM for IBM Z
 
-Support for z/VM hypervisor and CMS guest is currently under development.
+Guests supported:
+
+- CMS (z/VM)
+- Linux
 
 # Quickstart
 
@@ -42,7 +46,8 @@ $ apt-get update && apt-get install \
     build-essential \
     libssl-dev \
     libffi-dev \
-    python3-dev
+    python3-dev \
+    s3270
 $ pip3 install -U pip setuptools
 ```
 

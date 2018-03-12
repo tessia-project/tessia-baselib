@@ -1,0 +1,557 @@
+hotplug_ok:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l USER noipl                                                                    
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l USER noipl                                                                    
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 14:39:20 ON TUESDAY, FEBRUARY 20, 2016           
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 14:39:26 CET TUESDAY 02/20/16                                      
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: CP READ
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l USER noipl                                                                    
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 14:39:20 ON TUESDAY, FEBRUARY 20, 2016           
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 14:39:26 CET TUESDAY 02/20/16                                      
+    data: 00: begin                                                                       
+    data: 00: HCPGIR453W CP entered; program interrupt loop                               
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: cp i cms                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             VM READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data:                                                                                 
+    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
+    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F500 MAC 05-FF-0F-00-04-B2 CURRENT                                     
+    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
+    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F501 MAC 05-FF-0F-00-04-B2 CURRENT                                     
+    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
+    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F502 MAC 05-FF-0F-00-04-B2 CURRENT                                     
+    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
+    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F503 MAC 05-FF-0F-00-04-B3 CURRENT                                     
+    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
+    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F504 MAC 05-FF-0F-00-04-B3 CURRENT                                     
+    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
+    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F505 MAC 05-FF-0F-00-04-B3 CURRENT                                     
+    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
+    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
+    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
+    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data:                                                                                 
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data:                                                                                 
+    data: Ready; T=0.01/0.01 14:39:27                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: q v cpus                                                                        
+    data: 00: CPU 00  ID  BB0F6D1521278000 (BASE) CP   CPUAFF ON                          
+    data: 00: CPU 01  ID  BB0F6D1521278000 STOPPED CP   CPUAFF ON                         
+    data: Ready; T=0.01/0.01 14:39:28                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: define cpu 2-4                                                                  
+    data: 00: CPU 02 defined                                                              
+    data: 00: CPU 03 defined                                                              
+    data: 00: CPU 04 defined                                                              
+    data: Ready; T=0.01/0.01 14:39:29                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: q v  1c5d                                                                       
+    data: 00: HCPQVD040E Device 1C5D does not exist                                       
+    data: Ready(00040); T=0.01/0.01 16:58:33                                              
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: att  1c5d *                                                                     
+    data: 00: DASD 1C5D ATTACHED TO USER 1C5D WITH DEVCTL HYPERPAV BASE                   
+    data: Ready; T=0.01/0.01 16:59:53                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: q v  f5f0                                                                       
+    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
+    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: Ready; T=0.01/0.01 14:39:30                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: q v  f5f1                                                                       
+    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
+    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: Ready; T=0.01/0.01 14:39:31                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: q v  f5f2                                                                       
+    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
+    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: Ready; T=0.01/0.01 14:39:32                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok

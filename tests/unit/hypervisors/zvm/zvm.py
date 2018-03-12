@@ -1,4 +1,4 @@
-# Copyright 2017 IBM Corp.
+# Copyright 2017, 2018 IBM Corp.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,16 @@ Test module for zvm hypervisor
 #
 # IMPORTS
 #
-from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
+from tessia.baselib.hypervisors.zvm import zvm
+from tessia.baselib.guests.cms import cms as cms_module
+from tests.unit.guests.cms.cms import patch_s3270
+from unittest import mock
 from unittest import TestCase
 from unittest.mock import patch
+
+import os
+import re
+import yaml
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -34,210 +41,631 @@ class TestHypervisorZvm(TestCase):
     """
     Unit test for the HypervisorZvm class
     """
-
-    def setUp(self):
+    def _patch_cms(self):
         """
-        Mock Terminal
+        Mock the GuestCms object used by the Hypervisor object and return them
+
+        Returns:
+            tuple: patched HypervisorZvm object, mocked GuestCms class
+        """
+        patcher = patch.object(zvm, 'GuestCms', autospec=True)
+        mock_cms_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+
+        # create object for convenient access
+        hyp = zvm.HypervisorZvm(
+            self._name, self._hostname, self._user, self._passwd, None)
+
+        return hyp, mock_cms_cls
+    # _patch_cms()
+
+    def _patch_s3270(self, mock_outputs):
+        """
+        Mock the underlying s3270 object to use mocked console outputs and
+        return the resulting patched hypervisor object
 
         Args:
-            None
+            mock_outputs (list): mocked console outputs
 
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Returns:
+            tuple: patched HypervisorZvm object, mocked s3270 object
         """
-        self.terminal_patcher = patch(
-            'tessia.baselib.hypervisors.zvm.zvm.Terminal',
-            autospec=True)
-        self._mock_terminal = self.terminal_patcher.start()
-        self.addCleanup(self.terminal_patcher.stop)
+        hyp = zvm.HypervisorZvm(
+            self._name, self._hostname, self._user, self._passwd, None)
 
-        # set s3270 output
-        self._mock_terminal.return_value.login.return_value = 'ok\n'
-    # setUp()
+        # patch the s3270 object in order to use mocked console outputs
+        cms_obj = hyp._cms
+        mock_s3270 = patch_s3270(self, cms_obj, mock_outputs)
 
-    def test_login_ok(self):
+        # this patching is needed in order to assure the terminal object keeps
+        # using our mocked s3270 even after a disconnect
+        orig_logoff = cms_obj._terminal.logoff
+        def mock_terminal_logoff(*args, **kwargs):
+            """
+            Call original logoff and re-set the mocked s3270 back.
+            """
+            orig_logoff(*args, **kwargs)
+            cms_obj._terminal._s3270 = mock_s3270
+        # mock_terminal_logoff()
+        cms_obj._terminal.logoff = mock_terminal_logoff
+
+        return hyp, mock_s3270
+    # _patch_s3270()
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Store the console output data to be used in the tests.
+        """
+        data_file = '{}/zvm.yaml'.format(
+            os.path.dirname(os.path.abspath(__file__)))
+        with open(data_file, 'r', encoding='utf-8') as data_fd:
+            cls._data = yaml.load(data_fd.read())
+
+        cls._user = 'USER'
+        cls._name = 'hostname'
+        cls._hostname = 'hostname.com'
+        cls._passwd = 'password'
+    # setUpClass()
+
+    def test_login(self):
         """
         Exercise a normal login command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
+        hyp, mock_cms_cls = self._patch_cms()
         hyp.login()
-        self._mock_terminal.return_value.login.assert_called_once_with(
-            "hostname.com",
-            "user",
-            "password",
-            {},
-            60
-        )
-    # test_login_ok()
+        mock_cms_cls.assert_called_once_with(
+            self._user, self._hostname, self._user, self._passwd,
+            {'here': True, 'noipl': True})
+        mock_cms_cls.return_value.login.assert_called_once_with()
+    # test_login()
 
-    def test_logoff_ok(self):
+    def test_logoff(self):
         """
         Exercise a normal logoff command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
+        hyp, mock_cms_cls = self._patch_cms()
         hyp.login()
         hyp.logoff()
-        self._mock_terminal.return_value.disconnect.assert_called_once_with()
-    # test_logoff_ok()
+        mock_cms_cls.return_value.logoff.assert_called_once_with()
+    # test_logoff()
 
-    def test_logoff_failed(self):
+    def test_reboot(self):
         """
-        Exercise a failed logoff command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Verify that reboot is not currently implemented
         """
-        self._mock_terminal.return_value.disconnect.return_value = False
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
+        hyp, _ = self._patch_cms()
         hyp.login()
-        self.assertRaises(RuntimeError, hyp.logoff)
-    # test_logoff_failed()
+        with self.assertRaises(NotImplementedError):
+            hyp.reboot(self._user, None)
+    # test_reboot()
 
-    def test_start_ok(self):
+    def test_start_cms(self):
         """
-        Exercise a normal start command
-
-        *** Placeholder for start test when implemented ***
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise an IPL of CMS (no boot disk specified)
         """
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
+        mock_outputs = []
+        # use the disk outputs as a base and strip the last steps where the
+        # disk ipl is done
+        for entry in self._data['start_dasd']:
+            if ' I 1C5D' in entry:
+                break
+            mock_outputs.append(entry)
+        # add the ipl cms step
+        mock_outputs.extend(self._data['start_cms'])
 
-        # simple command execution
+        hyp, mock_s3270 = self._patch_s3270(mock_outputs)
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d", "boot_device": True}
+        guest_parameters = {
+            "boot_method": "cms",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface]
+        }
         hyp.login()
-        self.assertRaises(NotImplementedError, hyp.start,
-                          "hostname", "cpu", "memory", None)
-    # test_start_ok()
+        hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
 
-    def test_stop_ok(self):
+        # validate commands executed
+        exp_cmds = [
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            '#cp i cms',
+            '#cp system clear',
+            '#cp logoff',
+            'l {} here noipl'.format(self._user),
+            # second login attempt due to a force/logoff pending in the
+            # mocked output
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            'begin',
+            '#cp i cms',
+            'detach cpu all',
+            'define storage {}M'.format(guest_memory),
+            'q v cpus',
+            'define cpu 1',
+            'q v  1c5d',
+            'q v  f5f0',
+            'q v  f5f1',
+            'q v  f5f2',
+            'i cms',
+        ]
+        call_list = [mock.call(cmd) for cmd in exp_cmds]
+        self.assertListEqual(mock_s3270.string.mock_calls, call_list)
+    # test_start_cms()
+
+    def test_start_cms_fail(self):
+        """
+        Exercise an IPL of CMS which fails
+        """
+        mock_outputs = []
+        for entry in self._data['start_dasd']:
+            pattern = ' I 1C5D'
+            if re.search(pattern, entry):
+                new_entry = re.sub(
+                    pattern, 'HCP052E Error in CP directory', entry)
+                mock_outputs.append(new_entry)
+                break
+            mock_outputs.append(entry)
+        hyp, _ = self._patch_s3270(mock_outputs)
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d", "boot_device": True}
+        guest_parameters = {
+            "boot_method": "cms",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface]
+        }
+        hyp.login()
+        with self.assertRaisesRegex(RuntimeError, 'Failed to IPL CMS'):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
+    # test_start_cms_fail()
+
+    def test_start_dasd(self):
+        """
+        Exercise an IPL of a DASD disk
+        """
+        hyp, mock_s3270 = self._patch_s3270(self._data['start_dasd'])
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d", "boot_device": True}
+        guest_parameters = {
+            "boot_method": "disk",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface]
+        }
+        hyp.login()
+        hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
+
+        # validate commands executed
+        exp_cmds = [
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            '#cp i cms',
+            '#cp system clear',
+            '#cp logoff',
+            'l {} here noipl'.format(self._user),
+            # second login attempt due to a force/logoff pending in the
+            # mocked output
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            'begin',
+            '#cp i cms',
+            'detach cpu all',
+            'define storage {}M'.format(guest_memory),
+            'q v cpus',
+            'define cpu 1',
+            'q v  1c5d',
+            'q v  f5f0',
+            'q v  f5f1',
+            'q v  f5f2',
+            'i 1c5d',
+        ]
+        call_list = [mock.call(cmd) for cmd in exp_cmds]
+        self.assertListEqual(mock_s3270.string.mock_calls, call_list)
+    # test_start_dasd()
+
+    def test_start_dasd_fail(self):
+        """
+        Exercise an IPL of a DASD disk which fails to reach the login prompt
+        """
+        # remove the last output containing the login prompt
+        hyp, _ = self._patch_s3270(self._data['start_dasd'][:-1])
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d", "boot_device": True}
+        guest_parameters = {
+            "boot_method": "disk",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface]
+        }
+        hyp.login()
+        with self.assertRaisesRegex(RuntimeError, 'Failed to IPL disk'):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
+    # test_start_dasd_fail()
+
+    def test_start_fcp(self):
+        """
+        Exercise an IPL of a FCP disk
+        """
+        hyp, mock_s3270 = self._patch_s3270(self._data['start_fcp'])
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_scsi = {
+            "type": "fcp",
+            "devno": "1740",
+            "wwpn": "100507630503c5ae",
+            "lun": "1022400d00000000",
+            "boot_device": True,
+        }
+        guest_parameters = {
+            "boot_method": "disk",
+            "storage_volumes" : [disk_scsi],
+            "ifaces" : [iface]
+        }
+        hyp.login()
+        hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
+
+        # validate commands executed
+        exp_cmds = [
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            '#cp i cms',
+            '#cp system clear',
+            '#cp logoff',
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            'begin',
+            '#cp i cms',
+            'detach cpu all',
+            'define storage {}M'.format(guest_memory),
+            'q v cpus',
+            'define cpu 1',
+            'q v  1740',
+            'att  1740 *',
+            'q v  f5f0',
+            'q v  f5f1',
+            'q v  f5f2',
+            'set loaddev portname 10050763 0503c5ae lun 1022400d 00000000',
+            'q loaddev',
+            'i 1740'
+        ]
+        call_list = [mock.call(cmd) for cmd in exp_cmds]
+        self.assertListEqual(mock_s3270.string.mock_calls, call_list)
+    # test_start_fcp()
+
+    def test_start_invalid(self):
+        """
+        Exercise invalid starts:
+        - when boot method is disk but no boot device was defined.
+        - when guest name is different than username provided for login
+        - when boot method is network but no netboot parameters were defined.
+        """
+        hyp, _ = self._patch_cms()
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        guest_params = {
+            "boot_method": "disk",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface],
+        }
+        hyp.login()
+        with self.assertRaisesRegex(
+            ValueError, "Boot method 'disk' requires a boot device"):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_params)
+
+        error_msg = 'guest name provided must be the same as the username'
+        with self.assertRaisesRegex(ValueError, error_msg):
+            hyp.start('DUMMY', guest_cpu, guest_memory, guest_params)
+
+        guest_params['boot_method'] = 'network'
+        with self.assertRaisesRegex(
+            ValueError, "Boot method 'network' requires netboot parameters"):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_params)
+    # test_start_invalid()
+
+    def test_start_netboot(self):
+        """
+        Exercise an IPL via network
+        """
+        mock_outputs = []
+        # use the disk outputs as a base and strip the last steps where the
+        # disk ipl is done
+        for entry in self._data['start_dasd']:
+            # strip the last steps where a disk ipl is done
+            if ' I 1C5D' in entry:
+                break
+            mock_outputs.append(entry)
+        # add the netboot steps
+        mock_outputs.extend(self._data['start_netboot'])
+
+        hyp, mock_s3270 = self._patch_s3270(mock_outputs)
+        # mock transfer calls
+        mock_s3270.transfer.side_effect = 3 * [
+            r'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.072\n'
+            r'ok\n']
+
+        # now we need to mock the requests library to prevent an actual
+        # download to happen
+        patcher = patch.object(cms_module.requests, 'get', autospec=True)
+        mock_get = patcher.start()
+        self.addCleanup(patcher.stop)
+        mock_resp = mock_get.return_value
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.iter_content.return_value = iter(['1', '2', '3'])
+
+        # mock temp file creation
+        patcher = patch.object(cms_module, 'NamedTemporaryFile', autospec=True)
+        mock_temp_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        mock_file = mock_temp_cls.return_value.__enter__.return_value
+        mock_file.name = 'local_temp_file'
+
+        # perform the netboot
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        guest_params = {
+            "boot_method": "network",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface],
+            "netboot": {
+                "cmdline": "param1=value1 param2=value2",
+                "kernel_uri": "http://_install-server.com/distro/kernel.img",
+                "initrd_uri": "http://_install-server.com/distro/initrd.img",
+            }
+        }
+        hyp.login()
+        hyp.start(self._user, guest_cpu, guest_memory, guest_params)
+
+        # validate commands executed
+        exp_cmds = [
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            '#cp i cms',
+            '#cp system clear',
+            '#cp logoff',
+            'l {} here noipl'.format(self._user),
+            # second login attempt due to a force/logoff pending in the
+            # mocked output
+            'l {} here noipl'.format(self._user),
+            self._passwd,
+            'begin',
+            '#cp i cms',
+            'detach cpu all',
+            'define storage {}M'.format(guest_memory),
+            'q v cpus',
+            'define cpu 1',
+            'q v  1c5d',
+            'q v  f5f0',
+            'q v  f5f1',
+            'q v  f5f2',
+            'i cms',
+            'q v ffff',
+            'define vfb-512 as ffff blk 200000',
+            r'format ffff t\n1\ntmpdsk',
+            'spool punch *',
+            'close reader',
+            'purge reader all',
+            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_KERNEL_FILE),
+            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_CMDLINE_FILE),
+            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_INITRD_FILE),
+            'change reader all keep',
+            'ipl 00c clear',
+        ]
+        call_list = [mock.call(cmd) for cmd in exp_cmds]
+        self.assertListEqual(mock_s3270.string.mock_calls, call_list)
+
+        # validate download behavior
+        self.assertListEqual(mock_resp.iter_content.mock_calls, [
+            mock.call(chunk_size=mock.ANY), mock.call(chunk_size=mock.ANY)])
+        self.assertListEqual(mock_file.write.mock_calls, [
+            mock.call('1'),
+            mock.call('2'),
+            mock.call('3'),
+        ])
+        self.assertListEqual(mock_s3270.transfer.mock_calls, [
+            mock.call(mock_file.name,
+                      zvm.HypervisorZvm.NETBOOT_KERNEL_FILE,
+                      direction='send', mode='binary', timeout=600),
+            mock.call(mock_file.name,
+                      zvm.HypervisorZvm.NETBOOT_INITRD_FILE,
+                      direction='send', mode='binary', timeout=600),
+            mock.call(mock.ANY,
+                      zvm.HypervisorZvm.NETBOOT_CMDLINE_FILE,
+                      direction='send', mode='binary', timeout=600)
+        ])
+    # test_start_netboot()
+
+    def test_start_netboot_fail_cms(self):
+        """
+        Exercise a netboot which fails to start CMS.
+        """
+        mock_outputs = []
+        for entry in self._data['start_dasd']:
+            pattern = ' I 1C5D'
+            if re.search(pattern, entry):
+                new_entry = re.sub(
+                    pattern, 'HCP052E Error in CP directory', entry)
+                mock_outputs.append(new_entry)
+                break
+            mock_outputs.append(entry)
+        hyp, _ = self._patch_s3270(mock_outputs)
+
+        # perform start
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        guest_parameters = {
+            "boot_method": "network",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface],
+            "netboot": {
+                "cmdline": "param1=value1 param2=value2",
+                "kernel_uri": "http://_install-server.com/distro/kernel.img",
+                "initrd_uri": "http://_install-server.com/distro/initrd.img",
+            }
+        }
+        hyp.login()
+        with self.assertRaisesRegex(RuntimeError, 'Failed to initialize CMS'):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
+    # test_start_netboot_cms_fail()
+
+    def test_start_netboot_fail_detach(self):
+        """
+        Try a netboot which fails to detach the existing ffff disk
+        """
+        orig_outputs = []
+        for entry in self._data['start_dasd']:
+            # strip the last steps where a disk ipl is done
+            if ' I 1C5D' in entry:
+                break
+            orig_outputs.append(entry)
+        # add the netboot steps
+        orig_outputs.extend(self._data['start_netboot'])
+        # replace success steps by errors
+        mock_outputs = []
+        pattern = 'HCPQVD040E Device FFFF does not exist'
+        for entry in orig_outputs:
+            if re.search(pattern, entry):
+                # replace the response to return an existing dasd
+                new_entry = re.sub(
+                    pattern, 'DASD FFFF ON DASD', entry)
+                mock_outputs.append(new_entry)
+                # next response is an error after trying to detach existing
+                # dasd
+                new_entry = re.sub(
+                    pattern, 'HCP052E Error in CP directory', entry)
+                mock_outputs.append(new_entry)
+                break
+            mock_outputs.append(entry)
+        hyp, _ = self._patch_s3270(mock_outputs)
+
+        # perform the netboot
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        guest_params = {
+            "boot_method": "network",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface],
+            "netboot": {
+                "cmdline": "param1=value1 param2=value2",
+                "kernel_uri": "http://_install-server.com/distro/kernel.img",
+                "initrd_uri": "http://_install-server.com/distro/initrd.img",
+            }
+        }
+        hyp.login()
+        with self.assertRaisesRegex(RuntimeError, 'Detach ffff failed with:'):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_params)
+
+    # test_start_netboot_fail_detach()
+
+    def test_start_netboot_fail_kernel(self):
+        """
+        Try a netboot which fails to load the kernel
+        """
+        orig_outputs = []
+        for entry in self._data['start_dasd']:
+            # strip the last steps where a disk ipl is done
+            if ' I 1C5D' in entry:
+                break
+            orig_outputs.append(entry)
+        # add the netboot steps
+        orig_outputs.extend(self._data['start_netboot'])
+        mock_outputs = []
+        pattern = 'Kernel command line:'
+        # replace the line where the kernel cmdline is reported
+        for entry in orig_outputs:
+            if re.search(pattern, entry):
+                new_entry = re.sub(
+                    pattern, 'DUMMY', entry)
+                mock_outputs.append(new_entry)
+                break
+            mock_outputs.append(entry)
+        hyp, mock_s3270 = self._patch_s3270(mock_outputs)
+
+        # mock transfer calls
+        mock_s3270.transfer.side_effect = 3 * [
+            r'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.072\n'
+            r'ok\n']
+
+        # now we need to mock the requests library to prevent an actual
+        # download to happen
+        patcher = patch.object(cms_module.requests, 'get', autospec=True)
+        mock_get = patcher.start()
+        self.addCleanup(patcher.stop)
+        mock_resp = mock_get.return_value
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.iter_content.return_value = iter(['1', '2', '3'])
+
+        # mock temp file creation
+        patcher = patch.object(cms_module, 'NamedTemporaryFile', autospec=True)
+        mock_temp_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        mock_file = mock_temp_cls.return_value.__enter__.return_value
+        mock_file.name = 'local_temp_file'
+
+        # perform the netboot
+        guest_cpu = 2
+        guest_memory = 2048
+        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
+        disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        guest_params = {
+            "boot_method": "network",
+            "storage_volumes" : [disk_dasd],
+            "ifaces" : [iface],
+            "netboot": {
+                "cmdline": "param1=value1 param2=value2",
+                "kernel_uri": "http://_install-server.com/distro/kernel.img",
+                "initrd_uri": "http://_install-server.com/distro/initrd.img",
+            }
+        }
+        hyp.login()
+        with self.assertRaisesRegex(
+            RuntimeError, 'Failed to IPL downloaded kernel'):
+            hyp.start(self._user, guest_cpu, guest_memory, guest_params)
+    # test_start_netboot_fail_kernel()
+
+    def test_stop(self):
         """
         Exercise a normal stop command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
         """
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
+        hyp, mock_cms_cls = self._patch_cms()
         hyp.login()
-        hyp.stop("hostname", None)
-        self._mock_terminal.return_value.logoff.assert_called_once_with()
-    # test_stop_ok()
+        hyp.stop(self._user, None)
+        mock_cms_cls.return_value.stop.assert_called_once_with()
+    # test_stop()
 
-    def test_stop_failed(self):
+    def test_stop_invalid(self):
         """
-        Exercise a failed stop command
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
+        Exercise invalid stop when guest name is different than username
+        provided for login
         """
-        self._mock_terminal.return_value.logoff.return_value = False
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
+        hyp, _ = self._patch_cms()
         hyp.login()
-        self.assertRaises(RuntimeError, hyp.stop,
-                          "hostname", None)
-    # test_stop_failed()
-
-    def test_reboot_ok(self):
-        """
-        Exercise a normal reboot command
-
-        *** Placeholder for reboot test when implemented ***
-
-        Args:
-            None
-
-        Raises:
-            AssertionError: if the session object does not behave as expected
-        """
-        # create new instance of terminal
-        hyp = HypervisorZvm(
-            "hostname",
-            "hostname.com",
-            "user",
-            "password",
-            None
-        )
-
-        # simple command execution
-        hyp.login()
-        self.assertRaises(NotImplementedError, hyp.reboot,
-                          "hostname", None)
-    # test_reboot_ok()
-
+        error_msg = 'guest name provided must be the same as the username'
+        with self.assertRaisesRegex(ValueError, error_msg):
+            hyp.stop('DUMMY', None)
+    # test_stop_invalid()
 # TestHypervisorZvm

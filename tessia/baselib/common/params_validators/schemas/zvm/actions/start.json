@@ -1,0 +1,53 @@
+{
+    "properties": {
+        "boot_method": {
+            "enum": [
+                "network",
+                "disk",
+                "cms"
+            ],
+            "type": "string"
+        },
+        "ifaces": {
+            "items": {
+                "$ref": "../entities/iface_type.json"
+            },
+            "type": "array"
+        },
+        "netboot": {
+            "properties": {
+                "cmdline": {
+                    "maxLength": 4096,
+                    "type": "string"
+                },
+                "initrd_uri": {
+                    "format": "uri",
+                    "type": "string"
+                },
+                "kernel_uri": {
+                    "format": "uri",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "cmdline",
+                "kernel_uri"
+            ],
+            "type": "object",
+            "additionalProperties": false
+        },
+        "storage_volumes": {
+            "items": {
+                "$ref": "../entities/disk_type.json"
+            },
+            "type": "array"
+        }
+    },
+    "required": [
+        "boot_method",
+        "ifaces",
+        "storage_volumes"
+    ],
+    "type": "object",
+    "additionalProperties": false
+}

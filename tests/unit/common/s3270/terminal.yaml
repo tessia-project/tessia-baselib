@@ -1,0 +1,1227 @@
+login_already_logged:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data: HCPLGA054E already logged                                                       
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+login_generic_error:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data: HCP052E Error in CP directory                                                   
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+login_generic_error_no_desc:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data: HCP003E
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+login_ok:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 11:22:54 ON THURSDAY, FEBRUARY 15, 2016          
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: RUNNING
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 11:22:54 ON THURSDAY, FEBRUARY 15, 2016          
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+login_ok_cp_read:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user here noipl                                                               
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user here noipl                                                               
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 11:22:54 ON THURSDAY, FEBRUARY 15, 2016          
+    data: HCPLGO264I One or more options are ignored during reconnect processing - NOIPL  
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: CP READ
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user here noipl                                                               
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 11:22:54 ON THURSDAY, FEBRUARY 15, 2016          
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+login_ok_pending:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user here                                                                     
+    data: HCPLGA361E LOGOFF/FORCE pending for user user                                   
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I HOSTNAME LAST ACCESS AT 15:41:30 ON MONDAY, FEBRUARY 19, 2016        
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 15:41:35 CET MONDAY 02/19/16                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             VM READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: VM READ
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I HOSTNAME LAST ACCESS AT 15:41:30 ON MONDAY, FEBRUARY 19, 2016        
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 15:41:35 CET MONDAY 02/19/16                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data: 00: Command complete                                                            
+    data: 00: Command complete                                                            
+    data: DMSACP723I T (592) R/O                                                          
+    data: DMSACP723I U (551) R/O                                                          
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             HOLDING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+
+login_ok_pending_after_pwd:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 11:22:54 ON THURSDAY, FEBRUARY 15, 2016          
+    data: HCPLGA361E LOGOFF/FORCE pending for user S8370002                               
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I HOSTNAME LAST ACCESS AT 15:41:30 ON MONDAY, FEBRUARY 19, 2016        
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 15:41:35 CET MONDAY 02/19/16                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             VM READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: VM READ
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: l user     here                                                                 
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I HOSTNAME LAST ACCESS AT 15:41:30 ON MONDAY, FEBRUARY 19, 2016        
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 15:41:35 CET MONDAY 02/19/16                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data: 00: Command complete                                                            
+    data: 00: Command complete                                                            
+    data: DMSACP723I T (592) R/O                                                          
+    data: DMSACP723I U (551) R/O                                                          
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             HOLDING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+
+login_wrong_password:
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l user                                                                          
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data: RPIMGR041T PASSWORD NOT AUTHORIZED                                              
+    data: HCPLGA050E LOGON unsuccessful--incorrect password                               
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+
+send_cmd_cms:
+  - |
+    data: 00:                                                                             
+    data: 00: CP I CMS                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             VM READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data:                                                                                 
+    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
+    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F500 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
+    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F501 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
+    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F502 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
+    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F503 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
+    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F504 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
+    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F505 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
+    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
+    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
+    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data:                                                                                 
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data:                                                                                 
+    data: Ready; T=0.01/0.01 15:48:51                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data:                                                                                 
+    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
+    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F500 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
+    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F501 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
+    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F502 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
+    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F503 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
+    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F504 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
+    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F505 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
+    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
+    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
+    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F3 ON OSA   F569 SUBCHANNEL = 0002                                   
+    data: 00:      F5F3 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F3 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F5F4 ON OSA   F570 SUBCHANNEL = 0002                                   
+    data: 00:      F5F4 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F5F4 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data:                                                                                 
+    data:                                                             HOLDING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data:                                                                                 
+    data: 00: OSA  F600 ON NIC  F600  UNIT 000 SUBCHANNEL = 0008                          
+    data: 00:      F600 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F600 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F600 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F601 ON NIC  F600  UNIT 001 SUBCHANNEL = 0009                          
+    data: 00:      F601 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F601 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F601 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F602 ON NIC  F600  UNIT 002 SUBCHANNEL = 000A                          
+    data: 00:      F602 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F602 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F602 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F603 ON NIC  F603  UNIT 000 SUBCHANNEL = 000B                          
+    data: 00:      F603 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F603 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F603 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F604 ON NIC  F603  UNIT 001 SUBCHANNEL = 000C                          
+    data: 00:      F604 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F604 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F604 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F605 ON NIC  F603  UNIT 002 SUBCHANNEL = 000D                          
+    data: 00:      F605 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F605 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F605 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F6F0 ON OSA   F666 SUBCHANNEL = 0000                                   
+    data: 00:      F6F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F6F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F6F1 ON OSA   F667 SUBCHANNEL = 0001                                   
+    data: 00:      F6F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F6F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F6F2 ON OSA   F668 SUBCHANNEL = 0002                                   
+    data: 00:      F6F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F6F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F6F3 ON OSA   F669 SUBCHANNEL = 0002                                   
+    data: 00:      F6F3 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F6F3 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F6F4 ON OSA   F670 SUBCHANNEL = 0002                                   
+    data: 00:      F6F4 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F6F4 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data:                                                                                 
+    data:                                                             MORE...   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data:                                                                                 
+    data:                                                                                 
+    data: 00: OSA  F700 ON NIC  F700  UNIT 000 SUBCHANNEL = 0008                          
+    data: 00:      F700 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F700 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F700 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F701 ON NIC  F700  UNIT 001 SUBCHANNEL = 0009                          
+    data: 00:      F701 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F701 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F701 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F702 ON NIC  F700  UNIT 002 SUBCHANNEL = 000A                          
+    data: 00:      F702 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
+    data: 00:      F702 MAC 05-FF-0F-00-04-9C CURRENT                                     
+    data: 00:      F702 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F703 ON NIC  F703  UNIT 000 SUBCHANNEL = 000B                          
+    data: 00:      F703 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F703 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F703 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F704 ON NIC  F703  UNIT 001 SUBCHANNEL = 000C                          
+    data: 00:      F704 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F704 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F704 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F705 ON NIC  F703  UNIT 002 SUBCHANNEL = 000D                          
+    data: 00:      F705 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
+    data: 00:      F705 MAC 05-FF-0F-00-04-9D CURRENT                                     
+    data: 00:      F705 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F7F0 ON OSA   F766 SUBCHANNEL = 0000                                   
+    data: 00:      F7F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F7F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F7F1 ON OSA   F767 SUBCHANNEL = 0001                                   
+    data: 00:      F7F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F7F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data: 00: OSA  F7F2 ON OSA   F768 SUBCHANNEL = 0002                                   
+    data: 00:      F7F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
+    data: 00:      F7F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
+    data:                                                                                 
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data:                                                                                 
+    data: Ready; T=0.01/0.01 15:48:52                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+
