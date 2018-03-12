@@ -187,7 +187,10 @@ class HypervisorHmc(HypervisorBase):
         image_profile = cpc.get_image_profile(guest_name)
 
         # Calculating the number of processors chosen
-        args = self._calculate_number_cpus(cpu, parameters.get('ifl_cpus', 0))
+        args = self._calculate_number_cpus(cpu,
+                                           parameters.get('cpus_cp', 0),
+                                           parameters.get('cpus_ifl', 0),
+                                           cpc.get_cpus())
         # Set storage
         args['mem'] = memory
 
@@ -411,33 +414,66 @@ class HypervisorHmc(HypervisorBase):
 
     # _setup_network()
 
-    def _calculate_number_cpus(self, total_cpus, ifl_cpus):
+    def _calculate_number_cpus(self, cpus_gen, cpus_cp, cpus_ifl, cpc_avail):
         """
-        Auxiliary method. If the number of IFL's are specified, it is necessary
-        to calculate how many CP's need to be set following the equation:
-            CP = Total - IFL
+        Auxiliary method, determines the number of CPs and IFLs for activation
+        based on requested parameters. There are two strategies to handle
+        the call:
+
+        Dynamic: no cpu type is defined (cpus_cp and cpus_ifl are zero), in
+        this case the function allocates 'cpus_gen' number of CPUs first
+        allocating IFLs, then CPs, according to the CPC availability.
+
+        Static: cpu types are defined exactly, in this case the function only
+        validates that the CPC resources can fulfill the requested numbers.
 
         Args:
-            total_cpus (int): total number of cpus
-            ifl_cpus (int): number of IFL cpus
+            cpus_gen (int): requested number of 'generic' cpus (dynamic
+                            approach)
+            cpus_cp (int): requested number of general purpose cpus
+                           (static approach)
+            cpus_ifl (int): requested number of IFL cpus (static approach)
+            cpc_avail (dict): contains CPC availability of IFLs and CPs
 
         Returns:
-            dict: number of cp's and ifl's
+            dict: number of CPs and IFLs to be used for activation
 
         Raises:
-            None
+            RuntimeError: in case the available CPUs in the CPC cannot meet
+                          the requested CPU numbers
         """
-        args = dict()
+        ret_args = dict()
 
-        # If the number of IFL's are specified, we need to calculate how
-        # many CP's are to be used.
-        cp_cpus = total_cpus - ifl_cpus
-        args['cp'] = cp_cpus
-        args['ifl'] = ifl_cpus
+        # no cpu type specified: use dynamic strategy
+        if cpus_cp == 0 and cpus_ifl == 0:
+            # total number of cpus exceeds cpc availability: report error
+            if cpus_gen > (cpc_avail['cpus_ifl'] + cpc_avail['cpus_cp']):
+                raise RuntimeError(
+                    'Not enough CPUs available in CPC. Requested: {} CPUs. '
+                    'Available: {} CPs, {} IFLs.'.format(
+                        cpus_gen, cpc_avail['cpus_cp'], cpc_avail['cpus_ifl']))
 
-        self._logger.debug("Number of cpus calculated: args='%s'", args)
+            if cpus_gen < cpc_avail['cpus_ifl']:
+                ret_args['ifl'] = cpus_gen
+                ret_args['cp'] = 0
+            else:
+                ret_args['ifl'] = cpc_avail['cpus_ifl']
+                ret_args['cp'] = cpus_gen - ret_args['ifl']
+        # a cpu type was specified: use static strategy
+        else:
+            if (cpus_cp > cpc_avail['cpus_cp'] or
+                    cpus_ifl > cpc_avail['cpus_ifl']):
+                raise RuntimeError(
+                    'Not enough CPUs available in CPC. Requested: {} CPs, {} '
+                    'IFLs. Available: {} CPs, {} IFLs.'.format(
+                        cpus_cp, cpus_ifl, cpc_avail['cpus_cp'],
+                        cpc_avail['cpus_ifl']))
 
-        return args
+            ret_args['cp'] = cpus_cp
+            ret_args['ifl'] = cpus_ifl
+        self._logger.debug("Number of cpus calculated: %s", ret_args)
+
+        return ret_args
     # _calculate_number_cpus()
 
     def _update_resources(self, args, image_profile):
