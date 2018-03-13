@@ -10,15 +10,17 @@ markdown_extensions:
 theme: readthedocs
 site_name: Tessia base library
 repo_url: https://gitlab.com/tessia-project/tessia-baselib
-copyright: Copyright IBM Corp. 2016, 2017
+copyright: Copyright IBM Corp. 2016, 2017, 2018
 pages:
 - Home: 'index.md'
+- Releases: 'releases.md'
 - Users:
     - How to install: 'users/install.md'
     - Live image to enable HMC netboot: 'users/live_image.md'
     - Hypervisors API: 'users/api_hypervisors.md'
     - Guests API: 'users/api_guests.md'
     - Hypervisor HMC: 'users/hypervisor_hmc.md'
+    - Hypervisor z/VM: 'users/hypervisor_zvm.md'
     - Hypervisor KVM: 'users/hypervisor_kvm.md'
     - Versioning scheme: 'users/versioning.md'
 - Developers:

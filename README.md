@@ -67,6 +67,10 @@ $ python3 -i -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.
 In order to be able to network boot LPARs with HMC in classic mode, you need first to install an auxiliar live-image to a pre-allocated disk.
 This process is explained at [Live image to enable HMC netboot](doc/users/live_image.md).
 
+# What's new
+
+Check the [Release notes](doc/releases.md).
+
 # Documentation
 
 See the [Users section](doc/index.md#users) for the API and usage examples.
@@ -75,6 +79,10 @@ See the [Users section](doc/index.md#users) for the API and usage examples.
 
 If you are interested in contributing to the project, read [How to contribute (development process)](doc/developers/contributing.md).
 Additional topics for developers are available at the [Developers section](doc/index.md#developers).
+
+# Contact
+
+You can join us on IRC at the `#tessia` channel on [OFTC](http://www.oftc.net)
 
 # License
 
