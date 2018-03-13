@@ -17,10 +17,26 @@ limitations under the License.
 
 # Tessia base library - tessia-baselib
 
-An abstraction layer to manage the communication with different types of IBM Z hypervisors and guest systems in order to perform actions like activate, deactivate,
-hotplug resources,and others.
+# What is it?
 
+A python library which provides an abstraction layer to manage the communication with various types of hypervisors and guest systems on IBM Z in order to perform
+actions like activate, deactivate, hotplug resources, and others.
 This library is part of the tessia solution but can also be used standalone by developers/system administrators seeking for a python library to automate their IBM Z environments.
+
+Hypervisors supported:
+
+- zHMC (classic mode)
+- z/VM
+- KVM for IBM Z
+
+Guests supported:
+
+- CMS (z/VM)
+- Linux
+
+# What's new
+
+Check the [Release notes](doc/releases.md).
 
 # Users
 
