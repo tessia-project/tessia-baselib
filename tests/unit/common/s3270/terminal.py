@@ -406,7 +406,7 @@ class TestTerminal(TestCase):
 
         # validate result
         with self.assertRaisesRegex(
-            ZvmMessageError, 'incorrect userid and/or password'):
+            PermissionError, 'incorrect userid and/or password'):
             self._term.login('hostname.com', 'user', 'password')
 
         # validate behavior

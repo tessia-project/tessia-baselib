@@ -453,6 +453,7 @@ class Terminal(object):
             str: output of login
 
         Raises:
+            PermissionError: if credentials are invalid
             TimeoutError: a timeout on connector or force pending never
                           releases
             S3270StatusError: if protocol error occurred
@@ -504,6 +505,10 @@ class Terminal(object):
                 # wait a while and try again
                 sleep(0.2)
                 continue
+
+            # invalid credentials: raise appropriate exception
+            if error_msg[0] in ['RPIMGR042I', 'RPIMGR046T', 'HCPLGA050E']:
+                raise PermissionError('{} {}'.format(*error_msg))
 
             # another type of error occurred: cannot continue
             raise ZvmMessageError('{} {}'.format(*error_msg))
