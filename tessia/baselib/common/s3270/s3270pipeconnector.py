@@ -146,7 +146,7 @@ class S3270PipeConnector(object):
         output = output.decode()
 
         # remove trailing newline as it is added by logger later
-        self._logger.info('[output]:%s', output.rstrip('\n'))
+        self._logger.debug('[output]:%s', output.rstrip('\n'))
 
         # return status and output
         return (output.rsplit()[-1], output)
@@ -165,7 +165,7 @@ class S3270PipeConnector(object):
             TimeoutError: if stdin is not available
         """
         # remove trailing newline as it is added by logger later
-        self._logger.info('[input]:%s', cmd.rstrip('\n'))
+        self._logger.debug('[input]:%s', cmd.rstrip('\n'))
 
         # command arrives without newline control character
         cmd = cmd+'\n'

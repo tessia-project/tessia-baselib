@@ -1,5 +1,12 @@
 # Release notes
 
+## 0.2.1 (2018-03-18)
+
+### Fixes
+
+- zvm: increase timeout while waiting for initrd file to be punched during netboot
+- zvm: raise PermissionsError when login failed due to invalid credentials
+
 ## 0.2.0 (2018-03-13)
 
 ### New features

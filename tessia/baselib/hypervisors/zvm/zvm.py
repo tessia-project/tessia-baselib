@@ -169,7 +169,8 @@ class HypervisorZvm(HypervisorBase):
         # execute all commands, abort in case of error
         wait_prompts = [r'Ready;', r'Ready\(\d+\);']
         for cmd in cmds:
-            _, re_match = self._cms.run(cmd, wait_for=wait_prompts, timeout=60)
+            _, re_match = self._cms.run(
+                cmd, wait_for=wait_prompts, timeout=300)
             if not re_match:
                 raise RuntimeError(
                     "Command '{}' returned unexpected output".format(cmd))
