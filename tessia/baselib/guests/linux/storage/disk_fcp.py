@@ -409,7 +409,7 @@ class DiskFcp(DiskBase):
             output = output.strip()
 
             if ret == 0 and output:
-                return output
+                return output.splitlines()[-1]
 
         return None
     # _get_multipath_name()
