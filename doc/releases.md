@@ -1,5 +1,11 @@
 # Release notes
 
+## 0.2.2 (2018-03-21)
+
+### Fixes
+
+- kvm: avoid errors when multipath can't properly detect a disk
+
 ## 0.2.1 (2018-03-18)
 
 ### Fixes
