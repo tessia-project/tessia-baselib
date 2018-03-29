@@ -482,8 +482,8 @@ class Terminal(object):
         while True:
             self._s3270.string(cur_cmd)
             self._s3270.enter()
-            output = self._s3270.ascii()
-            error_msg = self._check_output(self._format_output(output))
+            output = self._format_output(self._s3270.ascii())
+            error_msg = self._check_output(output)
             # no errors: process next command
             if not error_msg:
                 # no more commands: login process finished
@@ -502,8 +502,12 @@ class Terminal(object):
                 self._s3270.clear()
                 # start over, enter user
                 cur_cmd = login_cmd
+                # we were disconnected by vm: re-connect before retrying logon
+                if 'logoff at' in output.lower() and not self._is_connected():
+                    self.connect(host_name, timeout)
+                    self._s3270.clear()
                 # wait a while and try again
-                sleep(0.2)
+                sleep(0.5)
                 continue
 
             # invalid credentials: raise appropriate exception

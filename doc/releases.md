@@ -1,5 +1,11 @@
 # Release notes
 
+## To be released
+
+### Fixes
+
+- zvm: handle logoffs forced by hypervisor during login process
+
 ## 0.2.2 (2018-03-21)
 
 ### Fixes
