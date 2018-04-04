@@ -292,25 +292,35 @@ class TestTerminal(TestCase):
     def test_login_ok_pending(self):
         """
         Exercise a normal login command where guest reports LOGOFF/FORCE
-        pending after user is entered. This test also covers the case where CMS
-        is ipled automatically after the login.
+        pending after user is entered and after a few tries we get logged off
+        by the hypervisor. This test also covers the case where CMS is ipled
+        automatically after the login.
         """
+        # set query to return we are disconnected in order to simulate the
+        # logoff by the hypervisor
+        self._mock_s3270.query.return_value = (
+            'data:                             \n'
+            'L U U N N 4 24 80 0 0 0x0 -                    \n'
+            'ok                           \n'
+        )
+
         # set s3270 output
         self._mock_s3270.ascii.side_effect = self._data[
             'login_ok_pending']
 
         # perform action
-        output = self._term.login("hostname.com", "user", "password")
+        hostname = 'hostname.com'
+        output = self._term.login(hostname, "user", "password")
 
         # validate result
         self.assertIn('LOGON AT', output)
 
         # validate behavior (commands entered)
-        self.assertEqual(self._mock_s3270.string.mock_calls, [
-            mock.call('l user'),
-            mock.call('l user'),
-            mock.call('password'),
-        ])
+        self.assertEqual(
+            self._mock_s3270.string.mock_calls,
+            (4 * [mock.call('l user')]) + [mock.call('password')]
+        )
+        self._mock_s3270.query.assert_called_with()
     # test_login_ok_pending()
 
     def test_login_ok_pending_after_pwd(self):
