@@ -130,6 +130,7 @@ class SshShell(object):
             str: with content read from socket
 
         Raises:
+            SshShellError: if incorrect unicode character was received
             TimeoutError: if timeout is reached and no content read
         """
         # define the timeout limit
@@ -137,6 +138,9 @@ class SshShell(object):
 
         # buffer for content read
         output = ""
+
+        # buffer for parts of distorted unicode text
+        byte_buffer = b""
 
         # read from socket until prompt is found or timeout reaches
         while True:
@@ -152,6 +156,27 @@ class SshShell(object):
                     self._main_logger.warning(
                         'Timeout while performing socket.recv'
                     )
+                except UnicodeDecodeError as error:
+                    # avoid retrying to decode the first distorted part
+                    if not byte_buffer:
+                        byte_buffer = error.args[1]
+                        continue
+
+                    byte_buffer += error.args[1]
+                    try:
+                        output += byte_buffer.decode(ENCODING)
+                    # decoding failed: try to read more bytes
+                    except UnicodeDecodeError:
+                        continue
+                    # multi-byte character was decoded: reset buffer
+                    byte_buffer = b""
+
+                else:
+                    # decoding worked but buffer had character: output contains
+                    # invalid character encoding
+                    if byte_buffer:
+                        raise SshShellError(
+                            'Incorrect unicode character was received')
 
             # try to match the prompt in the buffer
             index = output.find(self.prompt)
