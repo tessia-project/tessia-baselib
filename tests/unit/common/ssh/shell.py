@@ -311,6 +311,69 @@ class TestSshShell(TestCase):
         self.assertEqual(self._shell.socket.recv.call_count,
                          len(recv_output))
 
+    def test_run_distorted_unicode(self):
+        """
+        Test that unicode character received in different buffers will be
+        correctly processed.
+
+        Args:
+        Returns:
+        Raises:
+        """
+
+        # The correct unicode character was received in different buffers.
+        expected_output = "Cyrillic 'а' is valid"
+        recv_output = [
+            self._make_output('', 'garbage'),
+            "Cyrillic '".encode(self.ENCODING) +
+            b'\xd0',
+            b'\xb0' +
+            "' is valid\r\n".encode(self.ENCODING),
+            self._prompt.encode(self.ENCODING),
+            self._make_output(self.STATUS_COMMAND, '0')
+        ]
+
+        self._shell.socket.recv.side_effect = recv_output
+        self._shell.socket.recv.reset_mock()
+
+        status, output = self._shell.run('dummy_cmd')
+        self.assertEqual(status, 0)
+        self.assertEqual(output, expected_output + '\n')
+
+        # The non valid single-byte unicode character was received.
+        recv_output = [
+            'Cyrillic '.encode(self.ENCODING),
+            b'\xd0',
+            ' is not valid'.encode(self.ENCODING),
+            self._prompt.encode(self.ENCODING),
+            self._make_output(self.STATUS_COMMAND, '0')
+        ]
+
+        self._shell.socket.recv.side_effect = recv_output
+        self._shell.socket.recv.reset_mock()
+
+        with self.assertRaises(SshShellError):
+            self._shell.run('dummy_cmd')
+
+        # The non valid compound unicode character was received.
+        recv_output = [
+            'Cyrillic '.encode(self.ENCODING),
+            b'\xd0',
+            b'\xd0',
+            b'\xd0',
+            b'\xd0',
+            ' is not valid'.encode(self.ENCODING),
+            self._prompt.encode(self.ENCODING),
+            self._make_output(self.STATUS_COMMAND, '0')
+        ]
+
+        self._shell.socket.recv.side_effect = recv_output
+        self._shell.socket.recv.reset_mock()
+
+        with self.assertRaises(SshShellError):
+            self._shell.run('dummy_cmd')
+    # test_run_distorted_unicode()
+
     def test_run_chunked_write(self):
         """
         Test a call to run() that has to call
