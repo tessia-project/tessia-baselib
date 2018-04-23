@@ -528,6 +528,11 @@ class Terminal(object):
         if status == "VM READ":
             self._s3270.enter()
 
+        # make sure terminal waits before clearing the screen to prevent
+        # missing content
+        self._s3270.string("#cp term more 50 10")
+        self._s3270.enter()
+
         # read full output and format to return
         output = self._s3270.ascii()
         output = self._format_output(output, True)

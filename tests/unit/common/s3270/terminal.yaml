@@ -304,7 +304,7 @@ login_ok:
     data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
     data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
     data:                                                                                 
-    data:                                                                                 
+    data: 00: CP TERM MORE 50 10                                                          
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -448,6 +448,7 @@ login_ok_cp_read:
     data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
     data: 00: RECONNECTED AT 11:46:17 CET THURSDAY 02/15/16                               
     data:                                                                                 
+    data: 00: CP TERM MORE 50 10                                                          
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -468,8 +469,7 @@ login_ok_cp_read:
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
-    data:                                                                                 
-    data:                                                             CP READ   HOSTNAME  
+    data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname) I 4 43 80 41 0 0x0 -
     ok
 
@@ -1321,4 +1321,3 @@ send_cmd_cms:
     data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
-

@@ -100,6 +100,9 @@ class HypervisorZvm(HypervisorBase):
         _, re_match = self._cms.run('i cms', wait_for=['Ready;'])
         if not re_match:
             raise RuntimeError('Failed to initialize CMS')
+        # make sure terminal waits before clearing the screen to prevent
+        # missing content
+        self._cms.run('term more 50 10', use_cp=True)
 
         # prepare a vdisk where we can upload the files to
         vdisk_dev = 'ffff'
@@ -329,6 +332,9 @@ class HypervisorZvm(HypervisorBase):
             _, re_match = self._cms.run('i cms', wait_for=['Ready;'])
             if not re_match:
                 raise RuntimeError('Failed to IPL CMS')
+            # make sure terminal waits before clearing the screen to prevent
+            # missing content
+            self._cms.run('term more 50 10', use_cp=True)
             return
 
         # boot method 'network' - presence of netboot parameters was already
