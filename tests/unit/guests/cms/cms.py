@@ -188,7 +188,9 @@ class TestGuestCms(TestCase):
             'l {} noipl'.format(self._user),
             self._passwd,
             'begin',
+            '#cp term more 50 10',
             '#cp i cms',
+            '#cp term more 50 10',
             'q v cpus',
             'define cpu 2-4',
             'q v  1c5d',
@@ -469,6 +471,7 @@ class TestGuestCms(TestCase):
         # mock return of login and then return of command
         self._mock_terminal.send_cmd.side_effect = [
             ('Some logon output', re.search('Ready;', 'Content\nReady;\n')),
+            ('TERM MORE OUTPUT', None),
             ret_cmd,
         ]
 

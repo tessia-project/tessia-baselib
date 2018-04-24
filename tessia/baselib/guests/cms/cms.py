@@ -302,6 +302,9 @@ class GuestCms(GuestBase):
             'i cms', use_cp=True, wait_for=['Ready;'])
         if not re_match:
             raise RuntimeError('Failed to IPL CMS')
+        # make sure terminal waits before clearing the screen to prevent
+        # missing content
+        self._terminal.send_cmd('term more 50 10', use_cp=True)
 
         self._logger.debug("LOGIN process: \n%s", output+cms_output)
     # login()

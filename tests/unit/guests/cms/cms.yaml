@@ -142,6 +142,52 @@ hotplug_ok:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
+    data:                                                                                 
+    data: Enter one of the following commands:                                            
+    data:                                                                                 
+    data:    LOGON userid             (Example:  LOGON VMUSER1)                           
+    data:    DIAL userid              (Example:  DIAL VMUSER2)                            
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)                
+    data:    LOGOFF                                                                       
+    data: l USER noipl                                                                    
+    data:                                                                                 
+    data: Enter your password,                                                            
+    data: or                                                                              
+    data: To change your password, enter: ccc/nnn/nnn                                     
+    data:      where ccc = current password, and nnn = new password                       
+    data:                                                                                 
+    data:  ICH70001I USER LAST ACCESS AT 14:39:20 ON TUESDAY, FEBRUARY 20, 2016           
+    data: 00: NIC F500 is created; devices F500-F502 defined                              
+    data: 00: NIC F503 is created; devices F503-F505 defined                              
+    data: 00: z/VM Version 6 Release 3.0, Service Level 1501 (64-bit),                    
+    data: 00: built on IBM Virtualization Technology                                      
+    data: 00: There is no logmsg data                                                     
+    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
+    data: 00: LOGON AT 14:39:26 CET TUESDAY 02/20/16                                      
+    data: 00: begin                                                                       
+    data: 00: HCPGIR453W CP entered; program interrupt loop                               
+    data:                                                                                 
+    data: 00: CP TERM MORE 50 10                                                          
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
     data: 00:                                                                             
     data: 00: cp i cms                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
@@ -227,6 +273,52 @@ hotplug_ok:
     data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
     data:                                                                                 
     data: Ready; T=0.01/0.01 14:39:27                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: CP TERM MORE 50 10                                                          
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
