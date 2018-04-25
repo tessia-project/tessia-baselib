@@ -36,7 +36,7 @@ Guests supported:
 
 # What's new
 
-Check the [Release notes](doc/releases.md).
+Check the [Release notes](releases.md).
 
 # Users
 

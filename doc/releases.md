@@ -1,10 +1,31 @@
+<!--
+Copyright 2018 IBM Corp.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+-->
 # Release notes
 
-## To be released
+## 0.2.3 (2018-04-25)
 
 ### Fixes
 
+- ssh shell: prevent unicode decode errors while reading from socket
+
+### Improvements
+
 - zvm: handle logoffs forced by hypervisor during login process
+- zvm: make sure terminal does not clear screen immediately
+- hmc: allow boot with layer2 on and no mac address specified
 
 ## 0.2.2 (2018-03-21)
 
