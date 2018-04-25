@@ -140,7 +140,7 @@ class TestHypervisorHmc(TestCase):
         znet_expected = 'znetconf -a {}'.format(ch_list[0])
         options = net_setup.get('options')
         if not options or not options.get('layer2'):
-            znet_expected += ' -o layer2=1'
+            znet_expected += ' -o layer2=0'
         else:
             for option, value in options.items():
                 znet_expected += ' -o {}={}'.format(option, value)
@@ -153,10 +153,10 @@ class TestHypervisorHmc(TestCase):
                 "cio_ignore -r {} && \\".format(cio_expected)),
             mock.call(znet_expected),
         ]
-        if ' layer2=1 ' in znet_expected:
+        if ' layer2=1 ' in znet_expected and net_setup["mac"]:
             net_cmd_calls.append(
                 mock.call("ifconfig enc{} hw ether {} && \\".format(
-                    ch_list[0], net_setup.get("mac")))
+                    ch_list[0], net_setup["mac"]))
             )
         net_cmd_calls.extend([
             mock.call("ifconfig enc{} {} netmask {} && \\".format(
@@ -173,7 +173,7 @@ class TestHypervisorHmc(TestCase):
                               .format(dns_entry)))
 
         net_cmd_calls.append(
-            mock.call("ping -c 1 {}".format(net_setup.get('gateway'))))
+            mock.call("true; ping -c 1 {}".format(net_setup.get('gateway'))))
         self._mock_lpar.send_os_command.assert_has_calls(net_cmd_calls)
 
         # verify that we tried to reach target system
@@ -447,7 +447,7 @@ class TestHypervisorHmc(TestCase):
                 'wwpn': '4321',
                 'lun': '1324',
                 'netsetup': {
-                    "mac": "ff:ff:ff:ff:ff:ff",
+                    "mac": None,
                     "ip": "9.9.9.9",
                     "mask": "255.255.255.255",
                     "gateway": "8.8.8.8",
@@ -652,11 +652,11 @@ class TestHypervisorHmc(TestCase):
         net_setup = parameters['boot_params']['netsetup']
         self._assert_net_setup(net_setup)
 
-        # test with layer2 off and additional options
+        # test with layer2 on and additional options
         # by using an ordered dict and placing layer2 on second position we
         # validate that layer2 always comes first
         net_setup['options'] = OrderedDict()
-        net_setup['options']['layer2'] = '0'
+        net_setup['options']['layer2'] = '1'
         net_setup['options']['portname'] = 'osaport'
         net_setup['options']['portno'] = '0'
         net_setup['options']['buffer_count'] = '128'
@@ -665,6 +665,61 @@ class TestHypervisorHmc(TestCase):
         self._assert_net_setup(net_setup)
 
     # test_start_netboot_additional()
+
+    def test_start_netboot_layer2_no_mac(self):
+        """
+        Test the scenario where layer2 is on but no mac address is specified.
+        """
+        lpar_name = "dummy_lpar"
+        cpu = 6
+        memory = 4096
+
+        parameters = {
+            "boot_params": {
+                "boot_method": "dasd",
+                'devicenr': 'FFFF',
+                'netsetup': {
+                    "mac": None,
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    # test with a different channel format
+                    "device": "f500",
+                    "password": "somepwd",
+                },
+                'netboot': {
+                    "cmdline": "some_cmdline",
+                    "kernel_url": "some_url",
+                    "initrd_url": "some_url",
+                }
+            }
+        }
+
+        # setting up the mock objects
+        mock_image_profile = self._mock_cpc.get_image_profile.return_value
+        mock_image_profile.get_properties.return_value = {
+            'central-storage': 4096,
+            'number-shared-general-purpose-processors': 5,
+            'number-shared-ifl-processors': 1
+        }
+
+        self._mock_lpar.get_properties.return_value = {
+            'status': 'operating'
+        }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
+        # by using an ordered dict and placing layer2 on second position we
+        # validate that layer2 always comes first
+        net_setup = parameters['boot_params']['netsetup']
+        net_setup['options'] = OrderedDict()
+        net_setup['options']['layer2'] = '1'
+        net_setup['options']['portname'] = 'osaport'
+        net_setup['options']['portno'] = '0'
+        net_setup['options']['buffer_count'] = '128'
+        self.hmc_object.login()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+        self._assert_net_setup(net_setup)
+    # test_start_netboot_layer2_no_mac()
 
     def test_start_netboot_load_timeout(self):
         """
@@ -705,6 +760,7 @@ class TestHypervisorHmc(TestCase):
                     "mask": "255.255.255.255",
                     "gateway": "8.8.8.8",
                     "device": "f500,f501,f502",
+                    "password": "somepwd",
                 },
                 'netboot': {
                     "cmdline": "some_cmdline",

@@ -31,8 +31,8 @@
             "type": "string"
         },
         "mac": {
-            "maxLength": 17,
-            "type": "string"
+            "type": ["string", "null"],
+            "pattern": "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
         },
         "mask": {
             "maxLength": 16,
@@ -52,5 +52,7 @@
         "gateway",
         "device",
         "password"
-    ]
+    ],
+    "type": "object",
+    "additionalProperties": false
 }

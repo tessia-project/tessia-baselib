@@ -82,7 +82,7 @@ lpar_parameters = {
     "boot_method" : "dasd",
     'devicenr': '6500', # this is the pre-allocated disk with the live-image
     'netsetup': {
-        "mac": "02:23:12:00:76:00",
+        "mac": None,
         "ip": "192.168.5.12",
         "mask": "255.255.255.0",
         "gateway": "192.168.5.1",

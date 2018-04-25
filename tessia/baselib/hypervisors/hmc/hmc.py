@@ -342,9 +342,9 @@ class HypervisorHmc(HypervisorBase):
             layer2 = {
                 'true': 1, 'false': 0, '1': 1, '0': 0
             }[str(layer2).lower()]
-        # option not specified or unknown value used: defaults to active
-        except KeyError:
-            layer2 = 1
+        # option not specified or unknown value used: defaults to off
+        except (KeyError, ValueError):
+            layer2 = 0
 
         if channel.find(',') != -1:
             ch_list = channel.split(',')
@@ -366,7 +366,7 @@ class HypervisorHmc(HypervisorBase):
                 ch_list[0].replace("0.0.", ""), str_option),
         ]
         # layer2 active: set mac address for network interface
-        if layer2 == 1:
+        if layer2 == 1 and mac_addr:
             net_cmds.append(
                 "ifconfig enc{} hw ether {} && \\".format(
                     ch_list[0], mac_addr))
@@ -386,7 +386,7 @@ class HypervisorHmc(HypervisorBase):
                     .format(dns_entry))
         # sometimes the LPAR is unreachable from the network until a ping is
         # performed (likely because of arp cache)
-        net_cmds.append("ping -c 1 {}".format(gw_addr))
+        net_cmds.append("true; ping -c 1 {}".format(gw_addr))
         timeout = time.time() + NETBOOT_LOAD_TIMEOUT
         while True:
             # the api has a limit of 200 chars per call so we need to split the
