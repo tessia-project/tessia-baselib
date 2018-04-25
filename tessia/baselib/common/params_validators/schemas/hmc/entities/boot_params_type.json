@@ -2,6 +2,12 @@
     "definitions": {
         "dasd": {
             "properties": {
+                "boot_method": {
+                    "enum": [
+                        "dasd"
+                    ],
+                    "type": "string"
+                },
                 "devicenr": {
                     "$ref": "../../common/entities/devicenr_type.json"
                 },
@@ -13,6 +19,7 @@
                 }
             },
             "required": [
+                "boot_method",
                 "devicenr"
             ]
         },
@@ -37,6 +44,12 @@
         },
         "scsi": {
             "properties": {
+                "boot_method": {
+                    "enum": [
+                        "scsi"
+                    ],
+                    "type": "string"
+                },
                 "lun": {
                     "type": "string"
                 },
@@ -54,31 +67,20 @@
                 }
             },
             "required": [
+                "boot_method",
                 "zfcp_devicenr",
                 "lun",
                 "wwpn"
             ]
         }
     },
-    "properties": {
-        "boot_method": {
-            "enum": [
-                "scsi",
-                "dasd"
-            ],
-            "type": "string"
+    "oneOf": [
+        {
+            "$ref": "#/definitions/scsi"
         },
-        "oneOf": [
-            {
-                "$ref": "#/definitions/scsi"
-            },
-            {
-                "$ref": "#/definitions/dasd"
-            }
-        ]
-    },
-    "required": [
-        "boot_method"
+        {
+            "$ref": "#/definitions/dasd"
+        }
     ],
     "type": "object"
 }
