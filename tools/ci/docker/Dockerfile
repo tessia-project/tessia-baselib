@@ -10,7 +10,7 @@ RUN apt-get update -q && \
     # ATTENTION: make sure to keep a comment for each explaining why is it needed.
     DEBIAN_FRONTEND=noninteractive apt-get -yq install --no-install-recommends \
     # used to install python libraries
-    python3-pip \
+    python3-pip python3-distutils \
     # used by pbr (in setuptools) to detect module version numbers
     git \
     # these are needed to build cryptography (dep chain is paramiko -> cryptography)
