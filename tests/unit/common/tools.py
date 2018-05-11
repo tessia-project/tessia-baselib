@@ -20,7 +20,7 @@ Unit test from the common.tools module
 # IMPORTS
 #
 from tessia.baselib.common.tools import import_modules
-from importlib.machinery import SourceFileLoader
+from importlib import util
 from tempfile import TemporaryDirectory
 from unittest import TestCase
 
@@ -61,8 +61,10 @@ class TestImportModules(TestCase):
         mod_file.write(file_content)
         mod_file.close()
 
-        module_obj = SourceFileLoader(
-            os.path.basename(file_path[:-3]), file_path).load_module()
+        spec = util.spec_from_file_location(
+            os.path.basename(file_path[:-3]), file_path)
+        module_obj = util.module_from_spec(spec)
+        spec.loader.exec_module(module_obj)
 
         return module_obj
     # _create_module()
@@ -130,12 +132,12 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = import_modules(self.temp_dir.name)
+        loaded_list = [repr(mod) for mod in import_modules(self.temp_dir.name)]
 
         # assemble the list we expect it to have created
         expected_list = [
-            self.mod_list_dir,
-            self.mod_match_re
+            repr(self.mod_list_dir),
+            repr(self.mod_match_re)
         ]
 
         # here we exercise the module importing and the excluding of the
@@ -155,11 +157,11 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = import_modules(
-            self.temp_dir.name, skip_list=['list_dir'])
+        loaded_list = [repr(mod) for mod in import_modules(
+            self.temp_dir.name, skip_list=['list_dir'])]
 
         # assemble the list we expect it to have created
-        expected_list = [self.mod_match_re]
+        expected_list = [repr(self.mod_match_re)]
 
         # here we exercise the module importing and the excluding of the
         # __init__ (but not in skip list) and non .py files from the directory
@@ -179,13 +181,13 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # let the function do its work
-        loaded_list = import_modules(
-            self.temp_dir.name, skip_list=['__init__'])
+        loaded_list = [repr(mod) for mod in import_modules(
+            self.temp_dir.name, skip_list=['__init__'])]
 
         # assemble the list we expect it to have created
         expected_list = [
-            self.mod_list_dir,
-            self.mod_match_re
+            repr(self.mod_list_dir),
+            repr(self.mod_match_re)
         ]
 
         # here we exercise the module importing and the excluding of the

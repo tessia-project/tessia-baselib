@@ -19,7 +19,7 @@ Misc utilities to be used by other modules
 #
 # IMPORTS
 #
-from importlib.machinery import SourceFileLoader
+from importlib import util
 
 import glob
 import os
@@ -69,7 +69,9 @@ def import_modules(modules_path, skip_list=None):
             continue
 
         # we might hit a SyntaxError here
-        module = SourceFileLoader(module_name, module_file).load_module()
+        spec = util.spec_from_file_location(module_name, module_file)
+        module = util.module_from_spec(spec)
+        spec.loader.exec_module(module)
         loaded_list.append(module)
 
     return loaded_list
