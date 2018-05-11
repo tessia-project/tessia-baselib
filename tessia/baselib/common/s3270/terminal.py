@@ -479,18 +479,38 @@ class Terminal(object):
         self._s3270.clear()
 
         cur_cmd = login_cmd
-        while True:
-            self._s3270.string(cur_cmd)
-            self._s3270.enter()
+        cur_action = 'input'
+        while cur_action != 'exit':
+            if cur_action == 'input':
+                self._s3270.string(cur_cmd)
+                self._s3270.enter()
+                cur_action = 'wait'
             output = self._format_output(self._s3270.ascii())
             error_msg = self._check_output(output)
+            output = output.lower()
+
             # no errors: process next command
             if not error_msg:
-                # no more commands: login process finished
-                if cur_cmd == password:
-                    break
-                # move to next step, enter password
-                cur_cmd = password
+                if cur_cmd == login_cmd:
+                    for user_msg in ('enter your password', 'enter password'):
+                        # username accepted: move to next step, enter password
+                        if user_msg in output:
+                            cur_cmd = password
+                            cur_action = 'input'
+                            continue
+
+                elif cur_cmd == password:
+                    for logged_msg in ('logon at', 'reconnected at'):
+                        # login confirmed: break out from loop
+                        if logged_msg in output:
+                            cur_action = 'exit'
+                            continue
+
+                if time() > time_limit:
+                    raise TimeoutError(
+                        'Timed out while waiting for login confirmation')
+                # no more commands but no confirmation yet: keep waiting
+                sleep(0.5)
                 continue
 
             # in case a pending logoff/force occurs try to wait until it's
@@ -502,6 +522,7 @@ class Terminal(object):
                 self._s3270.clear()
                 # start over, enter user
                 cur_cmd = login_cmd
+                cur_action = 'input'
                 # we were disconnected by vm: re-connect before retrying logon
                 if 'logoff at' in output.lower() and not self._is_connected():
                     self.connect(host_name, timeout)
