@@ -61,6 +61,8 @@ class S3270PipeConnector(object):
                 '-model',
                 '3278-4',
                 '-utf8',
+                '-xrm',
+                's3270.unlockDelay: true',
             ],
             bufsize=0,
             stdin=subprocess.PIPE,
