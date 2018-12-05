@@ -170,7 +170,7 @@ class TestTerminal(TestCase):
         self._mock_s3270.quit.assert_called_once_with()
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp disconnect'),
         ])
@@ -197,7 +197,7 @@ class TestTerminal(TestCase):
         self.assertEqual(output, ('', None))
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('dummy'),
         ])
@@ -217,7 +217,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
         ])
     # test_login_already_logged_on()
 
@@ -263,7 +263,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_ok()
@@ -287,7 +287,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertListEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user here noipl'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
         ])
@@ -322,7 +322,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(
             self._mock_s3270.string.mock_calls,
-            (4 * [mock.call('l user')]) + [mock.call('password')] +
+            (4 * [mock.call('l user')]) + [mock.call('password', hide=True)] +
             [mock.call('#cp term more 50 10')]
         )
         self._mock_s3270.query.assert_called_with()
@@ -347,9 +347,9 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_ok_pending_after_pwd()
@@ -388,7 +388,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_with_open_connection()
@@ -410,7 +410,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user by newuser'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_with_logonby()
@@ -430,7 +430,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
         ])
     # test_login_wrong_password()
 
@@ -453,7 +453,7 @@ class TestTerminal(TestCase):
         self._mock_s3270.quit.assert_called_once_with()
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp logoff'),
         ])
@@ -495,7 +495,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp i cms'),
             mock.call('profile'),
@@ -537,7 +537,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp i cms'),
             mock.call('profile'),

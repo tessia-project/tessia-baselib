@@ -170,35 +170,34 @@ class TestHypervisorZvm(TestCase):
         hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
 
         # validate commands executed
-        exp_cmds = [
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            '#cp system clear',
-            '#cp logoff',
-            'l {} here noipl'.format(self._user),
+        call_list = [
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp system clear'),
+            mock.call('#cp logoff'),
+            mock.call('l {} here noipl'.format(self._user)),
             # second login attempt due to a force/logoff pending in the
             # mocked output
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            'begin',
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            'detach cpu all',
-            'define storage {}M'.format(guest_memory),
-            'q v cpus',
-            'define cpu 1',
-            'q v  1c5d',
-            'q v  f5f0',
-            'q v  f5f1',
-            'q v  f5f2',
-            'i cms',
-            '#cp term more 50 10',
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('begin'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('detach cpu all'),
+            mock.call('define storage {}M'.format(guest_memory)),
+            mock.call('q v cpus'),
+            mock.call('define cpu 1'),
+            mock.call('q v  1c5d'),
+            mock.call('q v  f5f0'),
+            mock.call('q v  f5f1'),
+            mock.call('q v  f5f2'),
+            mock.call('i cms'),
+            mock.call('#cp term more 50 10'),
         ]
-        call_list = [mock.call(cmd) for cmd in exp_cmds]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
     # test_start_cms()
 
@@ -252,34 +251,33 @@ class TestHypervisorZvm(TestCase):
         hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
 
         # validate commands executed
-        exp_cmds = [
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            '#cp system clear',
-            '#cp logoff',
-            'l {} here noipl'.format(self._user),
+        call_list = [
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp system clear'),
+            mock.call('#cp logoff'),
+            mock.call('l {} here noipl'.format(self._user)),
             # second login attempt due to a force/logoff pending in the
             # mocked output
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            'begin',
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            'detach cpu all',
-            'define storage {}M'.format(guest_memory),
-            'q v cpus',
-            'define cpu 1',
-            'q v  1c5d',
-            'q v  f5f0',
-            'q v  f5f1',
-            'q v  f5f2',
-            'i 1c5d',
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('begin'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('detach cpu all'),
+            mock.call('define storage {}M'.format(guest_memory)),
+            mock.call('q v cpus'),
+            mock.call('define cpu 1'),
+            mock.call('q v  1c5d'),
+            mock.call('q v  f5f0'),
+            mock.call('q v  f5f1'),
+            mock.call('q v  f5f2'),
+            mock.call('i 1c5d'),
         ]
-        call_list = [mock.call(cmd) for cmd in exp_cmds]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
     # test_start_dasd()
 
@@ -333,36 +331,36 @@ class TestHypervisorZvm(TestCase):
         hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
 
         # validate commands executed
-        exp_cmds = [
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            '#cp system clear',
-            '#cp logoff',
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            'begin',
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            'detach cpu all',
-            'define storage {}M'.format(guest_memory),
-            'q v cpus',
-            'define cpu 1',
-            'q v  1740',
-            'att  1740 *',
-            'q v  1780',
-            'att  1780 *',
-            'q v  f5f0',
-            'q v  f5f1',
-            'q v  f5f2',
-            'set loaddev portname 10050763 0503c5ae lun 1022400d 00000000',
-            'q loaddev',
-            'i 1740'
+        call_list = [
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp system clear'),
+            mock.call('#cp logoff'),
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('begin'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('detach cpu all'),
+            mock.call('define storage {}M'.format(guest_memory)),
+            mock.call('q v cpus'),
+            mock.call('define cpu 1'),
+            mock.call('q v  1740'),
+            mock.call('att  1740 *'),
+            mock.call('q v  1780'),
+            mock.call('att  1780 *'),
+            mock.call('q v  f5f0'),
+            mock.call('q v  f5f1'),
+            mock.call('q v  f5f2'),
+            mock.call('set loaddev portname 10050763 0503c5ae lun 1022400d '
+                      '00000000'),
+            mock.call('q loaddev'),
+            mock.call('i 1740')
         ]
-        call_list = [mock.call(cmd) for cmd in exp_cmds]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
     # test_start_fcp()
 
@@ -454,46 +452,48 @@ class TestHypervisorZvm(TestCase):
         hyp.start(self._user, guest_cpu, guest_memory, guest_params)
 
         # validate commands executed
-        exp_cmds = [
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            '#cp system clear',
-            '#cp logoff',
-            'l {} here noipl'.format(self._user),
+        call_list = [
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp system clear'),
+            mock.call('#cp logoff'),
+            mock.call('l {} here noipl'.format(self._user)),
             # second login attempt due to a force/logoff pending in the
             # mocked output
-            'l {} here noipl'.format(self._user),
-            self._passwd,
-            'begin',
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            'detach cpu all',
-            'define storage {}M'.format(guest_memory),
-            'q v cpus',
-            'define cpu 1',
-            'q v  1c5d',
-            'q v  f5f0',
-            'q v  f5f1',
-            'q v  f5f2',
-            'i cms',
-            '#cp term more 50 10',
-            'q v ffff',
-            'define vfb-512 as ffff blk 200000',
-            r'format ffff t\n1\ntmpdsk',
-            'spool punch *',
-            'close reader',
-            'purge reader all',
-            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_KERNEL_FILE),
-            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_CMDLINE_FILE),
-            'punch {} (noh'.format(zvm.HypervisorZvm.NETBOOT_INITRD_FILE),
-            'change reader all keep',
-            'ipl 00c clear',
+            mock.call('l {} here noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('begin'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('detach cpu all'),
+            mock.call('define storage {}M'.format(guest_memory)),
+            mock.call('q v cpus'),
+            mock.call('define cpu 1'),
+            mock.call('q v  1c5d'),
+            mock.call('q v  f5f0'),
+            mock.call('q v  f5f1'),
+            mock.call('q v  f5f2'),
+            mock.call('i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('q v ffff'),
+            mock.call('define vfb-512 as ffff blk 200000'),
+            mock.call(r'format ffff t\n1\ntmpdsk'),
+            mock.call('spool punch *'),
+            mock.call('close reader'),
+            mock.call('purge reader all'),
+            mock.call('punch {} (noh'.format(
+                zvm.HypervisorZvm.NETBOOT_KERNEL_FILE)),
+            mock.call('punch {} (noh'.format(
+                zvm.HypervisorZvm.NETBOOT_CMDLINE_FILE)),
+            mock.call('punch {} (noh'.format(
+                zvm.HypervisorZvm.NETBOOT_INITRD_FILE)),
+            mock.call('change reader all keep'),
+            mock.call('ipl 00c clear'),
         ]
-        call_list = [mock.call(cmd) for cmd in exp_cmds]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
 
         # validate download behavior

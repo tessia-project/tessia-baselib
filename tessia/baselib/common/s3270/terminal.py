@@ -482,7 +482,11 @@ class Terminal(object):
         cur_action = 'input'
         while cur_action != 'exit':
             if cur_action == 'input':
-                self._s3270.string(cur_cmd)
+                # sensitive information: do not report in log
+                if cur_cmd == password:
+                    self._s3270.string(cur_cmd, hide=True)
+                else:
+                    self._s3270.string(cur_cmd)
                 self._s3270.enter()
                 cur_action = 'wait'
             output = self._format_output(self._s3270.ascii())

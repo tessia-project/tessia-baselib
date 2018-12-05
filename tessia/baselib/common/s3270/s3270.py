@@ -349,15 +349,17 @@ class S3270(object):
             raise S3270StatusError('Error while sending Snap command')
 
         return output
-    # string()
+    # snap()
 
-    def string(self, string, timeout=60):
+    def string(self, str_content, timeout=60, hide=False):
         """
         Send a String command to s3270 with 'string' content
 
         Args:
-            string (str): content to be sent to String
+            str_content (str): content to be sent to String
             timeout (int): how many seconds to wait for action to complete
+            hide (bool): whether the command is sensitive (i.e. password) and
+                         should be suppressed in the log
 
         Returns:
             output: output of run command
@@ -367,7 +369,8 @@ class S3270(object):
             S3270StatusError: if protocol error occurred
         """
         try:
-            (status, output) = self._s3270.run('String("'+string+'")', timeout)
+            (status, output) = self._s3270.run(
+                'String("{}")'.format(str_content), timeout=timeout, hide=hide)
         except TimeoutError:
             self._logger.exception('Timeout while executing String:')
             raise
