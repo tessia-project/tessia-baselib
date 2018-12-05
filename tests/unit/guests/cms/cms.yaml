@@ -510,6 +510,190 @@ hotplug_ok:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
+    data: 00: Q V  1740                                                                   
+    data: 00: HCPQVD040E Device 1740 does not exist                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00: ATT  1740 *                                                                 
+    data: 00: FCP 1740 ATTACHED TO USER 1740                                              
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00: Q V  1780                                                                   
+    data: 00: HCPQVD040E Device 1780 does not exist                                       
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00: ATT  1780 *                                                                 
+    data: 00: FCP 1780 ATTACHED TO USER 1780                                              
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
     data: q v  f5f0                                                                       
     data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
     data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            

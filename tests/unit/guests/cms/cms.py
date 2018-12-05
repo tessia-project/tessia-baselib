@@ -177,11 +177,19 @@ class TestGuestCms(TestCase):
         # create new instance of terminal
         guest_cpu = 3
         disk_dasd = {"type": "dasd", "devno": "1c5d"}
+        disk_scsi = {
+            "type": "fcp",
+            "adapters": [
+                {"devno": "1740", "wwpns": ["100507630503c5ae"]},
+                {"devno": "1780", "wwpns": ["100507630503c7ae"]},
+            ],
+            "lun": "1022400d00000000",
+        }
         iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
         guest_extensions = {'ifaces': [iface]}
         guest_obj.login()
-        guest_obj.hotplug(
-            cpu=guest_cpu, vols=[disk_dasd], extensions=guest_extensions)
+        guest_obj.hotplug(cpu=guest_cpu, vols=[disk_dasd, disk_scsi],
+                          extensions=guest_extensions)
 
         # validate commands executed on console
         exp_cmds = [
@@ -195,6 +203,10 @@ class TestGuestCms(TestCase):
             'define cpu 2-4',
             'q v  1c5d',
             'att  1c5d *',
+            'q v  1740',
+            'att  1740 *',
+            'q v  1780',
+            'att  1780 *',
             'q v  f5f0',
             'q v  f5f1',
             'q v  f5f2',

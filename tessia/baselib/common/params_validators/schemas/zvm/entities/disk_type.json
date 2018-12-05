@@ -6,8 +6,7 @@
                     "type": "boolean"
                 },
                 "devno": {
-                    "pattern": "^(([a-fA-F0-9]\\.){2})?[a-fA-F0-9]{4}$",
-                    "type": "string"
+                    "$ref": "../../common/entities/devicenr_type.json"
                 },
                 "type": {
                     "enum": [
@@ -26,9 +25,12 @@
                 "boot_device": {
                     "type": "boolean"
                 },
-                "devno": {
-                    "pattern": "^(([a-fA-F0-9]\\.){2})?[a-fA-F0-9]{4}$",
-                    "type": "string"
+                "adapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "../../common/entities/fcp_disk_type.json#/definitions/adapter"
+                    },
+                    "minItems": 1
                 },
                 "lun": {
                     "pattern": "^[a-fA-F0-9]{16}$",
@@ -38,17 +40,12 @@
                     "enum": [
                         "fcp"
                     ]
-                },
-                "wwpn": {
-                    "pattern": "^[a-fA-F0-9]{16}$",
-                    "type": "string"
                 }
             },
             "required": [
-                "devno",
+                "adapters",
                 "lun",
-                "type",
-                "wwpn"
+                "type"
             ],
             "additionalProperties": false
         }

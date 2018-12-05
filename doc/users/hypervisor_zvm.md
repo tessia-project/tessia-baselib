@@ -23,10 +23,14 @@ The definition of the parameters format is available in the jsonschema folder:
  tessia/baselib/common/params_validators/schemas/zvm
 ```
 
-## Start a guest using a disk
+## Start a guest using a dasd disk
 
 ```python
 from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
+import logging
+
+# to see all terminal input/output uncomment the line below
+#logging.basicConfig(level=logging.DEBUG)
 
 hypervisor_name = "vmhost"
 hypervisor_hostname = "vmhost.domain.com"
@@ -51,7 +55,6 @@ iface = {
     "type": "osa",
     "id": "f5f0,f5f1,f5f2"
 }
-# FCP disks are also supported
 disk_dasd = {
     "type": "dasd",
     "devno": "1c5d",
@@ -74,10 +77,14 @@ zvm.start(guest_name, guest_cpu, guest_memory, guest_parameters)
 zvm.logoff()
 ```
 
-## Start a guest via network
+## Start a guest using a scsi disk
 
 ```python
 from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
+import logging
+
+# to see all terminal input/output uncomment the line below
+#logging.basicConfig(level=logging.DEBUG)
 
 hypervisor_name = "vmhost"
 hypervisor_hostname = "vmhost.domain.com"
@@ -86,7 +93,65 @@ passwd = "vmpasswd"
 # as parameters one can specify {'byuser': 'vmadmin'}
 parameters = None
 zvm = HypervisorZvm(hypervisor_name, hypervisor_hostname,
-                    guest_user, guest_pwd, parameters)
+                    username, passwd, parameters)
+
+# we must be logged in before submitting any command.
+zvm.login()
+
+# here we define the parameters of the guest to be started
+guest_cpu = 2
+# memory in megabytes
+guest_memory = 2048
+# on z/VM the guest name must match the username
+guest_name = username
+# The format of the parameters can be viewed in the jsonschema
+iface = {
+    "type": "osa",
+    "id": "f5f0,f5f1,f5f2"
+}
+disk_scsi = {
+    "type": "fcp",
+    'adapters': [
+        {'devno': '181b', 'wwpns': ['400107630b043120']},
+        {'devno': '185b', 'wwpns': ['400107630b0c2120']}
+    ],
+    "lun": "2015906900000000",
+    "boot_device": True
+}
+
+guest_parameters = {
+    "boot_method": "disk",
+    "storage_volumes" : [disk_scsi],
+    "ifaces" : [iface]
+}
+
+# ipl the guest after attaching the specified devices
+zvm.start(guest_name, guest_cpu, guest_memory, guest_parameters)
+
+# The method name 'logoff' comes from the base class which defines the common
+# interface, therefore it means 'close the connection to the hypervisor'.
+# On z/VM this method in fact executes a disconnect to keep the guest running.
+# For a 'real' z/VM logoff where the guest is stopped, use 'zvm.stop()'
+zvm.logoff()
+```
+
+## Start a guest via network
+
+```python
+from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
+import logging
+
+# to see all terminal input/output uncomment the line below
+#logging.basicConfig(level=logging.DEBUG)
+
+hypervisor_name = "vmhost"
+hypervisor_hostname = "vmhost.domain.com"
+username = "vmguest01"
+passwd = "vmpasswd"
+# as parameters one can specify {'byuser': 'vmadmin'}
+parameters = None
+zvm = HypervisorZvm(hypervisor_name, hypervisor_hostname,
+                    username, passwd, parameters)
 
 # we must be logged in before submitting any command.
 zvm.login()
@@ -131,10 +196,17 @@ zvm.logoff()
 ## Stop a guest
 
 ```python
+from tessia.baselib.hypervisors.zvm.zvm import HypervisorZvm
+import logging
+
+# to see all terminal input/output uncomment the line below
+#logging.basicConfig(level=logging.DEBUG)
+
 hypervisor_name = "vmhost"
 hypervisor_hostname = "vmhost.domain.com"
 username = "vmguest01"
 passwd = "vmpasswd"
+guest_name = username
 # as parameters one can specify {'byuser': 'vmadmin'}
 parameters = None
 zvm = HypervisorZvm(hypervisor_name, hypervisor_hostname,

@@ -317,8 +317,10 @@ class TestHypervisorZvm(TestCase):
         iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
         disk_scsi = {
             "type": "fcp",
-            "devno": "1740",
-            "wwpn": "100507630503c5ae",
+            "adapters": [
+                {"devno": "1740", "wwpns": ["100507630503c5ae"]},
+                {"devno": "1780", "wwpns": ["100507630503c7ae"]},
+            ],
             "lun": "1022400d00000000",
             "boot_device": True,
         }
@@ -351,6 +353,8 @@ class TestHypervisorZvm(TestCase):
             'define cpu 1',
             'q v  1740',
             'att  1740 *',
+            'q v  1780',
+            'att  1780 *',
             'q v  f5f0',
             'q v  f5f1',
             'q v  f5f2',
