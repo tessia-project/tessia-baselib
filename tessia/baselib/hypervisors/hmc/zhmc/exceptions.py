@@ -33,7 +33,6 @@ class ZHmcError(Exception):
     """
     Base class for exceptions raised by this module.
     """
-    pass
 
 class ZHmcRequestError(ZHmcError):
     """

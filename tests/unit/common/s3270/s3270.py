@@ -871,8 +871,8 @@ class TestS3270(TestCase):
 
         # perform action
         args = ['/some/file', 'DEST FILE A']
-        with self.assertRaisesRegex(
-            S3270StatusError, 'Failed to execute Transfer command'):
+        error_msg = 'Failed to execute Transfer command'
+        with self.assertRaisesRegex(S3270StatusError, error_msg):
             s3270.transfer(*args)
     # test_transfer_error()
 

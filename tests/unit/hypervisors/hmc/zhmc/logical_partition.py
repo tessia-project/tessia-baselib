@@ -271,9 +271,8 @@ class TestLogicalPartition(TestCase):
             AssertionError: if validation fails
         """
 
-        with self.assertRaisesRegex(
-            ZHmcRequestError,
-            'Timed out while waiting for load job completion'):
+        msg = 'Timed out while waiting for load job completion'
+        with self.assertRaisesRegex(ZHmcRequestError, msg):
             self.lpar.load('1500', timeout=30)
 
         session = self.lpar._hmc.session
@@ -412,9 +411,8 @@ class TestLogicalPartition(TestCase):
         Raises:
             AssertionError: if validation fails
         """
-        with self.assertRaisesRegex(
-            ZHmcRequestError,
-            'Timed out while waiting for load job completion'):
+        msg = 'Timed out while waiting for load job completion'
+        with self.assertRaisesRegex(ZHmcRequestError, msg):
             self.lpar.scsi_load(
                 '1500',
                 '500000000000abcd',
@@ -498,10 +496,9 @@ class TestLogicalPartition(TestCase):
                                            "available to activate partition"}
             },
         ]
-        with self.assertRaisesRegex(
-            ZHmcRequestError,
-            "500, 263, 'There are not enough processors available to "
-            "activate partition'"):
+        msg = ("500, 263, 'There are not enough processors available to "
+               "activate partition'")
+        with self.assertRaisesRegex(ZHmcRequestError, msg):
             self.lpar.load('1500', timeout=30)
 
         self._mock_hmc.session.json_request.assert_has_calls([

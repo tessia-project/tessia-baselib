@@ -166,7 +166,7 @@ class TestDistroGeneric(TestCase):
             return (0, self._which_ret)
 
         # package install command performed: retrieve output from txt file
-        elif cmd.startswith(self._install_cmd):
+        if cmd.startswith(self._install_cmd):
 
             # command to test invalid package: retrieve from error output and
             # set status code to error

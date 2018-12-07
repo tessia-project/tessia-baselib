@@ -312,7 +312,7 @@ class TestHypervisorKvm(unittest.TestCase):
     # test_start()
 
     @mock.patch("tessia.baselib.hypervisors.kvm.kvm.GuestKvm", spec_set=True)
-    def test_start_not_logged_in(self, *args, **kwargs):
+    def test_start_not_logged_in(self, *_, **__):
         """
         Test the start operation when it is not logged in the hypervisor.
         """

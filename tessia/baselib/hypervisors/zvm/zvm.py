@@ -339,7 +339,7 @@ class HypervisorZvm(HypervisorBase):
 
         # boot method 'network' - presence of netboot parameters was already
         # checked
-        elif parameters['boot_method'] == 'network':
+        if parameters['boot_method'] == 'network':
             self._netboot(parameters['netboot'])
 
         # boot device defined: perform 'disk' based ipl

@@ -34,6 +34,7 @@ def timer(cmd_channel, cmd, times, error_msg):
     the times argument.
 
     Args:
+
     cmd_channel (object): An object that provides a method in the format
                           "run(self, cmd, timeout=120):". This method is used
                           to perform commands in a target connected by

@@ -30,7 +30,7 @@ from tessia.baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
 #
 # CODE
 #
-class S3270(object):
+class S3270:
     """
     This class provides an implementation of s3270 commands.
     Implementation detail: we might want to use different connector in the

@@ -36,7 +36,7 @@ TEMPLATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 #
 # CODE
 #
-class GuestKvm(object):
+class GuestKvm:
     """
     Class abstraction for a KVM Guest
     """

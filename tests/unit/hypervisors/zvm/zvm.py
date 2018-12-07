@@ -382,8 +382,8 @@ class TestHypervisorZvm(TestCase):
             "ifaces" : [iface],
         }
         hyp.login()
-        with self.assertRaisesRegex(
-            ValueError, "Boot method 'disk' requires a boot device"):
+        error_msg = "Boot method 'disk' requires a boot device"
+        with self.assertRaisesRegex(ValueError, error_msg):
             hyp.start(self._user, guest_cpu, guest_memory, guest_params)
 
         error_msg = 'guest name provided must be the same as the username'
@@ -391,8 +391,8 @@ class TestHypervisorZvm(TestCase):
             hyp.start('DUMMY', guest_cpu, guest_memory, guest_params)
 
         guest_params['boot_method'] = 'network'
-        with self.assertRaisesRegex(
-            ValueError, "Boot method 'network' requires netboot parameters"):
+        error_msg = "Boot method 'network' requires netboot parameters"
+        with self.assertRaisesRegex(ValueError, error_msg):
             hyp.start(self._user, guest_cpu, guest_memory, guest_params)
     # test_start_invalid()
 
@@ -664,8 +664,8 @@ class TestHypervisorZvm(TestCase):
             }
         }
         hyp.login()
-        with self.assertRaisesRegex(
-            RuntimeError, 'Failed to IPL downloaded kernel'):
+        error_msg = 'Failed to IPL downloaded kernel'
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             hyp.start(self._user, guest_cpu, guest_memory, guest_params)
     # test_start_netboot_fail_kernel()
 

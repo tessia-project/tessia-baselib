@@ -59,7 +59,7 @@ class TestTerminal(TestCase):
         patcher = patch.object(terminal, 'S3270', autospec=True)
         self._mock_s3270 = patcher.start().return_value
         self._mock_s3270.host_name = None
-        def mock_connect(host_name, *args, **kwargs):
+        def mock_connect(host_name, *_, **__):
             """
             Set the hostname when called, like the original method.
             """
@@ -229,8 +229,8 @@ class TestTerminal(TestCase):
         self._mock_s3270.ascii.side_effect = self._data['login_generic_error']
 
         # validate result
-        with self.assertRaisesRegex(
-            ZvmMessageError, 'HCP052E Error in CP directory'):
+        error_msg = 'HCP052E Error in CP directory'
+        with self.assertRaisesRegex(ZvmMessageError, error_msg):
             self._term.login('hostname.com', 'user', 'password')
 
         # validate behavior (commands entered)
@@ -363,8 +363,8 @@ class TestTerminal(TestCase):
             'login_ok_pending'][0]
 
         # perform action
-        with self.assertRaisesRegex(
-            TimeoutError, 'LOGOFF/FORCE pending for user'):
+        error_msg = 'LOGOFF/FORCE pending for user'
+        with self.assertRaisesRegex(TimeoutError, error_msg):
             self._term.login("hostname.com", "user", "password")
     # test_login_pending_forever()
 
@@ -423,8 +423,8 @@ class TestTerminal(TestCase):
         self._mock_s3270.ascii.side_effect = self._data['login_wrong_password']
 
         # validate result
-        with self.assertRaisesRegex(
-            PermissionError, 'incorrect userid and/or password'):
+        error_msg = 'incorrect userid and/or password'
+        with self.assertRaisesRegex(PermissionError, error_msg):
             self._term.login('hostname.com', 'user', 'password')
 
         # validate behavior
@@ -640,8 +640,8 @@ class TestTerminal(TestCase):
         # perform action
         args = ['/some/file', 'DEST FILE A']
         self._term.login("hostname.com", "user", "password")
-        with self.assertRaisesRegex(
-            RuntimeError, 'Transfer failed, output: {}'.format(base_error)):
+        error_msg = 'Transfer failed, output: {}'.format(base_error)
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             self._term.transfer(*args)
     # test_transfer_error()
 

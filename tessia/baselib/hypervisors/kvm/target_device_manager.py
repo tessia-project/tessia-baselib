@@ -30,7 +30,7 @@ import re
 # CODE
 #
 
-class TargetDeviceManager(object):
+class TargetDeviceManager:
     """
     This class manage the device names and device numbers used in a KVM
     guest so that only valid information is generated. Duplication is

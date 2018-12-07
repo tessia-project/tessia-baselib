@@ -46,7 +46,7 @@ ZVM_CODES = {
 #
 # CODE
 #
-class Terminal(object):
+class Terminal:
     """
     This class provides an implementation of an s3270 terminal.
     """
@@ -459,6 +459,7 @@ class Terminal(object):
             S3270StatusError: if protocol error occurred
             ZvmMessageError: if we have a zVM message code
         """
+        # pylint: disable=too-many-branches
         login_cmd = 'l ' + user
         # setup aditional login parameters
         if parameters:

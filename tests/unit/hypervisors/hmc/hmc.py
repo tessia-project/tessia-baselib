@@ -771,11 +771,11 @@ class TestHypervisorHmc(TestCase):
         }
         self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
 
-        hmc_object.login()
-        with self.assertRaisesRegex(
-            ZHmcError,
+        error_msg = (
             'Operation failed with: Timed out while waiting for load of '
-            'operating system'):
+            'operating system')
+        hmc_object.login()
+        with self.assertRaisesRegex(ZHmcError, error_msg):
             hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_start_netboot_load_timeout()
 
@@ -834,11 +834,11 @@ class TestHypervisorHmc(TestCase):
         self._mock_subprocess.run.side_effect = Exception()
         self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
 
-        self.hmc_object.login()
-        with self.assertRaisesRegex(
-            ZHmcError,
+        error_msg = (
             'Operation failed with: Timed out while waiting for network on '
-            'loaded operating system'):
+            'loaded operating system')
+        self.hmc_object.login()
+        with self.assertRaisesRegex(ZHmcError, error_msg):
             self.hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_start_netboot_network_timeout()
 

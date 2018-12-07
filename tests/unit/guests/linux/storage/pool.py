@@ -56,7 +56,7 @@ class TestStoragePool(TestCase):
         patcher = patch.object(pool, 'DiskFcp', autospec=True)
         self._mock_disk = patcher.start()
         self.addCleanup(patcher.stop)
-        def mock_init(*args, **kwargs):
+        def mock_init(*args, **_):
             """Helper to mock constructor of a disk class"""
             # validate call to constructor by the pool object
             self.assertEqual(len(args), 2)
@@ -147,8 +147,8 @@ class TestStoragePool(TestCase):
             (1, ''), # failed to create conf file
         ]
         # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, 'Failed to create /etc/multipath.conf'):
+        error_msg = 'Failed to create /etc/multipath.conf'
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             self._pool_obj.activate()
 
         mock_shell.run.side_effect = [
@@ -158,8 +158,8 @@ class TestStoragePool(TestCase):
             (1, ''), # fail to restart service
         ]
         # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, r'Failed to \(re\)start multipath daemon'):
+        error_msg = r'Failed to \(re\)start multipath daemon'
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             self._pool_obj.activate()
 
     # test_activate_fail_mpath()
@@ -183,8 +183,8 @@ class TestStoragePool(TestCase):
         failed_id = self._pool_obj._disks[1].volume_id
 
         # perform action and validate behavior
-        with self.assertRaisesRegex(
-            RuntimeError, 'Failed to activate disk {}'.format(failed_id)):
+        error_msg = 'Failed to activate disk {}'.format(failed_id)
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             self._pool_obj.activate()
 
     # test_activate_thread_fail()

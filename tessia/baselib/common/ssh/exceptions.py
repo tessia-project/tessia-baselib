@@ -33,7 +33,6 @@ class SshClientError(Exception):
     Exception used by SshClient class when problems related to the underlying
     library occur.
     """
-    pass
 # SshClientError
 
 class SshShellError(Exception):
@@ -41,5 +40,4 @@ class SshShellError(Exception):
     Exception used by SshShell class when problems related to the actual shell
     usage occur.
     """
-    pass
 # SshShellError

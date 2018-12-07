@@ -34,7 +34,7 @@ GUEST_TYPES = {
 # CODE
 #
 
-class Guest(object):
+class Guest:
     """
     This is the guest class to be consumed by the user.
     It acts as a factory by determining the correct specific class to

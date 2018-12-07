@@ -37,7 +37,7 @@ ROW_SIZE = 87
 #
 # CODE
 #
-class S3270PipeConnector(object):
+class S3270PipeConnector:
     """
     This class encapsulates the reading from and writing to an s3270 process
     pipe. The objective is to be a connector to the s3270 process.

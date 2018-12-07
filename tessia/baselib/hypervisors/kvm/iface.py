@@ -31,7 +31,7 @@ TEMPLATE_FILE = os.path.join(
 # CODE
 #
 
-class Iface(object):
+class Iface:
     """
     Abstraction for a network Interfaces
     """
@@ -42,7 +42,7 @@ class Iface(object):
         Args:
             parameters (dict): Interface parameters as defined in the
                                json schema.
-            target_dev_mngr (object):  Instance of TargetDeviceManager class.
+            target_dev_mngr (TargetDeviceManager): instance
 
         Raises:
             ValueError: in case an invalid network type is specified

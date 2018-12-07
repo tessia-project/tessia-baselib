@@ -38,7 +38,7 @@ import urllib.request
 #
 # CODE
 #
-class SshClient(object):
+class SshClient:
     """
     This class provides a client for SSH communication and encapsulates the
     implementation details of the underlying library used.

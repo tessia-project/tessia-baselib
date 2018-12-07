@@ -37,7 +37,7 @@ SUPPORTED_DRIVERS = {
 # CODE
 #
 
-class Hypervisor(object):
+class Hypervisor:
     """
     This is the hypervisor class to be consumed by the user.
     It acts as a factory by determining the correct specific class to

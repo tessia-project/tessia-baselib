@@ -225,9 +225,8 @@ class DiskFcp(DiskBase):
         # new zfcp interface: in the unlikely scenario that someone
         # accidentally removed manually the port try a port rescan
         else:
-            self._cmd_channel.run("[ -e '{}/port_rescan' ] && echo 1 > "
-                                  "{}/port_rescan".format(adapter_path,
-                                                          adapter_path))
+            self._cmd_channel.run("[ -e '{0}/port_rescan' ] && echo 1 > "
+                                  "{0}/port_rescan".format(adapter_path))
 
         # verify if it's available now
         cmd = "[ -e '{}/{}' ]".format(adapter_path, wwpn)

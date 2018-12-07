@@ -29,7 +29,7 @@ from tessia.baselib.common.logger import get_logger
 # CODE
 #
 
-class DistroGeneric(object):
+class DistroGeneric:
     """
     This class implements support for actions on a generic Linux environment
     """

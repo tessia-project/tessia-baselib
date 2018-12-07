@@ -35,7 +35,7 @@ from tessia.baselib.hypervisors.hmc.zhmc.exceptions import ZHmcError
 #
 
 
-class ZHmc(object):
+class ZHmc:
     """
     This class is responsible for creating an object to represent the HMC,
     according to the information passed as argument in the constructor.
