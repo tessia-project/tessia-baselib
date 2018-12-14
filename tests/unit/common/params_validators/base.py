@@ -72,9 +72,9 @@ class TestBaseParamsValidator(unittest.TestCase):
             Concrete class of BaseParamsValidator
             """
             def _check_schema(self, *args, **kwargs):
-                return mock_check_schema()
+                return mock_check_schema(*args, **kwargs)
             def validate(self, *args, **kwargs):
-                return mock_validate()
+                return mock_validate(*args, **kwargs)
         self._child_cls = Child
 
         class ChildEmpty(BaseParamsValidator):

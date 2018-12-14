@@ -269,7 +269,12 @@ class GuestCms(GuestBase):
             raise NotImplementedError()
         if vols:
             for vol in vols:
-                self._attach_dev(vol['devno'], 'ccw')
+                if vol['type'] != 'fcp':
+                    self._attach_dev(vol['devno'].split('.')[-1], 'ccw')
+                else:
+                    for adapter in vol['adapters']:
+                        self._attach_dev(
+                            adapter['devno'].split('.')[-1], 'ccw')
         if extensions is not None and 'ifaces' in extensions:
             for iface in extensions['ifaces']:
                 self._attach_iface(iface)

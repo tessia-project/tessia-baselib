@@ -54,7 +54,7 @@ blacklist_exceptions {
 #
 # CODE
 #
-class StoragePool(object):
+class StoragePool:
     """
     This class represents a pool of disks to be handled
     """

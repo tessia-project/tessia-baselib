@@ -629,16 +629,11 @@ class TestSshShell(TestCase):
                 self._shell.run('dummy_cmd\n', timeout=0.1)
 
     def test_open_bad_charmap(self):
-        '''
+        """
         Test constructing shell object with an unexpected charmap.
-
-        Args:
-        Returns:
-        Raises:
-        '''
-
-        with mock.patch(
-            'tessia.baselib.common.ssh.shell.get_logger') as get_logger_mock:
+        """
+        obj_path = 'tessia.baselib.common.ssh.shell.get_logger'
+        with mock.patch(obj_path) as get_logger_mock:
 
             bad_charmap = 'UTF-9'
 
@@ -669,16 +664,11 @@ class TestSshShell(TestCase):
                              expected_first_warning_call)
 
     def test_open_bad_locale_call(self):
-        '''
+        """
         Test constructing a shell object with a failed 'locale' call.
-
-        Args:
-        Returns:
-        Raises:
-        '''
-        with mock.patch(
-            'tessia.baselib.common.ssh.shell.get_logger') as get_logger_mock:
-
+        """
+        obj_path = 'tessia.baselib.common.ssh.shell.get_logger'
+        with mock.patch(obj_path) as get_logger_mock:
             self._dummy_socket.recv.side_effect = (
                 [self._make_output('', '\n')]
                 + [self._make_output('', 'output')]

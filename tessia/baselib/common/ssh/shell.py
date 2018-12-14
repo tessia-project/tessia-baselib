@@ -35,7 +35,7 @@ ENCODING = 'utf-8'
 #
 # CODE
 #
-class SshShell(object):
+class SshShell:
     """
     This class encapsulates the reading from and writing to a file
     object/socket and performing expect work to provide a shell object

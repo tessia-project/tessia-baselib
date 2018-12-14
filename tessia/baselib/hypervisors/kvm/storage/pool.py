@@ -29,7 +29,7 @@ from tessia.baselib.hypervisors.kvm.storage.disk import DiskBase
 #
 # CODE
 #
-class StoragePool(object):
+class StoragePool:
     """
     This class represents a pool of disks to be handled
     """

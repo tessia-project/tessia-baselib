@@ -28,6 +28,7 @@ from tessia.baselib.common.logger import get_logger
 #
 # CONSTANTS AND DEFINITONS
 #
+HIDE_MARKER = '[*INPUT NOT DISPLAYED*]'
 # Possible status messages from s3270 terminal
 STATUS = [b'ok', b'error']
 # Maximum s3270 data line size
@@ -36,7 +37,7 @@ ROW_SIZE = 87
 #
 # CODE
 #
-class S3270PipeConnector(object):
+class S3270PipeConnector:
     """
     This class encapsulates the reading from and writing to an s3270 process
     pipe. The objective is to be a connector to the s3270 process.
@@ -154,7 +155,7 @@ class S3270PipeConnector(object):
         return (output.rsplit()[-1], output)
     # _read()
 
-    def _write(self, cmd, timeout=120):
+    def _write(self, cmd, timeout=120, hide=False):
         """
         Perform low level writing to s3270 stdin. This is intended to be used
         internally only.
@@ -162,12 +163,18 @@ class S3270PipeConnector(object):
         Args:
             cmd (str): s3270 command
             timeout (int): how many seconds to wait for stdin to be ready
+            hide (bool): whether the command is sensitive (i.e. password) and
+                         should be suppressed in the log
 
         Raises:
             TimeoutError: if stdin is not available
         """
+        if hide:
+            log_cmd = HIDE_MARKER
         # remove trailing newline as it is added by logger later
-        self._logger.debug('[input]:%s', cmd.rstrip('\n'))
+        else:
+            log_cmd = cmd.rstrip('\n')
+        self._logger.debug('[input]:%s', log_cmd)
 
         # command arrives without newline control character
         cmd = cmd+'\n'
@@ -214,7 +221,7 @@ class S3270PipeConnector(object):
         self.terminate()
     # quit()
 
-    def run(self, cmd, timeout=120):
+    def run(self, cmd, timeout=120, hide=False):
         """
         Execute a command and wait 'timeout' seconds for the output. This
         method is the entry point to be consumed by users.
@@ -222,6 +229,8 @@ class S3270PipeConnector(object):
         Args:
             cmd (str): s3270 command
             timeout (int): how many seconds to wait for an output to complete
+            hide (bool): whether the command is sensitive (i.e. password) and
+                         should be suppressed in the log
 
         Returns:
             str: last line of s3270 terminal with status message
@@ -231,7 +240,7 @@ class S3270PipeConnector(object):
             None
         """
         # write command to s3270 stdin
-        self._write(cmd, timeout)
+        self._write(cmd, timeout, hide=hide)
         # read status and output from stdout
         (status, output) = self._read(timeout)
 

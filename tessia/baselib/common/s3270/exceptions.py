@@ -48,5 +48,4 @@ class ZvmMessageError(Exception):
     """
     Exception used by terminal when a code from a system message is found.
     """
-    pass
 # ZvmMessageError

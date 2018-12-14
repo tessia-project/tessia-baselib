@@ -19,9 +19,10 @@ S3270PipeConnector unittest
 #
 # IMPORTS
 #
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, call
 from unittest import TestCase
 from tessia.baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
+from tessia.baselib.common.s3270.s3270pipeconnector import HIDE_MARKER
 from subprocess import TimeoutExpired
 
 #
@@ -101,6 +102,40 @@ class TestS3270PipeConnector(TestCase):
         status, output = s3270_connector.run('Clear')
         self.assertEqual('ok', status)
         self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
+    # test_run_commands()
+
+    def test_run_command_hide(self):
+        """
+        Exercise a normal execution of a command with hide flag
+
+        Args:
+            None
+
+        Raises:
+            AssertionError: if the session object does not behave as expected
+        """
+        self.mock_poll.return_value.poll.side_effect = [
+            [(4, 4)], [(5, 1)], [(5, 1)],
+        ]
+
+        patcher = patch(
+            'tessia.baselib.common.s3270.s3270pipeconnector.get_logger',
+            autospec=True)
+        mock_logger = patcher.start()
+        mock_logger.return_value = Mock(
+            spec=['warning', 'error', 'debug', 'info'])
+        self.addCleanup(patcher.stop)
+
+        # create new instance of s3270 connector using Pipes
+        s3270_connector = S3270PipeConnector()
+
+        # simple command execution
+        status, output = s3270_connector.run(
+            'String("password")', hide=True)
+        self.assertEqual('ok', status)
+        self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
+        mock_logger.return_value.debug.assert_has_calls(
+            [call('[input]:%s', HIDE_MARKER)], any_order=True)
     # test_run_commands()
 
     def test_run_commands_half_output(self):

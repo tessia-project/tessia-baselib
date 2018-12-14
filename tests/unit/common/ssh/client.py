@@ -155,10 +155,9 @@ class TestSshClientConnected(TestCase):
             mode = args[1]
             if mode == 'rb':
                 return mock_sftp_read_fd
-            elif mode == 'wb' or mode == 'ab':
+            if mode in ('wb', 'ab'):
                 return mock_sftp_write_fd
-            else:
-                raise ValueError
+            raise ValueError
 
 
         self._mock_sftp_conn = self._mock_ssh_client.open_sftp.return_value
@@ -207,7 +206,7 @@ class TestSshClientConnected(TestCase):
         # urllib sets the content length in different places depending on the
         # scheme. If length is True, set the content-length to the full length
         # of read_data.
-        if scheme == 'http' or scheme == 'https':
+        if scheme in ('http', 'https'):
             if length:
                 source_fd.length = (sum([len(data) for data in read_data]))
             else:

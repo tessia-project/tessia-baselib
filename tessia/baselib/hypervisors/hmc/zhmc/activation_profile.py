@@ -32,7 +32,7 @@ from tessia.baselib.common.logger import get_logger
 #
 
 
-class ActivationProfile(object):
+class ActivationProfile:
 
     """
     This class is responsible for creating the Activation Profile abstraction.

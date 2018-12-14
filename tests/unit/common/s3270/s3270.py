@@ -770,6 +770,10 @@ class TestS3270(TestCase):
         # simple command execution
         output = s3270.string('test')
         self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
+
+        # hide flag
+        output = s3270.string('test', hide=True)
+        self.assertEqual('L U U N N 4 24 80 0 0 0x0 -\nok\n', output)
     # test_string_ok()
 
     def test_string_error(self):
@@ -867,8 +871,8 @@ class TestS3270(TestCase):
 
         # perform action
         args = ['/some/file', 'DEST FILE A']
-        with self.assertRaisesRegex(
-            S3270StatusError, 'Failed to execute Transfer command'):
+        error_msg = 'Failed to execute Transfer command'
+        with self.assertRaisesRegex(S3270StatusError, error_msg):
             s3270.transfer(*args)
     # test_transfer_error()
 

@@ -54,7 +54,7 @@ REQUESTS = {
 #
 
 
-class HmcApiSession(object):
+class HmcApiSession:
     """
     This class is responsible for creating the session with the HMC and
     providing the necessary methods to make (post and get) requests to

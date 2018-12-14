@@ -35,7 +35,7 @@ INITRD_FILENAME = 'initrd'
 #
 # CODE
 #
-class Virsh(object):
+class Virsh:
     """
     This class provides a wrapper for the virsh commands that are executed in
     the hypervisor.

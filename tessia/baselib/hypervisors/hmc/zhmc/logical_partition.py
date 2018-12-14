@@ -32,7 +32,7 @@ import time
 #
 # CODE
 #
-class LogicalPartition(object):
+class LogicalPartition:
 
     """
     This class represents an abstraction for a Logical Partition (LPAR).

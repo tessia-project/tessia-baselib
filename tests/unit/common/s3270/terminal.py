@@ -59,7 +59,7 @@ class TestTerminal(TestCase):
         patcher = patch.object(terminal, 'S3270', autospec=True)
         self._mock_s3270 = patcher.start().return_value
         self._mock_s3270.host_name = None
-        def mock_connect(host_name, *args, **kwargs):
+        def mock_connect(host_name, *_, **__):
             """
             Set the hostname when called, like the original method.
             """
@@ -170,7 +170,7 @@ class TestTerminal(TestCase):
         self._mock_s3270.quit.assert_called_once_with()
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp disconnect'),
         ])
@@ -197,7 +197,7 @@ class TestTerminal(TestCase):
         self.assertEqual(output, ('', None))
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('dummy'),
         ])
@@ -217,7 +217,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
         ])
     # test_login_already_logged_on()
 
@@ -229,8 +229,8 @@ class TestTerminal(TestCase):
         self._mock_s3270.ascii.side_effect = self._data['login_generic_error']
 
         # validate result
-        with self.assertRaisesRegex(
-            ZvmMessageError, 'HCP052E Error in CP directory'):
+        error_msg = 'HCP052E Error in CP directory'
+        with self.assertRaisesRegex(ZvmMessageError, error_msg):
             self._term.login('hostname.com', 'user', 'password')
 
         # validate behavior (commands entered)
@@ -263,7 +263,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_ok()
@@ -287,7 +287,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertListEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user here noipl'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
         ])
@@ -322,7 +322,7 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(
             self._mock_s3270.string.mock_calls,
-            (4 * [mock.call('l user')]) + [mock.call('password')] +
+            (4 * [mock.call('l user')]) + [mock.call('password', hide=True)] +
             [mock.call('#cp term more 50 10')]
         )
         self._mock_s3270.query.assert_called_with()
@@ -347,9 +347,9 @@ class TestTerminal(TestCase):
         # validate behavior (commands entered)
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_ok_pending_after_pwd()
@@ -363,8 +363,8 @@ class TestTerminal(TestCase):
             'login_ok_pending'][0]
 
         # perform action
-        with self.assertRaisesRegex(
-            TimeoutError, 'LOGOFF/FORCE pending for user'):
+        error_msg = 'LOGOFF/FORCE pending for user'
+        with self.assertRaisesRegex(TimeoutError, error_msg):
             self._term.login("hostname.com", "user", "password")
     # test_login_pending_forever()
 
@@ -388,7 +388,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_with_open_connection()
@@ -410,7 +410,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user by newuser'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
         ])
     # test_login_with_logonby()
@@ -423,14 +423,14 @@ class TestTerminal(TestCase):
         self._mock_s3270.ascii.side_effect = self._data['login_wrong_password']
 
         # validate result
-        with self.assertRaisesRegex(
-            PermissionError, 'incorrect userid and/or password'):
+        error_msg = 'incorrect userid and/or password'
+        with self.assertRaisesRegex(PermissionError, error_msg):
             self._term.login('hostname.com', 'user', 'password')
 
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
         ])
     # test_login_wrong_password()
 
@@ -453,7 +453,7 @@ class TestTerminal(TestCase):
         self._mock_s3270.quit.assert_called_once_with()
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp logoff'),
         ])
@@ -495,7 +495,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp i cms'),
             mock.call('profile'),
@@ -537,7 +537,7 @@ class TestTerminal(TestCase):
         # validate behavior
         self.assertEqual(self._mock_s3270.string.mock_calls, [
             mock.call('l user'),
-            mock.call('password'),
+            mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
             mock.call('#cp i cms'),
             mock.call('profile'),
@@ -640,8 +640,8 @@ class TestTerminal(TestCase):
         # perform action
         args = ['/some/file', 'DEST FILE A']
         self._term.login("hostname.com", "user", "password")
-        with self.assertRaisesRegex(
-            RuntimeError, 'Transfer failed, output: {}'.format(base_error)):
+        error_msg = 'Transfer failed, output: {}'.format(base_error)
+        with self.assertRaisesRegex(RuntimeError, error_msg):
             self._term.transfer(*args)
     # test_transfer_error()
 

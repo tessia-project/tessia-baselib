@@ -30,7 +30,7 @@ TEMPLATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 #
 # CODE
 #
-class DiskBase(object):
+class DiskBase:
     """
     Base class for all type of physical disks.
     """

@@ -36,7 +36,7 @@ from tessia.baselib.hypervisors.hmc.zhmc.activation_profile import \
 #
 # CODE
 #
-class CPC(object):
+class CPC:
 
     """
     This class represents an abstraction for a CPC.

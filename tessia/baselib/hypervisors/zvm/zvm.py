@@ -339,14 +339,18 @@ class HypervisorZvm(HypervisorBase):
 
         # boot method 'network' - presence of netboot parameters was already
         # checked
-        elif parameters['boot_method'] == 'network':
+        if parameters['boot_method'] == 'network':
             self._netboot(parameters['netboot'])
 
         # boot device defined: perform 'disk' based ipl
         elif boot_dev:
+            if boot_dev['type'] != 'fcp':
+                devno = boot_dev['devno']
             # fcp device: set loaddev before ipl execution
-            if boot_dev.get('wwpn') and boot_dev.get('lun'):
-                port = self._split_chars(boot_dev['wwpn'], 8)
+            else:
+                devno = boot_dev['adapters'][0]['devno']
+                port = self._split_chars(
+                    boot_dev['adapters'][0]['wwpns'][0], 8)
                 lun = self._split_chars(boot_dev['lun'], 8)
                 self._cms.run(
                     'set loaddev portname {} lun {}'.format(port, lun))
@@ -363,7 +367,7 @@ class HypervisorZvm(HypervisorBase):
                         re_match.group()))
 
             _, re_match = self._cms.run('i {}'.format(
-                boot_dev['devno']), wait_for=['login: '], timeout=180)
+                devno), wait_for=['login: '], timeout=180)
             if not re_match:
                 raise RuntimeError('Failed to IPL disk')
     # start()
