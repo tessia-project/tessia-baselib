@@ -348,7 +348,7 @@ class HypervisorZvm(HypervisorBase):
                 devno = boot_dev['devno']
             # fcp device: set loaddev before ipl execution
             else:
-                devno = boot_dev['adapters'][0]['devno']
+                devno = boot_dev['adapters'][0]['devno'].split('.')[-1]
                 port = self._split_chars(
                     boot_dev['adapters'][0]['wwpns'][0], 8)
                 lun = self._split_chars(boot_dev['lun'], 8)
