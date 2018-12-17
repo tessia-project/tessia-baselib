@@ -317,7 +317,7 @@ class TestHypervisorZvm(TestCase):
             "type": "fcp",
             "adapters": [
                 {"devno": "1740", "wwpns": ["100507630503c5ae"]},
-                {"devno": "1780", "wwpns": ["100507630503c7ae"]},
+                {"devno": "0.0.1780", "wwpns": ["100507630503c7ae"]},
             ],
             "lun": "1022400d00000000",
             "boot_device": True,

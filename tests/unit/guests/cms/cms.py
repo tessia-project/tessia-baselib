@@ -58,7 +58,7 @@ def patch_s3270(test_obj, guest_obj, mock_outputs):
     mock_s3270 = patcher.start()
     test_obj.addCleanup(patcher.stop)
     mock_s3270.host_name = None
-    def mock_connect(host_name, *args, **kwargs):
+    def mock_connect(host_name, *_, **__):
         """
         Set the hostname when called, like the original method.
         """
@@ -73,7 +73,7 @@ def patch_s3270(test_obj, guest_obj, mock_outputs):
     # patch the s3280.ascii() function to keep returning the last output when
     # the output list is fully consumed, simulating the real behavior of the
     # console
-    def gen_mock_ascii(*args, **kwargs):
+    def gen_mock_ascii(*_, **__):
         """
         Mock of the ascii method
         """
@@ -158,7 +158,7 @@ class TestGuestCms(TestCase):
         Test incorrect initialization of object
         """
         with self.assertRaisesRegex(
-            ValueError, 'name must be equal to the username'):
+                ValueError, 'name must be equal to the username'):
             cms.GuestCms(self._hostname, self._hostname, self._user,
                          self._passwd, None)
     # test_init_error()
@@ -181,7 +181,7 @@ class TestGuestCms(TestCase):
             "type": "fcp",
             "adapters": [
                 {"devno": "1740", "wwpns": ["100507630503c5ae"]},
-                {"devno": "1780", "wwpns": ["100507630503c7ae"]},
+                {"devno": "0.0.1780", "wwpns": ["100507630503c7ae"]},
             ],
             "lun": "1022400d00000000",
         }
@@ -192,26 +192,25 @@ class TestGuestCms(TestCase):
                           extensions=guest_extensions)
 
         # validate commands executed on console
-        exp_cmds = [
-            'l {} noipl'.format(self._user),
-            self._passwd,
-            'begin',
-            '#cp term more 50 10',
-            '#cp i cms',
-            '#cp term more 50 10',
-            'q v cpus',
-            'define cpu 2-4',
-            'q v  1c5d',
-            'att  1c5d *',
-            'q v  1740',
-            'att  1740 *',
-            'q v  1780',
-            'att  1780 *',
-            'q v  f5f0',
-            'q v  f5f1',
-            'q v  f5f2',
+        call_list = [
+            mock.call('l {} noipl'.format(self._user)),
+            mock.call(self._passwd, hide=True),
+            mock.call('begin'),
+            mock.call('#cp term more 50 10'),
+            mock.call('#cp i cms'),
+            mock.call('#cp term more 50 10'),
+            mock.call('q v cpus'),
+            mock.call('define cpu 2-4'),
+            mock.call('q v  1c5d'),
+            mock.call('att  1c5d *'),
+            mock.call('q v  1740'),
+            mock.call('att  1740 *'),
+            mock.call('q v  1780'),
+            mock.call('att  1780 *'),
+            mock.call('q v  f5f0'),
+            mock.call('q v  f5f1'),
+            mock.call('q v  f5f2'),
         ]
-        call_list = [mock.call(cmd) for cmd in exp_cmds]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
     # test_hotplug_ok()
 
@@ -263,7 +262,7 @@ class TestGuestCms(TestCase):
         guest_cpu = 3
         guest_obj.login()
         with self.assertRaisesRegex(
-            RuntimeError, r'Define CPU\(s\) failed with'):
+                RuntimeError, r'Define CPU\(s\) failed with'):
             guest_obj.hotplug(cpu=guest_cpu)
     # test_hotplug_cpu_define_error()
 
@@ -289,8 +288,8 @@ class TestGuestCms(TestCase):
         guest_cpu = 3
         disk_dasd = {"type": "dasd", "devno": "1c5d"}
         guest_obj.login()
-        with self.assertRaisesRegex(
-            RuntimeError, 'Query device 1c5d returned unexpected output'):
+        exp_re = 'Query device 1c5d returned unexpected output'
+        with self.assertRaisesRegex(RuntimeError, exp_re):
             guest_obj.hotplug(cpu=guest_cpu, vols=[disk_dasd])
     # test_hotplug_dev_query_error()
 
@@ -316,8 +315,8 @@ class TestGuestCms(TestCase):
         guest_cpu = 3
         disk_dasd = {"type": "dasd", "devno": "1c5d"}
         guest_obj.login()
-        with self.assertRaisesRegex(
-            RuntimeError, 'Attach device 1c5d returned unexpected output'):
+        exp_re = 'Attach device 1c5d returned unexpected output'
+        with self.assertRaisesRegex(RuntimeError, exp_re):
             guest_obj.hotplug(cpu=guest_cpu, vols=[disk_dasd])
     # test_hotplug_dev_att_error()
 
@@ -405,7 +404,7 @@ class TestGuestCms(TestCase):
         mock_exc.response.reason = 'Not found'
         mock_resp.raise_for_status.side_effect = mock_exc
         with self.assertRaisesRegex(
-            ValueError, 'Source url is not accessible: 404 Not found'):
+                ValueError, 'Source url is not accessible: 404 Not found'):
             self._guest.push_file('http://{}'.format(src_file), target_file)
 
     # test_push_error()
