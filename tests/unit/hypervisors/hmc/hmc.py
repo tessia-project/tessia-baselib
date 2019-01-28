@@ -334,6 +334,7 @@ class TestHypervisorHmc(TestCase):
         mock_image_profile.update.assert_called_with({
             'central-storage': 1024,
             'number-shared-general-purpose-processors': 4,
+            'processor-usage': 'shared',
             'number-shared-ifl-processors': 10
         })
     # test_start_dasd_update_profile()
@@ -909,4 +910,40 @@ class TestHypervisorHmc(TestCase):
         with self.assertRaisesRegex(RuntimeError, error_msg):
             hmc_object.start(lpar_name, cpu, memory, parameters)
     # test_cpu_static_not_enough()
+
+    def test_cpu_mem_not_change(self):
+        """
+        Check the case when user doesn't want to update the parameter.
+        """
+        # setting up the mock objects
+        mock_profile = self._mock_cpc.get_image_profile.return_value
+        mock_profile.get_properties.return_value = {
+            'central-storage': 4096,
+            'number-shared-general-purpose-processors': 6,
+            'number-shared-ifl-processors': 1
+        }
+
+        lpar_name = 'dummy_lpar'
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999'
+            },
+        }
+        cpu = 0
+        memory = 0
+        self._mock_lpar.status = 'not-activated'
+
+        self.hmc_object.login()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+
+        # no update to activation profile
+        mock_profile.update.assert_not_called()
+    # test_cpu_mem_not_change()
 # TestHypervisorHmc

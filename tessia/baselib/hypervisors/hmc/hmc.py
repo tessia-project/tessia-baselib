@@ -186,12 +186,17 @@ class HypervisorHmc(HypervisorBase):
         # Profiles have the same name as the LPAR's
         image_profile = cpc.get_image_profile(guest_name)
 
-        # Calculating the number of processors chosen
-        args = self._calculate_number_cpus(cpu,
-                                           parameters.get('cpus_cp', 0),
-                                           parameters.get('cpus_ifl', 0),
-                                           cpc.get_cpus())
-        # Set storage
+        if cpu:
+            # Calculating the number of processors chosen
+            args = self._calculate_number_cpus(cpu,
+                                               parameters.get('cpus_cp', 0),
+                                               parameters.get('cpus_ifl', 0),
+                                               cpc.get_cpus())
+        else:
+            # User don't want to update the parameter
+            args = {'ifl': 0, 'cp': 0}
+
+        # Set storage (if memory = 0, user don't want to update the parameter)
         args['mem'] = memory
 
         try:
@@ -500,18 +505,22 @@ class HypervisorHmc(HypervisorBase):
 
         update = False
 
-        if img_properties['central-storage'] != args['mem']:
+        # set memory specified by user in profile
+        if args['mem'] and img_properties['central-storage'] != args['mem']:
             body['central-storage'] = args['mem']
             update = True
 
-        if (img_properties['number-shared-general-purpose-processors']
-                != args['cp']):
+        if args['cp'] and (
+                img_properties['number-shared-general-purpose-processors'] !=
+                args['cp']):
             body['number-shared-general-purpose-processors'] = args['cp']
+            body['processor-usage'] = 'shared'
             update = True
 
-        if (img_properties['number-shared-ifl-processors']
-                != args['ifl']):
+        if args['ifl'] and (
+                img_properties['number-shared-ifl-processors'] != args['ifl']):
             body['number-shared-ifl-processors'] = args['ifl']
+            body['processor-usage'] = 'shared'
             update = True
 
         # Update the image profile with the new config if it is different
