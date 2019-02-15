@@ -128,48 +128,67 @@ class TestHypervisorHmc(TestCase):
         Args:
             net_setup (dict): network parameters used
         """
-        ch_list = net_setup.get("device").split(",")
-        if len(ch_list) > 1:
-            cio_expected = net_setup.get("device")
+        if net_setup.get('type') == 'pci':
+            net_cmd_calls = [
+                mock.call("root"),
+                mock.call(net_setup['password']),
+                mock.call(
+                    "DEV_PATH=$(dirname $(grep -m1 -r '0x0*{}' --include "
+                    "function_id /sys/bus/pci/devices/*)) && ".format(
+                        net_setup['device'])),
+                mock.call(
+                    "export IFACE_NAME=$(ls -1 ${DEV_PATH}/net | head -1) && "
+                ),
+            ]
         else:
-            chan_2 = hex(int(net_setup.get("device"), 16)+1).strip("0x")
-            chan_3 = hex(int(net_setup.get("device"), 16)+2).strip("0x")
-            cio_expected = '{},{},{}'.format(
-                net_setup.get("device"), chan_2, chan_3)
+            ch_list = net_setup.get("device").split(",")
+            if len(ch_list) > 1:
+                cio_expected = net_setup.get("device")
+            else:
+                chan_2 = hex(int(net_setup.get("device"), 16)+1).strip("0x")
+                chan_3 = hex(int(net_setup.get("device"), 16)+2).strip("0x")
+                cio_expected = '{},{},{}'.format(
+                    net_setup.get("device"), chan_2, chan_3)
 
-        znet_expected = 'znetconf -a {}'.format(ch_list[0])
-        options = net_setup.get('options')
-        if not options or not options.get('layer2'):
-            znet_expected += ' -o layer2=0'
-        else:
-            for option, value in options.items():
-                znet_expected += ' -o {}={}'.format(option, value)
-        znet_expected += ' && \\'
-        # build the list of expected calls
-        net_cmd_calls = [
-            mock.call("root"),
-            mock.call(net_setup['password']),
-            mock.call(
-                "cio_ignore -r {} && \\".format(cio_expected)),
-            mock.call(znet_expected),
-        ]
-        if ' layer2=1 ' in znet_expected and net_setup["mac"]:
-            net_cmd_calls.append(
-                mock.call("ifconfig enc{} hw ether {} && \\".format(
-                    ch_list[0], net_setup["mac"]))
-            )
+            znet_expected = 'znetconf -a {}'.format(
+                ch_list[0].replace('0.0', ''))
+            options = net_setup.get('options')
+            if not options or not options.get('layer2'):
+                znet_expected += ' -o layer2=0'
+            else:
+                for option, value in options.items():
+                    znet_expected += ' -o {}={}'.format(option, value)
+            znet_expected += ' && '
+            # build the list of expected calls
+            full_ccw = ch_list[0]
+            if '.' not in full_ccw:
+                full_ccw = '0.0.{}'.format(full_ccw)
+            net_cmd_calls = [
+                mock.call("root"),
+                mock.call(net_setup['password']),
+                mock.call("cio_ignore -r {} && ".format(cio_expected)),
+                mock.call(znet_expected),
+                mock.call("export IFACE_NAME=$(ls -1 /sys/devices/qeth/{}/net "
+                          "| head -1) && ".format(full_ccw)),
+            ]
+            if ' layer2=1 ' in znet_expected and net_setup["mac"]:
+                net_cmd_calls.append(
+                    mock.call("ifconfig $IFACE_NAME hw ether {} && ".format(
+                        net_setup["mac"]))
+                )
+
         net_cmd_calls.extend([
-            mock.call("ifconfig enc{} {} netmask {} && \\".format(
-                ch_list[0], net_setup.get("ip"), net_setup.get("mask"))),
-            mock.call("route add default gw {} && \\".format(
+            mock.call("ifconfig $IFACE_NAME {} netmask {} && ".format(
+                net_setup.get("ip"), net_setup.get("mask"))),
+            mock.call("route add default gw {} && ".format(
                 net_setup.get("gateway"))),
         ])
         dns_servers = net_setup.get('dns')
         if dns_servers:
-            net_cmd_calls.append(mock.call("echo > /etc/resolv.conf && \\"))
+            net_cmd_calls.append(mock.call("echo > /etc/resolv.conf && "))
             for dns_entry in dns_servers:
                 net_cmd_calls.append(
-                    mock.call("echo 'nameserver {}' >> /etc/resolv.conf && \\"
+                    mock.call("echo 'nameserver {}' >> /etc/resolv.conf && "
                               .format(dns_entry)))
 
         net_cmd_calls.append(
@@ -453,7 +472,60 @@ class TestHypervisorHmc(TestCase):
                     "gateway": "8.8.8.8",
                     "device": "f500,f501,f502",
                     "password": "super_password",
-                    "dns": ['9.9.9.25', '9.9.9.30']
+                    "dns": ['9.9.9.25', '9.9.9.30'],
+                    "type": "osa",
+                }
+            },
+            'cpus_ifl': 1
+        }
+        cpu = 6
+        memory = 4096
+        self._mock_lpar.status = 'not-activated'
+        self._mock_lpar.get_properties.return_value = {
+            'status': 'operating'
+        }
+        self._mock_cpc.get_cpus.return_value = {'cpus_cp': 10, 'cpus_ifl': 10}
+
+        self.hmc_object.login()
+        self.hmc_object.start(lpar_name, cpu, memory, parameters)
+
+        # validate
+        self._mock_zhmc_obj.get_cpc.assert_called_with(
+            self.system_name.upper())
+        self._mock_cpc.get_lpar.assert_called_with(lpar_name.upper())
+        self._mock_lpar.activate.assert_called_with()
+        self._mock_lpar.scsi_load.assert_called_with(
+            '1234', '4321', '1324')
+
+        # validate network setup was executed
+        self._assert_net_setup(parameters['boot_params']['netsetup'])
+
+        # validate netboot was not performed
+        self._mock_guest_linux.return_value.open_session.assert_not_called()
+    # test_start_netsetup()
+
+    def test_start_netsetup_pci(self):
+        """
+        Test start operation with auto network setup using a pci card
+        """
+        # perform the operation when the image profile do not need update
+        # using a SCSI disk
+        lpar_name = 'dummy_lpar'
+        parameters = {
+            'boot_params': {
+                'boot_method': 'scsi',
+                'zfcp_devicenr':'1234',
+                'wwpn': '4321',
+                'lun': '1324',
+                'netsetup': {
+                    "mac": None,
+                    "ip": "9.9.9.9",
+                    "mask": "255.255.255.255",
+                    "gateway": "8.8.8.8",
+                    "device": "500",
+                    "password": "super_password",
+                    "dns": ['9.9.9.25', '9.9.9.30'],
+                    "type": "pci",
                 }
             },
             'cpus_ifl': 1
