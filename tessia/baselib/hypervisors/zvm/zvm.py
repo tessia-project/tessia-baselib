@@ -292,34 +292,36 @@ class HypervisorZvm(HypervisorBase):
         self._cms.stop()
         self._cms.login()
 
-        # clear possible attached cpus
-        reset_msg = r'(?i)storage cleared - system reset'
-        _, re_match = self._cms.run(
-            "detach cpu all",
-            wait_for=[reset_msg, ERROR_REGEX],
-            timeout=10)
-        # command timed out waiting for a valid output: abort as we don't know
-        # the new guest state
-        if not re_match:
-            raise RuntimeError('Detach CPU(s) returned unexpected output')
-        # HCPCPU1456E is ok because base cpu cannot be detached,
-        # but with unknown error cannot continue
-        elif (re_match.re.pattern != reset_msg and
-              re_match.group() != 'HCPCPU1456E'):
-            raise RuntimeError(
-                'Detach CPU(s) failed with: {}'.format(re_match.group()))
+        if cpu != 0:
+            # clear possible attached cpus
+            reset_msg = r'(?i)storage cleared - system reset'
+            _, re_match = self._cms.run(
+                "detach cpu all",
+                wait_for=[reset_msg, ERROR_REGEX],
+                timeout=10)
+            # command timed out waiting for a valid output: abort as we don't
+            # know the new guest state
+            if not re_match:
+                raise RuntimeError('Detach CPU(s) returned unexpected output')
+            # HCPCPU1456E is ok because base cpu cannot be detached,
+            # but with unknown error cannot continue
+            elif (re_match.re.pattern != reset_msg and
+                  re_match.group() != 'HCPCPU1456E'):
+                raise RuntimeError(
+                    'Detach CPU(s) failed with: {}'.format(re_match.group()))
 
-        # attach defined memory
-        stor_msg = r'STORAGE = \d+'
-        _, re_match = self._cms.run("define storage {}M".format(memory),
-                                    wait_for=[stor_msg, ERROR_REGEX],
-                                    timeout=10)
-        if not re_match:
-            raise RuntimeError(
-                'Define storage (memory) returned unexpected output')
-        if re_match.re.pattern != stor_msg:
-            raise RuntimeError('Define storage (memory) failed with: {}'
-                               .format(re_match.group()))
+        if memory != 0:
+            # attach defined memory
+            stor_msg = r'STORAGE = \d+'
+            _, re_match = self._cms.run("define storage {}M".format(memory),
+                                        wait_for=[stor_msg, ERROR_REGEX],
+                                        timeout=10)
+            if not re_match:
+                raise RuntimeError(
+                    'Define storage (memory) returned unexpected output')
+            if re_match.re.pattern != stor_msg:
+                raise RuntimeError('Define storage (memory) failed with: {}'
+                                   .format(re_match.group()))
 
         # attach additional cpus and devices
         self._cms.hotplug(
