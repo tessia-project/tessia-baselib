@@ -335,63 +335,80 @@ class HypervisorHmc(HypervisorBase):
             "Setting up network: args='%s'", net_setup
         )
 
-        mac_addr = net_setup['mac']
+        net_cmds = []
         ip_addr = net_setup['ip']
         dns_servers = net_setup.get('dns')
         subnet_addr = net_setup['mask']
         gw_addr = net_setup['gateway']
-        channel = net_setup['device']
-        options = deepcopy(net_setup.get('options', {}))
-        try:
-            layer2 = options.pop('layer2')
-            layer2 = {
-                'true': 1, 'false': 0, '1': 1, '0': 0
-            }[str(layer2).lower()]
-        # option not specified or unknown value used: defaults to off
-        except (KeyError, ValueError):
-            layer2 = 0
 
-        if channel.find(',') != -1:
-            ch_list = channel.split(',')
+        # PCI card: find out interface name
+        if net_setup.get('type') == 'pci':
+            # export interface name
+            net_cmds.extend([
+                "DEV_PATH=$(dirname $(grep -m1 -r '0x0*{}' --include "
+                "function_id /sys/bus/pci/devices/*))".format(
+                    net_setup['device'].lower()),
+                "export IFACE_NAME=$(ls -1 ${DEV_PATH}/net | head -1)",
+            ])
+
+        # OSA card: define additional options
         else:
-            ch_list = [channel]
-            ch_list.append(hex(int(channel, 16)+1).lstrip("0x"))
-            ch_list.append(hex(int(channel, 16)+2).lstrip("0x"))
+            mac_addr = net_setup['mac']
+            channel = net_setup['device']
+            options = deepcopy(net_setup.get('options', {}))
+            try:
+                layer2 = options.pop('layer2')
+                layer2 = {
+                    'true': 1, 'false': 0, '1': 1, '0': 0
+                }[str(layer2).lower()]
+            # option not specified or unknown value used: defaults to off
+            except (KeyError, ValueError):
+                layer2 = 0
 
-        # build the options string, layer2 should always come first
-        str_option = '-o layer2={}'.format(layer2)
-        for key, value in options.items():
-            str_option += ' -o {}={}'.format(key, value)
+            if channel.find(',') != -1:
+                ch_list = channel.split(',')
+            else:
+                ch_list = [channel]
+                ch_list.append(hex(int(channel, 16)+1).lstrip("0x"))
+                ch_list.append(hex(int(channel, 16)+2).lstrip("0x"))
 
-        net_cmds = [
-            # make the osa channels available
-            "cio_ignore -r {} && \\".format(','.join(ch_list)),
-            # activate the osa card
-            "znetconf -a {} {} && \\".format(
-                ch_list[0].replace("0.0.", ""), str_option),
-        ]
-        # layer2 active: set mac address for network interface
-        if layer2 == 1 and mac_addr:
-            net_cmds.append(
-                "ifconfig enc{} hw ether {} && \\".format(
-                    ch_list[0], mac_addr))
+            # build the options string, layer2 should always come first
+            str_option = '-o layer2={}'.format(layer2)
+            for key, value in options.items():
+                str_option += ' -o {}={}'.format(key, value)
+
+            net_cmds.extend([
+                # make the osa channels available
+                "cio_ignore -r {}".format(','.join(ch_list)),
+                # activate the osa card
+                "znetconf -a {} {}".format(
+                    ch_list[0].replace("0.0.", ""), str_option),
+            ])
+
+            # set interface name
+            full_ccw = ch_list[0]
+            if '.' not in full_ccw:
+                full_ccw = '0.0.{}'.format(full_ccw)
+            net_cmds.append('export IFACE_NAME=$(ls -1 /sys/devices/qeth/{}/'
+                            'net | head -1)'.format(full_ccw))
+            # layer2 active: set mac address for network interface
+            if layer2 == 1 and mac_addr:
+                net_cmds.append(
+                    "ifconfig $IFACE_NAME hw ether {}".format(mac_addr))
 
         net_cmds.extend([
             # set ip address and network mask
-            "ifconfig enc{} {} netmask {} && \\".format(
-                ch_list[0].replace("0.0.", ""), ip_addr, subnet_addr),
+            "ifconfig $IFACE_NAME {} netmask {}".format(
+                ip_addr, subnet_addr),
             # set default gateway
-            "route add default gw {} && \\".format(gw_addr),
+            "route add default gw {}".format(gw_addr),
         ])
         if dns_servers:
-            net_cmds.append("echo > /etc/resolv.conf && \\")
+            net_cmds.append("echo > /etc/resolv.conf")
             for dns_entry in dns_servers:
                 net_cmds.append(
-                    "echo 'nameserver {}' >> /etc/resolv.conf && \\"
+                    "echo 'nameserver {}' >> /etc/resolv.conf"
                     .format(dns_entry))
-        # sometimes the LPAR is unreachable from the network until a ping is
-        # performed (likely because of arp cache)
-        net_cmds.append("true; ping -c 1 {}".format(gw_addr))
         timeout = time.time() + NETBOOT_LOAD_TIMEOUT
         while True:
             # the api has a limit of 200 chars per call so we need to split the
@@ -399,7 +416,17 @@ class HypervisorHmc(HypervisorBase):
             lpar.send_os_command('root')
             lpar.send_os_command(os_passwd)
             for cmd in net_cmds:
-                lpar.send_os_command(cmd)
+                str_buf = ''
+                for char in cmd:
+                    str_buf += char
+                    if len(str_buf) == 100:
+                        str_buf += '\\'
+                        lpar.send_os_command(str_buf)
+                        str_buf = ''
+                lpar.send_os_command('{} && '.format(str_buf))
+            # sometimes the LPAR is unreachable from the network until a ping
+            # is performed (likely because of arp cache)
+            lpar.send_os_command("true; ping -c 1 {}".format(gw_addr))
             # verify if system is reachable
             try:
                 subprocess.run(

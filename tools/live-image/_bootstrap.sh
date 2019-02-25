@@ -92,7 +92,17 @@ cp $(which liveimg-to-disk) \${DEBIRF_ROOT}/usr/local/bin
 EOF
     chmod a+x rescue/modules/b0_copy_script
 
-    echo "DEBIRF_KERNEL_FLAVOR=s390x" >> rescue/debirf.conf
+    # make the image smaller, manpages are not necessary
+    rm -f rescue/modules/install-manpages
+
+    # use the newest kernel available
+    suite=$(lsb_release --codename --short)
+    echo "deb http://deb.debian.org/debian $suite-backports main" > /etc/apt/sources.list.d/backports_repo.list
+    apt-get update
+    kernel_pkg=$(apt-cache show linux-image-s390x | grep '^Depends: ' | sed 's/^Depends: //' | tr ',' '\n' | tr -d ' ' | grep ^linux-image | sort | head -1)
+    ( cd rescue && apt-get download $kernel_pkg )
+    echo "DEBIRF_KERNEL_PACKAGE=$(realpath rescue/linux-image-*.deb)" >> rescue/debirf.conf
+
     # -r (real chroot) is needed until https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=855234 gets fixed
     debirf make --no-warning -r rescue
 
@@ -120,7 +130,7 @@ EOF
 
     # move tarball inside the initrd and re-generate it
     mv live-image.tgz rescue/root/usr/local/share
-    debirf make --no-warning -i rescue
+    debirf make --no-warning -r -i rescue
     mv rescue/*cgz rescue/initrd
 
     # re-generate addrsize file
