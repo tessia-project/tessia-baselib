@@ -100,7 +100,7 @@ class TestHypervisorZvm(TestCase):
         data_file = '{}/zvm.yaml'.format(
             os.path.dirname(os.path.abspath(__file__)))
         with open(data_file, 'r', encoding='utf-8') as data_fd:
-            cls._data = yaml.load(data_fd.read())
+            cls._data = yaml.safe_load(data_fd.read())
 
         cls._user = 'USER'
         cls._name = 'hostname'
