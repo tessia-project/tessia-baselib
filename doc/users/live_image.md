@@ -15,13 +15,20 @@ limitations under the License.
 -->
 # Live image to enable HMC netboot
 
-The HMC in classic mode does not expose the FTP network boot capability through its API so in order to
+For machines in classic mode the HMC does not expose the FTP network boot capability through its API so in order to
 circumvent this limitation we make use of a Linux live image to simulate the functionality.
 
-This works by pre-allocating a DASD or FCP disk on each CPC where LPARs are going to be netbooted.
-Here's an overview of the process:
+For machines in DPM mode this process is not strictly necessary because the network boot capability is available in the HMC API.
+However, the field length allowed for the kernel command line for the network boot operation is usually not enough (256 characters only),
+so it's recommended to use this live image also for DPM mode if you want to trigger Linux installations from the network.
 
-- a target LPAR is IPLed with the pre-allocated disk containing the Linux live image;
+In classic mode, the process works by pre-allocating a DASD or FCP disk on each CPC where LPARs are going to be network booted.
+In DPM mode, you can use the pre-allocated disk approach or serve the image via an FTP server.
+
+Here's a step-by-step overview of the process:
+
+- If in classic mode, a target LPAR is IPLed with the pre-allocated disk containing the Linux live image. If in DPM mode, the target partition
+can also be started directly from the network with the live image being served by an FTP server;
 - once the Linux system is up, the library takes care of bringing up network connectivity via console commands;
 - once network is up, a SSH connection is established;
 - the library downloads via shell commands (i.e. `wget`) the target kernel and initrd files (i.e. kernel/initrd from a distro's installer);
@@ -40,6 +47,12 @@ $ cd tessia-baselib && tools/live-image/liveimg-build -p '_the_root_password'
 ```
 
 The result is a tarball which should be later extracted to an FTP server, as explained in the section [How to install the live image](#how-to-install-the-live-image).
+
+**Note**: If you are dealing exclusively with machines in DPM mode, you can use the FTP server to start the partitions directly and thus entirely skip that section.
+In case you were following these instructions as part of a tessia server setup, then you need to associate the URL of the insfile on the FTP server with the CPC system
+profile entry so that the server knows from where to download the live image when partitions on that CPC are to be installed. See the tessia server documentation for details.
+Alternatively if you just want to learn how to use the library to start the partition with the live image, see this usage
+[example](hypervisor_hmc.md#start-a-partition-dpm-mode-using-simulated-network-boot-live-image).
 
 # How to install the live image
 
@@ -81,7 +94,8 @@ At the end a successful message is displayed.
 ![HMC console success installation screen](../img/hmc_console_success.png)
 
 The installation process is complete. If you are using the baselib library as a standalone solution you have to point to this disk and use the root password used in the build
-when doing the library calls to network boot an LPAR. See the usage example [Start an LPAR using network boot](hypervisor_hmc.md#start-an-lpar-using-network-boot) for details.
+when doing the library calls to network boot an LPAR.
+See the usage example [Start an LPAR (classic mode) using (simulated) network boot](hypervisor_hmc.md#start-an-lpar-classic-mode-using-simulated-network-boot) for details.
 
 If you installed the disk to use with a tessia server, then the installed disk must be associated with the CPC system entry so that the server knows which
 disk to use when LPARs on that CPC are to be installed. See the tessia server documentation for details.

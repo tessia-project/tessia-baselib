@@ -25,7 +25,7 @@ actions like activate, deactivate, hotplug resources, and others.
 
 Hypervisors supported:
 
-- zHMC (classic mode)
+- zHMC (classic and DPM modes)
 - z/VM
 - KVM for IBM Z
 
@@ -64,7 +64,7 @@ You can test the installation with:
 $ python3 -i -c "from tessia.baselib.hypervisors import Hypervisor; from tessia.baselib.guests import Guest"
 ```
 
-In order to be able to network boot LPARs with HMC in classic mode, you need first to install an auxiliar live-image to a pre-allocated disk.
+In order to be able to network boot LPARs on machines in classic mode, you need first to install an auxiliar live-image to a pre-allocated disk.
 This process is explained at [Live image to enable HMC netboot](doc/users/live_image.md).
 
 # What's new
