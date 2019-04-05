@@ -25,7 +25,7 @@ This library is part of the tessia solution but can also be used standalone by d
 
 Hypervisors supported:
 
-- zHMC (classic mode)
+- zHMC (classic and DPM modes)
 - z/VM
 - KVM for IBM Z
 

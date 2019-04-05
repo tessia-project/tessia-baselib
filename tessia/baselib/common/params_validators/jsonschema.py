@@ -18,7 +18,7 @@ Module for JsonschemaValidator class.
 #
 # IMPORTS
 #
-from .base import BaseParamsValidator
+from tessia.baselib.common.params_validators.base import BaseParamsValidator
 # the FormatChecker is used to validate URIs
 from jsonschema import FormatChecker
 import jsonschema

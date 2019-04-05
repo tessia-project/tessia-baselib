@@ -23,6 +23,32 @@
                 "devicenr"
             ]
         },
+        "network": {
+            "properties": {
+                "boot_method": {
+                    "enum": [
+                        "ftp",
+                        "ftps",
+                        "sftp"
+                    ],
+                    "type": "string"
+                },
+                "insfile": {
+                    "format": "uri",
+                    "type": "string"
+                },
+                "netboot": {
+                    "$ref": "#/definitions/netboot"
+                },
+                "netsetup": {
+                    "$ref": "../../common/entities/netsetup_type.json"
+                }
+            },
+            "required": [
+                "boot_method",
+                "insfile"
+            ]
+        },
         "netboot": {
             "properties": {
                 "cmdline": {
@@ -56,8 +82,11 @@
                 "wwpn": {
                     "type": "string"
                 },
-                "zfcp_devicenr": {
+                "devicenr": {
                     "$ref": "../../common/entities/devicenr_type.json"
+                },
+                "uuid": {
+                    "type": "string"
                 },
                 "netboot": {
                     "$ref": "#/definitions/netboot"
@@ -68,10 +97,35 @@
             },
             "required": [
                 "boot_method",
-                "zfcp_devicenr",
+                "devicenr",
                 "lun",
                 "wwpn"
-            ]
+            ],
+            "additionalProperties": false
+        },
+        "scsi-dpm-only": {
+            "properties": {
+                "boot_method": {
+                    "enum": [
+                        "scsi"
+                    ],
+                    "type": "string"
+                },
+                "uuid": {
+                    "type": "string"
+                },
+                "netboot": {
+                    "$ref": "#/definitions/netboot"
+                },
+                "netsetup": {
+                    "$ref": "../../common/entities/netsetup_type.json"
+                }
+            },
+            "required": [
+                "boot_method",
+                "uuid"
+            ],
+            "additionalProperties": false
         }
     },
     "oneOf": [
@@ -79,7 +133,13 @@
             "$ref": "#/definitions/scsi"
         },
         {
+            "$ref": "#/definitions/scsi-dpm-only"
+        },
+        {
             "$ref": "#/definitions/dasd"
+        },
+        {
+            "$ref": "#/definitions/network"
         }
     ],
     "type": "object"

@@ -168,11 +168,11 @@ class S3270:
                 if 'No address associated with hostname' in output:
                     raise S3270StatusError('No address associated with '
                                            'hostname '+host_name)
-                elif 'error' in status:
+                if 'error' in status:
                     raise S3270StatusError(
                         'Error while sending Connect command'
                     )
-                elif 'ok' in status:
+                if 'ok' in status:
                     break
 
             if time.time() > timeout:

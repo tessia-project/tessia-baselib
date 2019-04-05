@@ -79,10 +79,8 @@ class TestJsonschemaValidator(unittest.TestCase):
         self.assertRaises(ValueError, validator.validate, "string")
     # test_validation_error()
 
-    @mock.patch('tessia.baselib.common.params_validators.jsonschema.jsonschema',
-                autospec=True)
-    @mock.patch('tessia.baselib.common.params_validators.jsonschema.FormatChecker',
-                autospec=True)
+    @mock.patch('tessia.baselib.common.params_validators.jsonschema.jsonschema')
+    @mock.patch('tessia.baselib.common.params_validators.jsonschema.FormatChecker')
     @mock.patch('tessia.baselib.common.params_validators.base.json', autospec=True)
     @mock.patch('builtins.open', autospec=True)
     def test_validate(self, mock_open, mock_json, mock_fmt_checker,
