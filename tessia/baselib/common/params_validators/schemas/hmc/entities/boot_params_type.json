@@ -34,7 +34,7 @@
                     "type": "string"
                 },
                 "insfile": {
-                    "format": "uri",
+                    "format": "uri-reference",
                     "type": "string"
                 },
                 "netboot": {
