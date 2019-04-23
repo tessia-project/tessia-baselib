@@ -976,7 +976,7 @@ class TestHypervisorHmc(TestCase):
         parameters = {
             'boot_params': {
                 'boot_method': 'scsi',
-                'devicenr':'1234',
+                'devicenr':'0.2.1234',
                 'wwpn': '4321',
                 'lun': '1324'
             },
@@ -989,9 +989,11 @@ class TestHypervisorHmc(TestCase):
 
         # validate (zhmmclient_mock._session.LparLoadHandler.post does not
         # store wwpn/lun so we can't check it
+        normalized_devicenr = parameters['boot_params']['devicenr'].replace(
+            '.', '')[-5:]
         self._assert_all_classic(
             self._fake_lpar, self._fake_img_profile,
-            parameters['boot_params']['devicenr'], memory,
+            normalized_devicenr, memory,
             parameters['cpus_ifl'], parameters['cpus_cp'])
 
         # exercise DPM mode
@@ -1334,8 +1336,8 @@ class TestHypervisorHmc(TestCase):
                 },
                 'netboot': {
                     "cmdline": "some_cmdline",
-                    "kernel_url": "some_url",
-                    "initrd_url": "some_url",
+                    "kernel_url": "ssh://some_url",
+                    "initrd_url": "ssh://some_url",
                 }
             }
         }
