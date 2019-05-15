@@ -304,7 +304,7 @@ class GuestCms(GuestBase):
             self.host_name, self.user, self.passwd, self.extensions, timeout
         )
         cms_output, re_match = self._terminal.send_cmd(
-            'i cms', use_cp=True, wait_for=['Ready;'])
+            r'i cms\naccess (noprof', use_cp=True, wait_for=['Ready;'])
         if not re_match:
             raise RuntimeError('Failed to IPL CMS')
         # make sure terminal waits before clearing the screen to prevent

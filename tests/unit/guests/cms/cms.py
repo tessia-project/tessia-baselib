@@ -197,7 +197,7 @@ class TestGuestCms(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call('#cp i cms'),
+            mock.call(r'#cp i cms\naccess (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('q v cpus'),
             mock.call('define cpu 2-4'),

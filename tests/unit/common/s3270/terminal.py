@@ -476,11 +476,11 @@ class TestTerminal(TestCase):
         self._term.login("hostname.com", "user", "password")
         re_wait_for = 'Ready;'
         output, re_match = self._term.send_cmd(
-            'i cms', use_cp=True, wait_for=[re_wait_for])
+            r'i cms\naccess (noprof', use_cp=True, wait_for=[re_wait_for])
         # raises attribute error in case nothing was matched
         self.assertEqual(re_match.re.pattern, re_wait_for)
         # output check is according to the content in the yaml file
-        self.assertIn('OSA  F5F2', output)
+        self.assertNotIn('OSA  F5F4', output)
 
         # execute command
         output, re_match = self._term.send_cmd("profile", wait_for=re_wait_for)
@@ -497,7 +497,7 @@ class TestTerminal(TestCase):
             mock.call('l user'),
             mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call('#cp i cms'),
+            mock.call(r'#cp i cms\naccess (noprof'),
             mock.call('profile'),
         ])
     # test_send_cmd_cms()
@@ -519,10 +519,10 @@ class TestTerminal(TestCase):
         # start cms
         self._term.login("hostname.com", "user", "password")
         output, re_match = self._term.send_cmd(
-            'i cms', use_cp=True)
+            r'i cms\naccess (noprof', use_cp=True)
         self.assertIs(re_match, None)
         # output check is according to the content in the yaml file
-        self.assertIn('OSA  F5F2', output)
+        self.assertNotIn('OSA  F5F4', output)
 
         # execute command
         output, re_match = self._term.send_cmd("profile")
@@ -539,7 +539,7 @@ class TestTerminal(TestCase):
             mock.call('l user'),
             mock.call('password', hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call('#cp i cms'),
+            mock.call(r'#cp i cms\naccess (noprof'),
             mock.call('profile'),
         ])
     # test_send_cmd_cms_no_wait_for()
@@ -565,7 +565,8 @@ class TestTerminal(TestCase):
         # set the timeout to loop the number of times needed to consume all the
         # 'side effect' output
         output, re_match = self._term.send_cmd(
-            'i cms', use_cp=True, wait_for=[re_wait_for], timeout=2.6)
+            r'i cms\naccess (noprof', use_cp=True, wait_for=[re_wait_for],
+            timeout=2.5)
         # validate result - match is None as the expected output didn't happen
         self.assertEqual(re_match, None)
         # check whether all expected output was consumed
