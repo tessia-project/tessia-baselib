@@ -145,88 +145,42 @@ start_dasd:
     data: 00:                                                                             
     data: 00: CP I CMS                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-04-EA CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-04-EA CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-04-EA CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-04-EB CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-04-EB CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-04-EB CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 10:04:49                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -517,88 +471,42 @@ start_dasd:
     data: 00:                                                                             
     data: 00: cp i cms                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-04-EC CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-04-EC CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-04-EC CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-04-ED CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-04-ED CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-04-ED CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 10:04:55                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -1208,89 +1116,43 @@ start_netboot:
   - |
     data: 00: I CMS                                                                       
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 11:36:02                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -2319,88 +2181,42 @@ start_fcp:
     data: 00:                                                                             
     data: 00: CP I CMS                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-05-00 CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-05-00 CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-05-00 CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-05-01 CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-05-01 CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-05-01 CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 17:13:19                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -2645,88 +2461,42 @@ start_fcp:
     data: 00:                                                                             
     data: 00: cp i cms                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-05-02 CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-05-02 CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-05-02 CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-05-03 CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-05-03 CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-05-03 CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 17:13:24                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -3566,89 +3336,43 @@ start_cms:
   - |
     data: 00: I CMS                                                                       
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             VM READ   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data:                                                                                 
-    data:                                                                                 
-    data: 00: OSA  F500 ON NIC  F500  UNIT 000 SUBCHANNEL = 0008                          
-    data: 00:      F500 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F500 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F500 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F501 ON NIC  F500  UNIT 001 SUBCHANNEL = 0009                          
-    data: 00:      F501 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F501 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F501 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F502 ON NIC  F500  UNIT 002 SUBCHANNEL = 000A                          
-    data: 00:      F502 DEVTYPE OSA         VIRTUAL CHPID 00 OSD                          
-    data: 00:      F502 MAC 05-FF-0F-00-04-F4 CURRENT                                     
-    data: 00:      F502 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F503 ON NIC  F503  UNIT 000 SUBCHANNEL = 000B                          
-    data: 00:      F503 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F503 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F503 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F504 ON NIC  F503  UNIT 001 SUBCHANNEL = 000C                          
-    data: 00:      F504 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F504 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F504 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F505 ON NIC  F503  UNIT 002 SUBCHANNEL = 000D                          
-    data: 00:      F505 DEVTYPE OSA         VIRTUAL CHPID 02 OSD                          
-    data: 00:      F505 MAC 05-FF-0F-00-04-F5 CURRENT                                     
-    data: 00:      F505 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F0 ON OSA   F566 SUBCHANNEL = 0000                                   
-    data: 00:      F5F0 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F0 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F1 ON OSA   F567 SUBCHANNEL = 0001                                   
-    data: 00:      F5F1 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F1 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data: 00: OSA  F5F2 ON OSA   F568 SUBCHANNEL = 0002                                   
-    data: 00:      F5F2 DEVTYPE OSA         VIRTUAL CHPID 70 OSD REAL CHPID 70            
-    data: 00:      F5F2 QDIO-ELIGIBLE       QIOASSIST-ELIGIBLE                            
-    data:                                                                                 
-    data: 00: FILES: 0003 RDR,   NO PRT,   NO PUN                                         
-    data:                                                                                 
+    data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 11:36:02                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 

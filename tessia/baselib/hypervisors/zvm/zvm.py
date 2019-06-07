@@ -97,7 +97,8 @@ class HypervisorZvm(HypervisorBase):
         Raises:
             RuntimeError: if any zVM command fails
         """
-        _, re_match = self._cms.run('i cms', wait_for=['Ready;'])
+        _, re_match = self._cms.run(
+            r'i cms\naccess (noprof', wait_for=['Ready;'])
         if not re_match:
             raise RuntimeError('Failed to initialize CMS')
         # make sure terminal waits before clearing the screen to prevent
@@ -331,7 +332,8 @@ class HypervisorZvm(HypervisorBase):
 
         # boot method 'cms': enter ipl command
         if parameters['boot_method'] == 'cms':
-            _, re_match = self._cms.run('i cms', wait_for=['Ready;'])
+            _, re_match = self._cms.run(
+                r'i cms\naccess (noprof', wait_for=['Ready;'])
             if not re_match:
                 raise RuntimeError('Failed to IPL CMS')
             # make sure terminal waits before clearing the screen to prevent
