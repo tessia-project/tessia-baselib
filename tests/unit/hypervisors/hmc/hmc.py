@@ -363,14 +363,24 @@ class TestHypervisorHmc(TestCase):
             ]
             if ' layer2=1 ' in znet_expected and net_setup["mac"]:
                 net_cmd_calls.append(
-                    mock.call("ifconfig $IFACE_NAME hw ether {} && ".format(
+                    mock.call("ip link set $IFACE_NAME address {} && ".format(
                         net_setup["mac"]))
                 )
 
+        if net_setup.get('vlan'):
+            net_cmd_calls.extend([
+                mock.call('ip link add link ${{IFACE_NAME}} name '
+                          '${{IFACE_NAME}}.{vlan} type vlan id {vlan} && '
+                          .format(**net_setup)),
+                mock.call('ip link set $IFACE_NAME up && '),
+                mock.call('export IFACE_NAME=${{IFACE_NAME}}.{} && '.format(
+                    net_setup['vlan']))
+            ])
         net_cmd_calls.extend([
-            mock.call("ifconfig $IFACE_NAME {} netmask {} && ".format(
+            mock.call("ip addr add {}/{} dev $IFACE_NAME && ".format(
                 net_setup.get("ip"), net_setup.get("mask"))),
-            mock.call("route add default gw {} && ".format(
+            mock.call("ip link set $IFACE_NAME up && "),
+            mock.call("ip route add default via {} && ".format(
                 net_setup.get("gateway"))),
         ])
         dns_servers = net_setup.get('dns')
@@ -1008,7 +1018,7 @@ class TestHypervisorHmc(TestCase):
 
     def test_start_netsetup(self):
         """
-        Test start operation with auto network setup
+        Test start operation with auto network setup using VLAN
         """
         lpar_name = 'dummy_lpar'
         parameters = {
@@ -1028,6 +1038,7 @@ class TestHypervisorHmc(TestCase):
                     "password": "super_password",
                     "dns": ['9.9.9.25', '9.9.9.30'],
                     "type": "osa",
+                    "vlan": 55,
                 }
             },
             'cpus_ifl': 1

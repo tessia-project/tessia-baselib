@@ -433,6 +433,7 @@ class HypervisorHmc(HypervisorBase):
         dns_servers = net_setup.get('dns')
         subnet_addr = net_setup['mask']
         gw_addr = net_setup['gateway']
+        vlan_id = net_setup.get('vlan')
 
         # PCI card: find out interface name
         if net_setup.get('type') == 'pci':
@@ -487,14 +488,21 @@ class HypervisorHmc(HypervisorBase):
             # layer2 active: set mac address for network interface
             if layer2 == 1 and mac_addr:
                 net_cmds.append(
-                    "ifconfig $IFACE_NAME hw ether {}".format(mac_addr))
+                    "ip link set $IFACE_NAME address {}".format(mac_addr))
 
+        if vlan_id:
+            net_cmds.extend([
+                'ip link add link ${{IFACE_NAME}} name ${{IFACE_NAME}}.{vlan} '
+                'type vlan id {vlan}'.format(vlan=vlan_id),
+                'ip link set $IFACE_NAME up',
+                'export IFACE_NAME=${{IFACE_NAME}}.{}'.format(vlan_id)
+            ])
         net_cmds.extend([
             # set ip address and network mask
-            "ifconfig $IFACE_NAME {} netmask {}".format(
-                ip_addr, subnet_addr),
+            "ip addr add {}/{} dev $IFACE_NAME".format(ip_addr, subnet_addr),
+            "ip link set $IFACE_NAME up",
             # set default gateway
-            "route add default gw {}".format(gw_addr),
+            "ip route add default via {}".format(gw_addr),
         ])
         if dns_servers:
             net_cmds.append("echo > /etc/resolv.conf")
