@@ -431,7 +431,7 @@ class HypervisorHmc(HypervisorBase):
         net_cmds = []
         ip_addr = net_setup['ip']
         dns_servers = net_setup.get('dns')
-        subnet_addr = net_setup['mask']
+        subnet_mask = net_setup['mask']
         gw_addr = net_setup['gateway']
         vlan_id = net_setup.get('vlan')
 
@@ -499,7 +499,7 @@ class HypervisorHmc(HypervisorBase):
             ])
         net_cmds.extend([
             # set ip address and network mask
-            "ip addr add {}/{} dev $IFACE_NAME".format(ip_addr, subnet_addr),
+            "ip addr add {}/{} dev $IFACE_NAME".format(ip_addr, subnet_mask),
             "ip link set $IFACE_NAME up",
             # set default gateway
             "ip route add default via {}".format(gw_addr),

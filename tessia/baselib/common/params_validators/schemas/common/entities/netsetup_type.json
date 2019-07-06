@@ -14,7 +14,10 @@
             }
         },
         "gateway": {
-            "maxLength": 16,
+            "oneOf": [
+                {"format": "ipv4"},
+                {"format": "ipv6"}
+            ],
             "type": "string"
         },
         "initrd_url": {
@@ -22,7 +25,10 @@
             "type": "string"
         },
         "ip": {
-            "maxLength": 16,
+            "oneOf": [
+                {"format": "ipv4"},
+                {"format": "ipv6"}
+            ],
             "type": "string"
         },
         "kernel_url": {
@@ -34,8 +40,7 @@
             "pattern": "^([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})$"
         },
         "mask": {
-            "maxLength": 16,
-            "type": "string"
+            "type": "integer"
         },
         "options": {
             "type": "object"
