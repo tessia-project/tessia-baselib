@@ -393,7 +393,7 @@ class HypervisorHmc(HypervisorBase):
         # perform load of a SCSI disk
         if boot_params['boot_method'] == 'scsi':
             guest_obj.scsi_load(
-                load_address=boot_params['devicenr'],
+                load_address=self._normalize_address(boot_params['devicenr']),
                 wwpn=boot_params['wwpn'],
                 lun=boot_params['lun'],
                 wait_for_completion=True,
@@ -402,7 +402,7 @@ class HypervisorHmc(HypervisorBase):
         # perform load of a DASD disk
         elif boot_params['boot_method'] == 'dasd':
             guest_obj.load(
-                load_address=boot_params['devicenr'],
+                load_address=self._normalize_address(boot_params['devicenr']),
                 wait_for_completion=True,
                 force=True)
         # sanity check
@@ -410,6 +410,20 @@ class HypervisorHmc(HypervisorBase):
             raise ValueError('{} boot is only available in DPM mode'.format(
                 boot_params['boot_method']))
     # _load()
+
+    @staticmethod
+    def _normalize_address(address):
+        """
+        Convert the load address to the format expected by the HMC API.
+
+        Args:
+            address (str): string in the format 0.0.1500 or 1500
+
+        Returns:
+            str: normalized load address
+        """
+        return address.replace('.', '')[-5:]
+    # _normalize_address()
 
     def _setup_network(self, net_setup, guest_obj, os_passwd):
         """
