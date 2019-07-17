@@ -96,7 +96,7 @@ lpar_parameters = {
         'netsetup': {
             "mac": None,
             "ip": "192.168.5.12",
-            "mask": "255.255.255.0",
+            "mask": 24,
             "gateway": "192.168.5.1",
             "type": "osa", # also accepts 'pci'
             "device": "f500,f501,f502" # enter the function id when type is 'pci'
@@ -201,7 +201,7 @@ parameters = {
         'netsetup': {
             "mac": None,
             "ip": "192.168.5.12",
-            "mask": "255.255.255.0",
+            "mask": 24,
             "gateway": "192.168.5.1",
             "type": "osa", # also accepts 'pci'
             "device": "f500,f501,f502" # enter the function id when type is 'pci'

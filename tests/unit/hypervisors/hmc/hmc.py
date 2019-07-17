@@ -942,8 +942,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": None,
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     "device": "f500,f501,f502",
                     "password": "super_password",
                     "dns": ['9.9.9.25', '9.9.9.30'],
@@ -1034,8 +1034,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": None,
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     "device": "f500,f501,f502",
                     "password": "super_password",
                     "dns": ['9.9.9.25', '9.9.9.30'],
@@ -1073,8 +1073,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": None,
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     "device": "500",
                     "password": "super_password",
                     "dns": ['9.9.9.25', '9.9.9.30'],
@@ -1140,8 +1140,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": "ff:ff:ff:ff:ff:ff",
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     "device": "f500,f501,f502",
                     "password": "super_password",
                 },
@@ -1219,8 +1219,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": "ff:ff:ff:ff:ff:ff",
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     # test with a different channel format
                     "device": "f500",
                     "password": "somepwd",
@@ -1273,8 +1273,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": None,
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     # test with a different channel format
                     "device": "f500",
                     "password": "somepwd",
@@ -1328,8 +1328,8 @@ class TestHypervisorHmc(TestCase):
                 'netsetup': {
                     "mac": "ff:ff:ff:ff:ff:ff",
                     "ip": "9.9.9.9",
-                    "mask": "255.255.255.255",
-                    "gateway": "8.8.8.8",
+                    "mask": 24,
+                    "gateway": "9.9.9.1",
                     "device": "f500,f501,f502",
                     "password": "super_password",
                     "dns": ['9.9.9.25', '9.9.9.30']
