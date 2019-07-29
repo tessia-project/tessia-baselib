@@ -17,6 +17,7 @@ set -e
 
 function build() {
     local root_pwd="$1"
+    local build_id="$2"
 
     set -x
     apt-get update
@@ -95,6 +96,9 @@ EOF
     # make the image smaller, manpages are not necessary
     rm -f rescue/modules/install-manpages
 
+    # add live image git version to login prompt
+    sed -i -e "/^EOF/ i echo Tessia live-img $build_id" rescue/modules/root-bashrc
+
     # use the newest kernel available
     suite=$(lsb_release --codename --short)
     echo "deb http://deb.debian.org/debian $suite-backports main" > /etc/apt/sources.list.d/backports_repo.list
@@ -115,7 +119,7 @@ EOF
 
     # generate ins file
     cat > rescue/live-img.ins <<EOF
-* tessia live image
+* tessia live image $build_id
 kernel 0x00000000
 initrd 0x02000000
 parmfile 0x00010480
@@ -149,10 +153,11 @@ usage() {
     echo ""
     echo "OPTIONs:"
     echo "  -p           image's root password"
+    echo "  -n           build id"
     echo "  -h           show this help"
 }
 
-while getopts :hp: option; do
+while getopts :hp:n: option; do
     case "$option" in
         h)
             usage
@@ -160,6 +165,9 @@ while getopts :hp: option; do
             ;;
         p)
             root_pwd="$OPTARG"
+            ;;
+        n)
+            build_id="$OPTARG"
             ;;
         :)
             echo "error: missing argument for -$OPTARG" >&2
@@ -174,4 +182,4 @@ while getopts :hp: option; do
     esac
 done
 
-build "$root_pwd"
+build "$root_pwd" "$build_id"
