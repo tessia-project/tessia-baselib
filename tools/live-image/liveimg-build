@@ -16,7 +16,7 @@
 # perform the build of the live image using debirf inside a debian container
 
 # configurable variables
-BUILD_DOCKER_IMAGE="debian:latest"
+BUILD_DOCKER_IMAGE="debian:stretch"
 
 set -e
 
@@ -41,6 +41,10 @@ build() {
     bootstrap_cmd="cd /root && _bootstrap.sh"
     if [ -n "$root_pwd" ]; then
         bootstrap_cmd="$bootstrap_cmd -p $root_pwd"
+    fi
+    build_id=$(git describe --tags --long 2>/dev/null) || :
+    if [ ! -z "$build_id" ]; then
+        bootstrap_cmd="$bootstrap_cmd -n $build_id"
     fi
     echocmd docker exec -ti $container_name /bin/bash -c "$bootstrap_cmd"
     docker exec -ti $container_name /bin/bash -c "$bootstrap_cmd"
