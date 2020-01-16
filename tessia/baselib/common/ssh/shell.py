@@ -187,7 +187,7 @@ class SshShell:
                 output = output[:index]
                 break
             # timeout reached: abort and raise exception
-            elif time.time() > timeout:
+            if time.time() > timeout:
                 raise TimeoutError('Timeout waiting for command output')
 
         output = output.replace('\r\n', '\n')

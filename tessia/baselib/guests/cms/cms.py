@@ -145,22 +145,25 @@ class GuestCms(GuestBase):
         Raises:
             RuntimeError: in case a zvm command fails
         """
+        query_msgs = [ERROR_REGEX]
         if dev_type == 'pci':
             dev_type = 'pcif'
+            query_msgs.append('(?i) A PCI function was not found')
+            query_msgs.append('(?i) PCIF 0*{} ON '.format(dev_id))
         else:
             dev_type = ''
+            query_msgs.append('(?i) {} ON '.format(dev_id))
 
         # if device is already attached the operation is skipped, with that
         # approach we make sure not to fail in case the device was already
         # defined as virtual by user directory
-        exists_msg = '(?i) {} ON '.format(dev_id)
         _, re_match = self._terminal.send_cmd(
             "q v {} {}".format(dev_type, dev_id),
-            wait_for=[ERROR_REGEX, exists_msg], timeout=10)
+            wait_for=query_msgs, timeout=10)
         if not re_match:
             raise RuntimeError(
                 'Query device {} returned unexpected output'.format(dev_id))
-        if re_match.re.pattern == exists_msg:
+        if re_match.re.pattern == query_msgs[-1]:
             self._logger.info(
                 'Device %s already defined, skipping attach', dev_id)
             return

@@ -41,8 +41,7 @@ HOST_NAME = 'localhost'
 PORT = 1234
 PASSWORD = 'password'
 USERNAME = 'some_user'
-RSA_PRIV_KEY = ("""
------BEGIN RSA PRIVATE KEY-----
+RSA_PRIV_KEY = ("""-----BEGIN RSA PRIVATE KEY-----
 MIIEowIBAAKCAQEA3iPp07U3xL02kgJH9VGA6+h8mj9hsUJO3vkZomwc5qYzgXnb
 hctCszP2SEh5Ukrv4+YwJYZqIvctnChD5DxHbpzlvxgMLOptc+/6v6yydVAfg6A5
 V2DZSR6YkJE5icjbF6IyenK6wOmYh5oOBDzTnqtW3muPYCC/SfCsXT9IHo+9NF2J

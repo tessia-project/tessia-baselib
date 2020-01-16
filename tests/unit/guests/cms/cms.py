@@ -176,20 +176,29 @@ class TestGuestCms(TestCase):
 
         # create new instance of terminal
         guest_cpu = 3
-        disk_dasd = {"type": "dasd", "devno": "1c5d"}
-        disk_scsi = {
-            "type": "fcp",
-            "adapters": [
-                {"devno": "1740", "wwpns": ["100507630503c5ae"]},
-                {"devno": "0.0.1780", "wwpns": ["100507630503c7ae"]},
-            ],
-            "lun": "1022400d00000000",
-        }
-        iface = {"type": "osa", "id": "f5f0,f5f1,f5f2"}
-        guest_extensions = {'ifaces': [iface]}
+        disks = [
+            # dasd
+            {"type": "dasd", "devno": "1c5d"},
+            # scsi
+            {
+                "type": "fcp",
+                "adapters": [
+                    {"devno": "1740", "wwpns": ["100507630503c5ae"]},
+                    {"devno": "0.0.1780", "wwpns": ["100507630503c7ae"]},
+                ],
+                "lun": "1022400d00000000",
+            }
+        ]
+        ifaces = [
+            # osa
+            {"type": "osa", "id": "f5f0,f5f1,f5f2"},
+            # pci
+            {"type": "pci", "id": "240"},
+            {"type": "pci", "id": "250"},
+        ]
+        guest_ext = {'ifaces': ifaces}
         guest_obj.login()
-        guest_obj.hotplug(cpu=guest_cpu, vols=[disk_dasd, disk_scsi],
-                          extensions=guest_extensions)
+        guest_obj.hotplug(cpu=guest_cpu, vols=disks, extensions=guest_ext)
 
         # validate commands executed on console
         call_list = [
@@ -210,6 +219,9 @@ class TestGuestCms(TestCase):
             mock.call('q v  f5f0'),
             mock.call('q v  f5f1'),
             mock.call('q v  f5f2'),
+            mock.call('q v pcif 240'),
+            mock.call('att pcif 240 *'),
+            mock.call('q v pcif 250'),
         ]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
     # test_hotplug_ok()
