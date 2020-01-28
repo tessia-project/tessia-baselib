@@ -26,6 +26,7 @@ from tessia.baselib.common.ssh.exceptions import SshShellError
 from unittest import main as unittest_main
 from unittest import mock
 from unittest import TestCase
+from uuid import uuid4
 
 import itertools
 import paramiko
@@ -141,8 +142,6 @@ class TestSshShell(TestCase):
         # we can set our mock socket to use the same uuid
         # when printing the prompt, since the mock socket
         # won't actually execute 'export PS1=...'
-        from uuid import uuid4
-
         uid = str(uuid4())
 
         shell_module.uuid4 = mock.MagicMock(return_value=uid)
