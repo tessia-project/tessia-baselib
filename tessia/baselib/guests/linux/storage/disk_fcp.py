@@ -164,19 +164,29 @@ class DiskFcp(DiskBase):
         cmd = "lszfcp -D -b {} -p {} -l {}".format(devno, wwpn, lun)
         ret, output = self._cmd_channel.run(cmd)
         output = output.strip()
-        if ret != 0 or not output:
+        if ret != 0 or not output or output.startswith('Error:'):
             raise RuntimeError('scsi path not found for '
                                'path {}/{}/{}'.format(devno, wwpn, lun))
         scsi_path = output.split()[-1]
 
-        # convert scsi path to kernel device
-        ret, output = self._cmd_channel.run('lsscsi {}'.format(scsi_path))
-        output = output.strip()
-        if ret != 0 or not output:
-            raise RuntimeError('scsi kernel device not found for '
-                               'path {}/{}/{}'.format(devno, wwpn, lun))
+        # convert scsi path to kernel device; certain systems present a delay
+        # until the kernel device is available so we try a couple of times
+        # before failing
+        output = ''
+        for wait_secs in (0, 1, 5, 15, 30, 60):
+            sleep(wait_secs)
+            ret, output = self._cmd_channel.run('lsscsi {}'.format(scsi_path))
+            output = output.strip()
+            if ret == 0 and output:
+                output = output.split()[-1]
+                if output != '-':
+                    break
+        else:
+            raise RuntimeError(
+                'lsscsi failed to return a valid kernel device for path '
+                '{}/{}/{}, output: {}'.format(devno, wwpn, lun, output))
 
-        return output.split()[-1]
+        return output
     # _get_scsi_dev_filename()
 
     def _is_wwpn_active(self, devno, wwpn):
