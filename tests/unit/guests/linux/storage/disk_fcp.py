@@ -146,16 +146,25 @@ class TestDiskFcp(TestCase):
             # _get_all_scsi_dev_filenames
             (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:23:1073889314"),
-            (0, "/dev/sda"),
+            (0, "[1:0:23:1073889314] disk    IBM      2107900          5.22"
+                "    -"), # simulate real cases where the kernel device takes
+                          # a while to show up
+            (0, "[1:0:23:1073889314] disk    IBM      2107900          5.22"
+                "    -"),
+            (0, "[1:0:23:1073889314] disk    IBM      2107900          5.22"
+                "    /dev/sda"),
             (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
                 "1:0:23:1073889315"),
-            (0, "/dev/sdb"),
+            (0, "[1:0:23:1073889315] disk    IBM      2107900          5.22"
+                "    /dev/sdb"),
             (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:24:1073889317"),
-            (0, "/dev/sdc"),
+            (0, "[1:0:24:1073889317] disk    IBM      2107900          5.22"
+                "    /dev/sdc"),
             (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
                 "1:0:24:1073889315"),
-            (0, "/dev/sdd"),
+            (0, "[1:0:24:1073889315] disk    IBM      2107900          5.22"
+                "    /dev/sdd"),
         ]
         return outputs
     # _get_outputs_for_mpath()
@@ -220,7 +229,8 @@ class TestDiskFcp(TestCase):
             (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
             (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
             (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
-            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, "Error: no fcp devices found."),
             (0, ""), # _enable_lun_paths _activate_lun echo > unit_add
             # _enable_lun_paths _activate_lun _get_scsi_dev_filename
             (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
@@ -270,16 +280,20 @@ class TestDiskFcp(TestCase):
             # _get_all_scsi_dev_filenames
             (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:23:1073889314"),
-            (0, "/dev/sda"),
+            (0, "[1:0:23:1073889314] disk    IBM      2107900          5.22"
+                "    /dev/sda"),
             (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
                 "1:0:23:1073889315"),
-            (0, "/dev/sdb"),
+            (0, "[1:0:23:1073889315] disk    IBM      2107900          5.22"
+                "    /dev/sdb"),
             (0, "0.0.1801/0x300607630503c1ae/0x1024400000000000 "
                 "1:0:24:1073889317"),
-            (0, "/dev/sdc"),
+            (0, "[1:0:24:1073889317] disk    IBM      2107900          5.22"
+                "    /dev/sdc"),
             (0, "0.0.1801/0x300607630503c1af/0x1024400000000000 "
                 "1:0:24:1073889315"),
-            (0, "/dev/sdd"),
+            (0, "[1:0:24:1073889315] disk    IBM      2107900          5.22"
+                "    /dev/sdd"),
 
             #iteration 1
             (0, "/dev/sda"),# _get_multipath_name _get_kernel_devname
@@ -380,6 +394,46 @@ class TestDiskFcp(TestCase):
         self.assertRaisesRegex(RuntimeError, re_msg, disk.activate)
     # test_activate_fail_add_lun()
 
+    def test_activate_fail_lsscsi(self):
+        """
+        Test the case where a lun fails to be activated after the path comes
+        up but lsscsi fails to detect the kernel device name.
+        """
+        output = [
+            (0, ""), # _enable_zfcp_module
+            (0, ""), # _enable_device echo free cio_ignore
+            (0, ""), # _enable_device chccwdev -e
+            (0, ""), # _check_adapter_active
+            (1, ""), # _enable_lun_paths _is_wwpn_active 0 = True, 1 = False
+            (1, ""), # _enable_lun_paths _activate_wwpn -e port_add
+            (0, ""), # _enable_lun_paths _activate_wwpn -e port_rescan && echo
+            (0, ""), # _enable_lun_paths _activate_wwpn -e adapter/wwpn
+            (1, ""), # _enable_lun_paths _is_lun_active _get_scsi_dev_filename
+            (0, ""), # _enable_lun_paths _activate_lun unit_add
+            # _enable_lun_paths _activate_lun _get_scsi_dev_filename
+            (0, "0.0.1800/0x300607630503c1af/0x1024400000000000 "
+                "1:0:23:1073889315"),
+            (0, "/dev/sda"),
+            # check_multipath
+            # _get_all_scsi_dev_filenames
+            (0, "0.0.1800/0x300607630503c1ae/0x1024400000000000 "
+                "1:0:23:1073889315"),
+        ]
+        # _get_scsi_dev_filename many attempts
+        for _ in range(0, 6):
+            output.append(
+                (0, "[1:0:23:1073889315] disk    IBM      2107900          "
+                    "5.22    -"),
+            )
+        self._mock_shell.run.side_effect = output
+        params_fcp = deepcopy(PARAMS_FCP)
+        params_fcp['specs']['adapters'][0]['wwpns'].pop()
+        params_fcp['specs']['adapters'].pop()
+        disk = self._create_disk(params_fcp)
+        re_msg = 'lsscsi failed to return a valid kernel device for path '
+        self.assertRaisesRegex(RuntimeError, re_msg, disk.activate)
+    # test_activate_fail_lsscsi()
+
     def test_activate_multipath_name_not_same(self):
         """
         Test the case in which two paths don't belong to the same multipath
@@ -400,6 +454,19 @@ class TestDiskFcp(TestCase):
         self.assertRaisesRegex(RuntimeError, "Multipath map",
                                disk.activate)
     # test_activate_multipath_name_not_same()
+
+    def test_activate_multipath_kernel_dev_fails(self):
+        """
+        Test the case in which the kernel device name for the multipath
+        cannot be determined.
+        """
+        outputs = self._get_outputs_for_mpath()
+        outputs.append((1, ""))
+        self._mock_shell.run.side_effect = outputs
+        disk = self._create_disk(PARAMS_FCP)
+        self.assertRaisesRegex(RuntimeError, "Kernel device does exist",
+                               disk.activate)
+    # test_activate_multipath_kernel_dev_fails()
 
     def test_activate_multipath_not_available(self):
         """
