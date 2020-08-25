@@ -50,10 +50,10 @@ class TestGuestSessionBase(TestCase):
             """
             Concrete class of GuestSessionBase
             """
-            def close(self, *args, **kwargs):
-                super().close(*args, **kwargs)
-            def run(self, *args, **kwargs):
-                super().run(*args, **kwargs)
+            def close(self):
+                super().close()
+            def run(self, cmd, timeout=120, ignore_ret=False):
+                super().run(cmd, timeout=timeout, ignore_ret=ignore_ret)
         self._child_cls = Child
     # setUp()
 

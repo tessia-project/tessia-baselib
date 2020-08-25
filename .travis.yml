@@ -1,0 +1,21 @@
+language: python
+
+python:
+  - 3.6
+
+services:
+  - docker
+
+env:
+  global:
+    - IMAGE_NAME=tessia-baselib:$TRAVIS_COMMIT
+
+# Seems that travis doesn't stop running scripts after the first one
+# fails (see https://github.com/travis-ci/travis-ci/issues/1066) so
+# a chain with '&&' was used.
+script: |
+  git bundle create tools/ci/docker/assets/tessia-baselib.git HEAD &&
+  docker build --pull --force-rm -f tools/ci/docker/Dockerfile -t $IMAGE_NAME tools/ci/docker &&
+  docker run --env TESSIA_BASELIB_INTERACTIVE=no --rm $IMAGE_NAME &&
+  docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_pylint.py $IMAGE_NAME &&
+  docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_tests.py $IMAGE_NAME
