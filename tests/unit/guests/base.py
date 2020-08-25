@@ -31,10 +31,12 @@ from unittest.mock import sentinel
 # CODE
 #
 
+
 class TestGuestBase(TestCase):
     """
     Unit test for the GuestBase class
     """
+
     def setUp(self):
         """
         Prepare necessary objects before executing each testcase
@@ -51,22 +53,33 @@ class TestGuestBase(TestCase):
             """
             Concrete class of GuestBase
             """
-            def hotplug(self, *args, **kwargs):
-                super().hotplug(*args, **kwargs)
-            def login(self, *args, **kwargs):
-                super().login(*args, **kwargs)
-            def logoff(self, *args, **kwargs):
-                super().logoff(*args, **kwargs)
-            def install_packages(self, *args, **kwargs):
-                super().install_packages(*args, **kwargs)
-            def open_session(self, *args, **kwargs):
-                super().open_session(*args, **kwargs)
-            def pull_file(self, *args, **kwargs):
-                super().pull_file(*args, **kwargs)
-            def push_file(self, *args, **kwargs):
-                super().push_file(*args, **kwargs)
-            def stop(self, *args, **kwargs):
-                super().stop(*args, **kwargs)
+
+            def hotplug(self, cpu=None, memory=None, vols=None,
+                        extensions=None):
+                super().hotplug(cpu=cpu, memory=memory, vols=vols,
+                                extensions=extensions)
+
+            def login(self, timeout=60):
+                super().login(timeout=timeout)
+
+            def logoff(self):
+                super().logoff()
+
+            def install_packages(self, packages):
+                super().install_packages(packages)
+
+            def open_session(self, extensions=None):
+                super().open_session(extensions=extensions)
+
+            def pull_file(self):
+                super().pull_file()
+
+            def push_file(self, source_url, target_path, write_mode='wb'):
+                super().push_file(source_url, target_path,
+                                  write_mode=write_mode)
+
+            def stop(self):
+                super().stop()
         self._child_cls = Child
     # setUp()
 
@@ -81,7 +94,7 @@ class TestGuestBase(TestCase):
         Raises:
             AssertionError: if an attribute does not match passed argument
         """
-        self.assertRaises( # pylint:disable=abstract-class-instantiated
+        self.assertRaises(  # pylint:disable=abstract-class-instantiated
             TypeError,
             base.GuestBase,
             sentinel.system_name,

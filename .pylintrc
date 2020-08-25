@@ -71,7 +71,9 @@ confidence=
 # * similarities: first because it's not reliably reported (only when one
 # process is used by pylint), second because it reports things that can't/won't
 # be refactored.
-disable=wrong-import-order,arguments-differ,useless-super-delegation,protected-access,similarities
+# * raise-missing-from: most of exceptions in Tessia suppress their origin,
+# unless explicitly allowed
+disable=wrong-import-order,arguments-differ,useless-super-delegation,protected-access,similarities,raise-missing-from
 
 
 [REPORTS]

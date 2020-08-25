@@ -51,16 +51,16 @@ class TestHypervisorBase(TestCase):
             """
             Concrete class of HypervisorBase
             """
-            def login(self, *args, **kwargs):
-                super().login(*args, **kwargs)
-            def logoff(self, *args, **kwargs):
-                super().logoff(*args, **kwargs)
-            def reboot(self, *args, **kwargs):
-                super().reboot(*args, **kwargs)
-            def start(self, *args, **kwargs):
-                super().start(*args, **kwargs)
-            def stop(self, *args, **kwargs):
-                super().stop(*args, **kwargs)
+            def login(self, timeout=60):
+                super().login(timeout=timeout)
+            def logoff(self):
+                super().logoff()
+            def reboot(self, guest_name, parameters):
+                super().reboot(guest_name, parameters)
+            def start(self, guest_name, cpu, memory, parameters):
+                super().start(guest_name, cpu, memory, parameters)
+            def stop(self, guest_name, parameters):
+                super().stop(guest_name, parameters)
         self._child_cls = Child
     # setUp()
 

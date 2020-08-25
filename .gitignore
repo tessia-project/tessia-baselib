@@ -6,3 +6,7 @@ __pycache__/
 build/
 .tox/
 .coverage
+# editors
+.idea
+.vscode
+*.patch
