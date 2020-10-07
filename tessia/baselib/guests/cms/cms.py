@@ -409,10 +409,13 @@ class GuestCms(GuestBase):
                         exc.response.status_code, exc.response.reason))
 
             # download the file
-            chunk_size = 10 * 1024
             with NamedTemporaryFile(mode='wb') as file_fd:
+                chunk_size = 10 * 1024
                 for chunk in resp.iter_content(chunk_size=chunk_size):
                     file_fd.write(chunk)
+                file_size = file_fd.tell()
+                extra_zeros_size = 80 - (file_size % 80)
+                file_fd.write(b'\0' * extra_zeros_size)
                 file_fd.flush()
                 # transfer downloaded file to host
                 self._terminal.transfer(

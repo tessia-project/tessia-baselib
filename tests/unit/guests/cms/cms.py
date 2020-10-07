@@ -456,7 +456,7 @@ class TestGuestCms(TestCase):
         self.addCleanup(patcher.stop)
         mock_resp = mock_get.return_value
         mock_resp.raise_for_status.return_value = None
-        mock_resp.iter_content.return_value = iter(['1', '2', '3'])
+        mock_resp.iter_content.return_value = ['1', '2', '3']
 
         # mock temp file creation
         patcher = patch.object(cms, 'NamedTemporaryFile', autospec=True)
@@ -476,11 +476,13 @@ class TestGuestCms(TestCase):
 
         # validate behavior
         mock_resp.iter_content.assert_called_once_with(chunk_size=mock.ANY)
-        self.assertListEqual(mock_file.write.mock_calls, [
+        template_for_checking = [
             mock.call('1'),
             mock.call('2'),
             mock.call('3'),
-        ])
+        ]
+
+        self.assertIn(template_for_checking, mock_file.write.mock_calls)
         self._mock_terminal.transfer.assert_called_once_with(
             mock_file.name, target_file, direction='send',
             timeout=cms.TRANSFER_TIMEOUT, mode='binary')

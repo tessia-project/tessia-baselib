@@ -424,7 +424,7 @@ class TestHypervisorZvm(TestCase):
         self.addCleanup(patcher.stop)
         mock_resp = mock_get.return_value
         mock_resp.raise_for_status.return_value = None
-        mock_resp.iter_content.return_value = iter(['1', '2', '3'])
+        mock_resp.iter_content.return_value = ['1', '2', '3']
 
         # mock temp file creation
         patcher = patch.object(cms_module, 'NamedTemporaryFile', autospec=True)
@@ -499,11 +499,12 @@ class TestHypervisorZvm(TestCase):
         # validate download behavior
         self.assertListEqual(mock_resp.iter_content.mock_calls, [
             mock.call(chunk_size=mock.ANY), mock.call(chunk_size=mock.ANY)])
-        self.assertListEqual(mock_file.write.mock_calls, [
+        template_for_checking = [
             mock.call('1'),
             mock.call('2'),
             mock.call('3'),
-        ])
+        ]
+        self.assertIn(template_for_checking, mock_file.write.mock_calls)
         self.assertListEqual(mock_s3270.transfer.mock_calls, [
             mock.call(mock_file.name,
                       zvm.HypervisorZvm.NETBOOT_KERNEL_FILE,
