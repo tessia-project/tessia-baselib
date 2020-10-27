@@ -296,10 +296,9 @@ class HypervisorZvm(HypervisorBase):
         if cpu != 0:
             # clear possible attached cpus
             reset_msg = r'(?i)storage cleared - system reset'
-            _, re_match = self._cms.run(
-                "detach cpu all",
-                wait_for=[reset_msg, ERROR_REGEX],
-                timeout=10)
+            _, re_match = self._cms.run("detach cpu all",
+                                        wait_for=[reset_msg, ERROR_REGEX],
+                                        use_cp=True, timeout=10)
             # command timed out waiting for a valid output: abort as we don't
             # know the new guest state
             if not re_match:
@@ -316,7 +315,7 @@ class HypervisorZvm(HypervisorBase):
             stor_msg = r'STORAGE = \d+'
             _, re_match = self._cms.run("define storage {}M".format(memory),
                                         wait_for=[stor_msg, ERROR_REGEX],
-                                        timeout=10)
+                                        use_cp=True, timeout=10)
             if not re_match:
                 raise RuntimeError(
                     'Define storage (memory) returned unexpected output')
