@@ -16,7 +16,7 @@
 # perform the build of the live image using debirf inside a debian container
 
 # configurable variables
-BUILD_DOCKER_IMAGE="debian:stretch"
+BUILD_DOCKER_IMAGE="debian:stretch-20200607"
 
 set -e
 
