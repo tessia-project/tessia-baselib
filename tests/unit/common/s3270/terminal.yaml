@@ -1275,3 +1275,98 @@ send_cmd_cms:
     data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
+
+new_wrong_password:
+  - |
+    data:
+    data: Enter one of the following commands:
+    data:
+    data:    LOGON userid             (Example:  LOGON VMUSER1)
+    data:    DIAL userid              (Example:  DIAL VMUSER2)
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)
+    data:    LOGOFF
+    data: l user
+    data:
+    data: Enter your password,
+    data: or
+    data: To change your password, enter: ccc/nnn/nnn
+    data:      where ccc = current password, and nnn = new password
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:                                                             CP READ   HOSTNAME
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+      ok
+  - |
+    data:
+    data: Enter one of the following commands:
+    data:
+    data:    LOGON userid             (Example:  LOGON VMUSER1)
+    data:    DIAL userid              (Example:  DIAL VMUSER2)
+    data:    MSG userid message       (Example:  MSG VMUSER2 GOOD MORNING)
+    data:    LOGOFF
+    data: l user
+    data:
+    data: Enter your password,
+    data: or
+    data: To change your password, enter: ccc/nnn/nnn
+    data:      where ccc = current password, and nnn = new password
+    data:
+    data: gsdrc01e requested new password breaks the password quality rule:
+    data:
+    data: gsdrc03e password must be 8 characters in length
+    data:
+    data:
+    data: gsdrc02i    all password quality rules are:
+    data: gsdrc02i    -------------------------------
+    data:
+    data: gsdrc03i password must be 8 characters in length
+    data: gsdrc04i password must contain 2 or 3 character types (letter number national)
+    data: gsdrc09i password must not contain your userid
+    data: RPIMGR043E new password invalid
+    data:
+    data: to change your password - enter: nnn/nnn  where nnn = new password
+    data: or,
+    data: enter logoff to cancel
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:
+    data:                                                             CP READ   HOSTNAME
+    U F U C(hostname) I 4 43 80 41 0 0x0 -
+    ok
+

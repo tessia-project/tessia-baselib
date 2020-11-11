@@ -40,6 +40,11 @@ ZVM_CODES = {
     "HCPLGA054E": "Already logged on",
     "HCPUSO361E": "LOGOFF/FORCE pending for user",
     "HCPLGA361E": "LOGOFF/FORCE pending for user",
+    "RPIMGR043E": "Requested new password invalid:\n"
+                  "- password must be 8 characters in length\n"
+                  "- password must contain 2 or 3 character types "
+                  "(letter number national)\n"
+                  "- password must not contain your userid",
 }
 
 
@@ -446,7 +451,7 @@ class Terminal:
             host_name (str): target hostname
             user (str): guest user id
             password (str): guest password
-            parameters (dict): dictionary with aditional login parameters
+            parameters (dict): dictionary with additional login parameters
             timeout (int): how many seconds to wait for action to complete
 
         Returns:
@@ -463,6 +468,14 @@ class Terminal:
         login_cmd = 'l ' + user
         # setup aditional login parameters
         if parameters:
+            # set new password
+            if parameters.get('new_zvm_passwd'):
+                new_passwd = [
+                    password,
+                    parameters['new_zvm_passwd'],
+                    parameters['new_zvm_passwd']
+                ]
+                password = '/'.join(new_passwd)
             # check if we will do a logon by
             if parameters.get('byuser'):
                 login_cmd += ' by ' + parameters.get('byuser')
@@ -537,7 +550,8 @@ class Terminal:
                 continue
 
             # invalid credentials: raise appropriate exception
-            if error_msg[0] in ['RPIMGR042I', 'RPIMGR046T', 'HCPLGA050E']:
+            if error_msg[0] in ['RPIMGR042I', 'RPIMGR046T', 'HCPLGA050E',
+                                'RPIMGR043E',]:
                 raise PermissionError('{} {}'.format(*error_msg))
 
             # another type of error occurred: cannot continue

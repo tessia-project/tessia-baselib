@@ -434,6 +434,30 @@ class TestTerminal(TestCase):
         ])
     # test_login_wrong_password()
 
+    def test_set_wrong_new_password(self):
+        """
+        Try change password with wrong one
+        """
+        # set s3270 output
+        self._mock_s3270.ascii.side_effect = self._data['new_wrong_password']
+
+        # validate result
+        error_msg = 'Requested new password invalid:'
+        with self.assertRaisesRegex(PermissionError, error_msg):
+            self._term.login(
+                'hostname.com',
+                'user',
+                'password',
+                {'new_zvm_passwd': 'bad_passwd'}
+            )
+
+        # validate behavior
+        #self.assertEqual(self._mock_s3270.string.mock_calls, [
+        #    mock.call('l user'),
+        #    mock.call('password/bad_passwd/bad_passwd', hide=True),
+        #])
+    # test_set_wrong_new_password()
+
     def test_logoff_ok(self):
         """
         Exercise a normal logoff command
