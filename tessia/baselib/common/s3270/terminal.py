@@ -40,7 +40,8 @@ ZVM_CODES = {
     "HCPLGA054E": "Already logged on",
     "HCPUSO361E": "LOGOFF/FORCE pending for user",
     "HCPLGA361E": "LOGOFF/FORCE pending for user",
-    "RPIMGR043E": "Requested new password invalid:\n"
+    "RPIMGR043E": "Requested new password invalid.\n"
+                  "Among others, the following rules must be observed:\n"
                   "- password must be 8 characters in length\n"
                   "- password must contain 2 or 3 character types "
                   "(letter number national)\n"

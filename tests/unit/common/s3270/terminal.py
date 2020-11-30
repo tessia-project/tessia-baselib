@@ -442,7 +442,7 @@ class TestTerminal(TestCase):
         self._mock_s3270.ascii.side_effect = self._data['new_wrong_password']
 
         # validate result
-        error_msg = 'Requested new password invalid:'
+        error_msg = 'Requested new password invalid.'
         with self.assertRaisesRegex(PermissionError, error_msg):
             self._term.login(
                 'hostname.com',
