@@ -370,6 +370,7 @@ class HypervisorHmc(HypervisorBase):
                 }
                 if guest_obj.get_property('status') != 'stopped':
                     guest_obj.stop(wait_for_completion=True)
+                    guest_obj.wait_for_status('stopped')
                 guest_obj.update_properties(update_props)
                 guest_obj.start(wait_for_completion=True)
             # network boot
@@ -386,6 +387,7 @@ class HypervisorHmc(HypervisorBase):
                 }
                 if guest_obj.get_property('status') != 'stopped':
                     guest_obj.stop(wait_for_completion=True)
+                    guest_obj.wait_for_status('stopped')
                 guest_obj.update_properties(update_props)
                 guest_obj.start(wait_for_completion=True)
             return
@@ -640,6 +642,7 @@ class HypervisorHmc(HypervisorBase):
         # error
         if part_obj.get_property('status') != 'stopped':
             part_obj.stop(wait_for_completion=True)
+            part_obj.wait_for_status('stopped')
             # the object has caching issues which in certain situations cause
             # the status not to be updated, so we explicitly fetch properties
             # again here
@@ -860,6 +863,7 @@ class HypervisorHmc(HypervisorBase):
         if isinstance(guest_obj, zhmcclient.Partition):
             if guest_obj.get_property('status') != 'stopped':
                 guest_obj.stop(wait_for_completion=True)
+                guest_obj.wait_for_status('stopped')
             guest_obj.start(wait_for_completion=True)
             return
 
