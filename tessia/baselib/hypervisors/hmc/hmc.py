@@ -725,6 +725,7 @@ class HypervisorHmc(HypervisorBase):
         Raises:
             ConnectionError: if session does not exist yet
             ValueError: if an object (cpc, lpar) cannot be retrieved
+            zhmcclient.HTTPError: an HMC operation fails
         """
         self._logger.debug(
             "performing START HypervisorHMC: name='%s' host_name='%s' "
@@ -787,9 +788,17 @@ class HypervisorHmc(HypervisorBase):
         # classic mode: make sure the LPAR is active before performing a load
         if isinstance(guest_obj, zhmcclient.Lpar) and (
                 guest_obj.get_property('status') == 'not-activated'):
-            guest_obj.activate(
-                activation_profile_name=guest_obj.properties['name'],
-                wait_for_completion=True, force=True)
+            self._logger.info("Activating LPAR")
+            try:
+                guest_obj.activate(
+                    activation_profile_name=guest_obj.properties['name'],
+                    wait_for_completion=True, force=True)
+            except zhmcclient.HTTPError as exc:
+                if exc.http_status == 500 and exc.reason == 263:
+                    # Activation is complete. The load was not processed.
+                    self._logger.info("LPAR activation is complete")
+                else:
+                    raise
 
         self._load(guest_obj, parameters['boot_params'])
         self._do_netsetup(guest_obj, parameters['boot_params'])
@@ -843,6 +852,7 @@ class HypervisorHmc(HypervisorBase):
 
         Raises:
             ConnectionError: if session is not created yet
+            zhmcclient.HTTPError: an HMC operation fails
         """
         if self._conn is None:
             raise ConnectionError("You need to login first")
@@ -890,9 +900,18 @@ class HypervisorHmc(HypervisorBase):
                 'force': True,
             }
         guest_obj.deactivate(wait_for_completion=True, force=True)
-        guest_obj.activate(
-            activation_profile_name=img_profile,
-            wait_for_completion=True, force=True)
+        self._logger.info("Activating LPAR")
+        try:
+            guest_obj.activate(
+                activation_profile_name=img_profile,
+                wait_for_completion=True, force=True)
+        except zhmcclient.HTTPError as exc:
+            if exc.http_status == 500 and exc.reason == 263:
+                # Activation is complete. The load was not processed.
+                self._logger.info("LPAR activation is complete")
+            else:
+                raise
+
         load_method(**load_kwargs)
     # reboot()
 # HypervisorHmc
