@@ -571,6 +571,9 @@ class HypervisorHmc(HypervisorBase):
         Args:
             args (dict): values to be applied to profile
             guest_obj (Lpar): zhmclient Lpar object
+
+        Raises:
+            zhmcclient.HTTPError: an HMC operation fails
         """
         # profiles have the same name as the LPARs
         image_profile = guest_obj.manager.cpc.image_activation_profiles.find(
@@ -601,9 +604,18 @@ class HypervisorHmc(HypervisorBase):
 
         self._logger.debug("Updating image profile: args='%s'", updates)
         image_profile.update_properties(updates)
+        self._logger.debug("Image profile updated")
         # we need to activate the LPAR or re-activate so changes get applied
-        guest_obj.activate(activation_profile_name=img_properties['name'],
-                           wait_for_completion=True, force=True)
+        self._logger.info("Activating LPAR")
+        try:
+            guest_obj.activate(activation_profile_name=img_properties['name'],
+                               wait_for_completion=True, force=True)
+        except zhmcclient.HTTPError as exc:
+            if exc.http_status == 500 and exc.reason == 263:
+                # Activation is complete. The load was not processed.
+                self._logger.info("LPAR activation is complete")
+            else:
+                raise
     # _update_resources_lpar()
 
     def _update_resources_partition(self, args, part_obj):
