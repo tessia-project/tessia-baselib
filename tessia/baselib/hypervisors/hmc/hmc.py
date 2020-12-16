@@ -20,23 +20,29 @@ Implementation of hypervisor interface for HMC
 # IMPORTS
 #
 from copy import deepcopy
-from requests.packages import urllib3 # pylint: disable=import-error
+from requests.packages import urllib3  # pylint: disable=import-error
 from tessia.baselib.common.logger import get_logger
 from tessia.baselib.guests.linux.linux import GuestLinux
 from tessia.baselib.hypervisors.base import HypervisorBase
+from tessia.baselib.hypervisors.hmc.messages import Messages
 from tessia.baselib.common.params_validators.utils import validate_params
 from urllib.parse import urlsplit
 
 import time
-import subprocess
 import zhmcclient
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 
-# timeout in seconds before the netboot operation is considered failed
-NETBOOT_LOAD_TIMEOUT = 300 # seconds
+# string to wait for in operating system messages
+MESSAGES_DEFAULT_PATTERN = 'debirf-rescue:~#'
+# how long to load messages after live image is booted into installer
+MSG_POST_LOAD_DURATION = 90  # seconds
+# timeout in seconds for network to be up
+NETBOOT_LOAD_TIMEOUT = 300  # seconds
+# timeout in seconds before the partition is operating
+OS_MESSAGES_TIMEOUT = 600  # seconds
 # list of manageable DPM partition statuses
 VALID_DPM_STATUSES = ('active', 'paused', 'terminated', 'stopped')
 # command used to download kernel and initrd
@@ -45,6 +51,7 @@ WGET_CMD = "wget --no-check-certificate -nv -O '{tgt}' '{src}'"
 #
 # CODE
 #
+
 
 class HypervisorHmc(HypervisorBase):
     """
@@ -172,7 +179,7 @@ class HypervisorHmc(HypervisorBase):
         return ret_args
     # _compute_cpus()
 
-    def _do_netsetup(self, guest_obj, boot_params):
+    def _do_netsetup(self, guest_obj, boot_params, notify_boot=None):
         """
         Perform the steps required to bring up the network on the Linux system
         """
@@ -185,76 +192,101 @@ class HypervisorHmc(HypervisorBase):
         # system without password
         os_passwd = net_setup['password']
         # enable network on loaded operating system
-        self._setup_network(net_setup, guest_obj, os_passwd)
+        net_cmds = self._prepare_setup_network_cmds(net_setup)
 
-        # network is up; open a ssh session to the system
-        linux_obj = GuestLinux(
-            guest_obj.name, net_setup['ip'], 'root', os_passwd, {})
-        linux_obj.login()
+        self._logger.debug("Opening OS messages channel")
+        os_channel_topic = guest_obj.open_os_message_channel(
+            include_refresh_messages=True)
 
-        net_boot = boot_params.get('netboot')
-        # netboot config url provided: perform a kexec to simulate netboot
-        if net_boot:
-            kernel_url = net_boot['kernel_url']
-            initrd_url = net_boot.get('initrd_url')
-            cmdline = net_boot.get('cmdline')
-            self._execute_kexec(linux_obj, kernel_url, initrd_url, cmdline)
+        with Messages.connect(os_channel_topic, self.host_name,
+                              self.user, self.passwd) as receiver:
+            self._logger.debug("Waiting for live image login prompt")
+            self._send_commands(
+                guest_obj,
+                [('debirf-rescue login:', 'root'), ('Password:', os_passwd)],
+                receiver)
 
-        linux_obj.logoff()
+            self._logger.debug("Setting up network on live image")
+            self._send_commands(guest_obj, net_cmds, receiver)
+
+            net_boot = boot_params.get('netboot')
+            if net_boot:
+                self._logger.debug("Performing netboot")
+                self._execute_kexec(guest_obj, receiver,
+                                    net_setup, net_boot)
+
+                # check if we have a notification event in parameters
+                if notify_boot:
+                    self._logger.debug("Notify initial boot complete")
+                    notify_boot.set()
+                # wait a little to collect reboot logs
+                timeout = time.time() + MSG_POST_LOAD_DURATION
+                while timeout - time.time() > 0:
+                    for msg in receiver.get_messages(
+                            timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
+                                                 timeout-time.time()))):
+                        self._logger.debug('OS message: %s', msg)
+
+        self._logger.debug("Live image stage finished")
     # _do_netsetup()
 
-    def _execute_kexec(self, guest, kernel_url, initrd_url, cmdline):
+    def _execute_kexec(self, guest_obj, receiver, net_setup, net_boot):
         """
         Auxiliary method. Execute kexec command on target host.
         This method is only used for the network boot method.
 
         Args:
-            guest (GuestLinux): guest linux object
-            kernel_url (string): url to kernel
-            initrd_url (string): url to initrd image
-            cmdline (string): kernel cmdline
+            guest_obj (Lpar or Partition): zhmcclient object
+            receiver (Messages): messages interface
+            net_setup (dict): net_setup parameters
+            net_boot (dict): net_boot parameters
 
         Raises:
-            None
+            RuntimeError: cannot upload a file via linux session
         """
-        self._logger.debug(
-            "Executing kexec: guest='%s' kernel_url='%s' initrd_url='%s' "
-            "cmdline='%s'", guest, kernel_url, initrd_url, cmdline
-        )
 
-        session = guest.open_session()
+        kernel_url = net_boot['kernel_url']
+        initrd_url = net_boot.get('initrd_url')
+        cmdline = net_boot.get('cmdline')
 
-        parsed_url = urlsplit(kernel_url)
-        # for these protocols we can download directly
-        if parsed_url.scheme in ('http', 'https', 'ftp'):
-            session.run(WGET_CMD.format(tgt='/tmp/kernel', src=kernel_url),
-                        timeout=600)
-        else:
-            # copy files to ramdisk
-            guest.push_file(kernel_url, "/tmp/kernel")
+        # send an empty string first to get a matching pattern in send_commands
+        kexec_cmds = [('', ' ')]
 
-        if initrd_url:
-            parsed_url = urlsplit(initrd_url)
-            # for these protocols we can download directly
-            if parsed_url.scheme in ('http', 'https', 'ftp'):
-                session.run(WGET_CMD.format(tgt='/tmp/initrd', src=initrd_url),
-                            timeout=600)
-            else:
-                guest.push_file(initrd_url, "/tmp/initrd")
+        for source, target in [(kernel_url, '/tmp/kernel'),
+                               (initrd_url, '/tmp/initrd')]:
+            if source and urlsplit(source).scheme not in (
+                    'http', 'https', 'ftp'):
+                # connect with an SSH client and transfer files
+                self._logger.debug("Transferring %s with SSH client", source)
+                linux_obj = GuestLinux(
+                    guest_obj.name, net_setup['ip'],
+                    'root', net_setup['password'], {})
+                try:
+                    linux_obj.login()
+                    linux_obj.push_file(source, target)
+                    linux_obj.logoff()
+                except Exception as exc:
+                    raise RuntimeError(
+                        "Failed to upload {}".format(source)) from exc
+            elif source:
+                kexec_cmds.append(WGET_CMD.format(src=source, tgt=target))
 
-        # Execute kexec and ignore the return since it won't be possible to
-        # read it. Also use nohup to prevent a race condition where the ssh
-        # connection dies too fast before the command is processed.
-        kexec_cmd = 'nohup kexec /tmp/kernel'
+        kexec_cmd = 'kexec /tmp/kernel'
         if initrd_url:
             kexec_cmd += ' --initrd=/tmp/initrd'
         if cmdline:
             kexec_cmd += " --command-line='{}'".format(cmdline)
-        kexec_cmd += ' &>/tmp/kexec.log'
-        session.run(
-            "killall -9 sshd; {}".format(kexec_cmd), ignore_ret=True)
+
+        kexec_cmds.append(kexec_cmd)
+
+        self._logger.debug(
+            "Executing kexec: kernel_url='%s' initrd_url='%s' cmd='%s'",
+            kernel_url, initrd_url, kexec_cmd
+        )
+        self._send_commands(guest_obj, kexec_cmds, receiver)
+
         time.sleep(1)
-    #_execute_kexec()
+    # _execute_kexec()
 
     def _get_cpc(self, cpc_name):
         """
@@ -427,21 +459,20 @@ class HypervisorHmc(HypervisorBase):
         return address.replace('.', '')[-5:]
     # _normalize_address()
 
-    def _setup_network(self, net_setup, guest_obj, os_passwd):
+    def _prepare_setup_network_cmds(self, net_setup):
         """
         Auxiliary method. Setup the network on the loaded operating system.
 
         Args:
             net_setup (dict): dictionary with network parameters
-            guest_obj (Lpar or Partition): zhmcclient object
-            os_passwd (string): operating system root password
 
-        Raises:
-            RuntimeError: in case of timeout while waiting for network to come
-                          up
+        Returns:
+            List[str]: network setup commands
         """
         self._logger.debug(
-            "Setting up network: args='%s'", net_setup
+            "Setting up network: args='%s'",
+            # log arguments without a specific key
+            {k: v for k, v in net_setup.items() if k != 'password'}
         )
 
         net_cmds = []
@@ -526,41 +557,78 @@ class HypervisorHmc(HypervisorBase):
                 net_cmds.append(
                     "echo 'nameserver {}' >> /etc/resolv.conf"
                     .format(dns_entry))
-        timeout = time.time() + NETBOOT_LOAD_TIMEOUT
-        while True:
-            # the api has a limit of 200 chars per call so we need to split the
-            # commands in smaller pieces
-            guest_obj.send_os_command('root')
-            guest_obj.send_os_command(os_passwd)
-            for cmd in net_cmds:
-                str_buf = ''
-                for char in cmd:
-                    str_buf += char
-                    if len(str_buf) == 100:
-                        str_buf += '\\'
-                        guest_obj.send_os_command(str_buf)
-                        str_buf = ''
-                guest_obj.send_os_command('{} && '.format(str_buf))
-            # sometimes the LPAR is unreachable from the network until a ping
-            # is performed (likely because of arp cache)
-            guest_obj.send_os_command("true; ping -c 1 {}".format(gw_addr))
-            # verify if system is reachable
-            try:
-                subprocess.run(
-                    'ping -c 1 -w 5 ' + ip_addr, shell=True, check=True,
-                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except subprocess.CalledProcessError:
-                pass
-            # network is up: commands succeeded
-            else:
-                break
 
-            if time.time() >= timeout:
-                raise RuntimeError(
-                    "Timed out while waiting for network on loaded operating "
-                    "system")
-            time.sleep(5)
-    # _setup_network()
+        # sometimes the LPAR is unreachable from the network until a ping
+        # is performed (likely because of arp cache)
+        net_cmds.append("ping -c 1 {}".format(gw_addr))
+        return net_cmds
+    # _prepare_setup_network_cmds()
+
+    def _send_commands(self, guest_obj, commands, msg_channel):
+        """
+        Send command list to a system via HMC
+
+        Args:
+            guest_obj (Lpar or Partition): zhmcclient object
+            commands (List): list of commands to send.
+                             Command may be a tuple (pattern, command) to wait
+                             for a pattern to appear on msg_channel
+            msg_channel (zhmcclient.NotificationReceiver): message channel
+
+        Raises:
+            TimeoutError: operation took too long
+        """
+        if not commands:
+            return
+
+        # command generator
+        def _get_cmd(commands):
+            for cmd in commands:
+                if isinstance(cmd, str):
+                    yield (MESSAGES_DEFAULT_PATTERN, cmd)
+                else:
+                    yield cmd
+
+        # the api has a limit of 200 chars per call so we need
+        # to split the commands in smaller pieces
+        def _string_to_chunks(string, size=180):
+            for start in range(0, len(string), size):
+                yield string[start:start+size] + (
+                    '\\' if start+size < len(string) else '')
+
+        timeout = time.time() + OS_MESSAGES_TIMEOUT
+        command_gen = _get_cmd(commands)
+        pattern, cmd = next(command_gen)
+        try:
+            # allow first command to skip waiting for messages
+            # by specifying an empty wait pattern
+            if not pattern:
+                for chunk in _string_to_chunks(cmd):
+                    guest_obj.send_os_command(chunk)
+                pattern, cmd = next(command_gen)
+
+            while time.time() < timeout:
+                # wait for pattern to appear
+                messages = msg_channel.get_messages(60.0)
+                if not messages:
+                    self._logger.debug("Still waiting for '%s' prompt",
+                                       pattern)
+                    continue
+
+                for msg in messages:
+                    self._logger.debug("OS message: %s", msg)
+                    if pattern in msg:
+                        for chunk in _string_to_chunks(cmd):
+                            guest_obj.send_os_command(chunk)
+                        pattern, cmd = next(command_gen)
+
+        except StopIteration:
+            pass
+
+        if time.time() > timeout:
+            raise TimeoutError(
+                "Timed out communicating with OS Messages interface")
+    # _send_commands()
 
     def _update_resources_lpar(self, args, guest_obj):
         """
@@ -684,7 +752,7 @@ class HypervisorHmc(HypervisorBase):
             port=self.parameters.get('port', zhmcclient.DEFAULT_HMC_PORT))
         session.logon()
         self._conn = (zhmcclient.Client(session), session)
-     # login()
+    # login()
 
     def logoff(self):
         """
@@ -712,7 +780,7 @@ class HypervisorHmc(HypervisorBase):
     # logoff()
 
     @validate_params
-    def start(self, guest_name, cpu, memory, parameters):
+    def start(self, guest_name, cpu, memory, parameters, notify=None):
         """
         Activate (If necessary) and IPL a target LPAR
 
@@ -721,6 +789,7 @@ class HypervisorHmc(HypervisorBase):
             cpu (int): number of CPU's to assign
             memory (int): amount of memory to assign in megabytes.
             parameters (dict): contains the CPC name and boot type config
+            notify (Event):    A notification object
 
         Raises:
             ConnectionError: if session does not exist yet
@@ -801,7 +870,7 @@ class HypervisorHmc(HypervisorBase):
                     raise
 
         self._load(guest_obj, parameters['boot_params'])
-        self._do_netsetup(guest_obj, parameters['boot_params'])
+        self._do_netsetup(guest_obj, parameters['boot_params'], notify)
     # start()
 
     @validate_params

@@ -79,6 +79,16 @@ def fixed_init(self, hmc, storage_group):
         class_value='storage-volume')
 zhmc_hmc.FakedStorageVolumeManager.__init__ = fixed_init
 
+class MessagesChannelHandler(zhmc_urihandler.GenericGetPropertiesHandler):
+    """
+    Open messages channel
+    """
+    @staticmethod
+    def post(method, hmc, uri, uri_parms, body, logon_required,
+             wait_for_completion):
+        """Operation: Open messages channel."""
+        return {'topic-name': 'messages-topic'}
+
 class MockFakedSession(FakedSession):
     """
     Wraps the FakedSession so that it behaves more like a real mock of the
@@ -106,6 +116,10 @@ class MockFakedSession(FakedSession):
               StorageVolumesHandler),
              (r'/api/storage-groups/([^/]+)/storage-volumes/([^/]+)',
               StorageVolumeHandler),
+             (r'/api/partitions/([^/]+)/operations/open-os-message-channel',
+              MessagesChannelHandler),
+             (r'/api/logical-partitions/([^/]+)/operations/open-os-message-channel',
+              MessagesChannelHandler),
             ]
         )
         self._urihandler = zhmc_urihandler.UriHandler(new_uris)
@@ -115,6 +129,54 @@ class MockFakedSession(FakedSession):
     def logon():
         pass
 # MockFakedSession
+
+class MockNotificationSource:
+    """
+    Mock messages interface
+    """
+    def __init__(self, channel_topic, hmc_host, user, passwd):
+        """
+        Create an async reader from notifications channel
+
+        Args:
+            notification_receiver (zhmcclient.NotificationReceiver):
+                an active NotificationReceiver object
+            notification_type (str): type of messages to process
+        """
+        self.msg_queue = [
+            'debirf-rescue login:',
+            'Password:',
+            hmc.MESSAGES_DEFAULT_PATTERN
+        ]
+        self._stop = False
+    # __init__()
+
+    def close(self):
+        """
+        Close source
+        """
+        self._stop = True
+    # close()
+
+    def notifications(self):
+        """
+        Get all messages from notification channel.
+        Blocking call up to timeout seconds
+
+        Args:
+            timeout (number): max seconds to wait
+
+        Returns:
+            List: messages
+        """
+        while not self._stop:
+            yield (
+                {'notification-type': 'os-message'},
+                {'os-messages': [{'message-text': t} for t in self.msg_queue]}
+            )
+    # notifications()
+
+# MockMessages
 
 class TestHypervisorHmc(TestCase):
     """
@@ -154,11 +216,6 @@ class TestHypervisorHmc(TestCase):
         self._mock_zhmc_cls = patcher_zhmc.start()
         self.addCleanup(patcher_zhmc.stop)
 
-        # subprocess used to ping target system
-        patcher_subprocess = patch.object(hmc, 'subprocess')
-        self._mock_subprocess = patcher_subprocess.start()
-        self.addCleanup(patcher_subprocess.stop)
-
         # guestlinux used when performing kexec
         patcher_guest_linux = patch.object(hmc, 'GuestLinux')
         self._mock_guest_linux = patcher_guest_linux.start()
@@ -184,6 +241,15 @@ class TestHypervisorHmc(TestCase):
                 yield start
         get_time = time_generator()
         self._mock_time.time.side_effect = lambda: next(get_time)
+
+        def messages_connect(*args, **kwargs):
+            """Provide mock notification source to Messages"""
+            return hmc.Messages(MockNotificationSource(*args, **kwargs))
+        # messages_connect()
+        patcher_messages = patch.object(
+            hmc.Messages, 'connect', new=messages_connect)
+        self._mock_messages_cls = patcher_messages.start()
+        self.addCleanup(patcher_messages.stop)
 
         # instantiate the object to be used in the testcases
         self.hmc_object = hmc.HypervisorHmc(
@@ -282,11 +348,11 @@ class TestHypervisorHmc(TestCase):
         Args:
             net_boot (dict): boot parameters used containing kernel info
         """
-        session = self._mock_guest_linux.return_value.open_session.return_value
+        # session = self._mock_guest_linux.return_value.open_session.return_value
+        session = self._mock_send_os
         kexec_call = mock.call(
-            "killall -9 sshd; nohup kexec /tmp/kernel --initrd=/tmp/initrd "
-            "--command-line='{}' &>/tmp/kexec.log".format(
-                net_boot["cmdline"]), ignore_ret=True
+            "kexec /tmp/kernel --initrd=/tmp/initrd "
+            "--command-line='{}'".format(net_boot["cmdline"])
         )
 
         # this verification assumes that kernel and initrd will always have
@@ -295,12 +361,12 @@ class TestHypervisorHmc(TestCase):
         if parsed_url.scheme in ('http', 'https', 'ftp'):
             calls = [
                 mock.call("wget --no-check-certificate -nv -O '/tmp/kernel' "
-                          "'{}'".format(net_boot['kernel_url']), timeout=600),
+                          "'{}'".format(net_boot['kernel_url'])),
                 mock.call("wget --no-check-certificate -nv -O '/tmp/initrd' "
-                          "'{}'".format(net_boot['initrd_url']), timeout=600),
+                          "'{}'".format(net_boot['initrd_url'])),
                 kexec_call,
             ]
-            session.run.assert_has_calls(calls)
+            session.assert_has_calls(calls)
         else:
             calls = [
                 mock.call(net_boot.get("kernel_url"), "/tmp/kernel"),
@@ -308,7 +374,7 @@ class TestHypervisorHmc(TestCase):
             ]
             self._mock_guest_linux.return_value.push_file.assert_has_calls(
                 calls)
-            session.run.assert_has_calls([kexec_call])
+            session.assert_has_calls([kexec_call])
     # _assert_net_boot()
 
     def _assert_net_setup(self, net_setup):
@@ -324,10 +390,10 @@ class TestHypervisorHmc(TestCase):
                 mock.call(net_setup['password']),
                 mock.call(
                     "DEV_PATH=$(dirname $(grep -m1 -r '0x0*{}' --include "
-                    "function_id /sys/bus/pci/devices/*)) && ".format(
+                    "function_id /sys/bus/pci/devices/*))".format(
                         net_setup['device'])),
                 mock.call(
-                    "export IFACE_NAME=$(ls -1 ${DEV_PATH}/net | head -1) && "
+                    "export IFACE_NAME=$(ls -1 ${DEV_PATH}/net | head -1)"
                 ),
             ]
         else:
@@ -348,7 +414,7 @@ class TestHypervisorHmc(TestCase):
             else:
                 for option, value in options.items():
                     znet_expected += ' -o {}={}'.format(option, value)
-            znet_expected += ' && '
+
             # build the list of expected calls
             full_ccw = ch_list[0]
             if '.' not in full_ccw:
@@ -356,51 +422,44 @@ class TestHypervisorHmc(TestCase):
             net_cmd_calls = [
                 mock.call("root"),
                 mock.call(net_setup['password']),
-                mock.call("cio_ignore -r {} && ".format(cio_expected)),
+                mock.call("cio_ignore -r {}".format(cio_expected)),
                 mock.call(znet_expected),
                 mock.call("export IFACE_NAME=$(ls -1 /sys/devices/qeth/{}/net "
-                          "| head -1) && ".format(full_ccw)),
+                          "| head -1)".format(full_ccw)),
             ]
             if ' layer2=1 ' in znet_expected and net_setup["mac"]:
                 net_cmd_calls.append(
-                    mock.call("ip link set $IFACE_NAME address {} && ".format(
+                    mock.call("ip link set $IFACE_NAME address {}".format(
                         net_setup["mac"]))
                 )
 
         if net_setup.get('vlan'):
             net_cmd_calls.extend([
                 mock.call('ip link add link ${{IFACE_NAME}} name '
-                          '${{IFACE_NAME}}.{vlan} type vlan id {vlan} && '
+                          '${{IFACE_NAME}}.{vlan} type vlan id {vlan}'
                           .format(**net_setup)),
-                mock.call('ip link set $IFACE_NAME up && '),
-                mock.call('export IFACE_NAME=${{IFACE_NAME}}.{} && '.format(
+                mock.call('ip link set $IFACE_NAME up'),
+                mock.call('export IFACE_NAME=${{IFACE_NAME}}.{}'.format(
                     net_setup['vlan']))
             ])
         net_cmd_calls.extend([
-            mock.call("ip addr add {}/{} dev $IFACE_NAME && ".format(
+            mock.call("ip addr add {}/{} dev $IFACE_NAME".format(
                 net_setup.get("ip"), net_setup.get("mask"))),
-            mock.call("ip link set $IFACE_NAME up && "),
-            mock.call("ip route add default via {} && ".format(
+            mock.call("ip link set $IFACE_NAME up"),
+            mock.call("ip route add default via {}".format(
                 net_setup.get("gateway"))),
         ])
         dns_servers = net_setup.get('dns')
         if dns_servers:
-            net_cmd_calls.append(mock.call("echo > /etc/resolv.conf && "))
+            net_cmd_calls.append(mock.call("echo > /etc/resolv.conf"))
             for dns_entry in dns_servers:
                 net_cmd_calls.append(
-                    mock.call("echo 'nameserver {}' >> /etc/resolv.conf && "
+                    mock.call("echo 'nameserver {}' >> /etc/resolv.conf"
                               .format(dns_entry)))
 
         net_cmd_calls.append(
-            mock.call("true; ping -c 1 {}".format(net_setup.get('gateway'))))
+            mock.call("ping -c 1 {}".format(net_setup.get('gateway'))))
         self._mock_send_os.assert_has_calls(net_cmd_calls)
-
-        # verify that we tried to reach target system
-        self._mock_subprocess.run.assert_called_with(
-            'ping -c 1 -w 5 ' + net_setup.get("ip"),
-            shell=True, check=True,
-            stdout=self._mock_subprocess.DEVNULL,
-            stderr=self._mock_subprocess.DEVNULL)
 
     # _assert_net_setup()
 
@@ -1336,18 +1395,16 @@ class TestHypervisorHmc(TestCase):
                 },
                 'netboot': {
                     "cmdline": "some_cmdline",
-                    "kernel_url": "ssh://some_url",
-                    "initrd_url": "ssh://some_url",
+                    "kernel_url": "ssh://some_url/kernel",
+                    "initrd_url": "ssh://some_url/initrd",
                 }
             }
         }
 
         # set the subprocess mock so that the network configuration fails
-        self._mock_subprocess.CalledProcessError = Exception
-        self._mock_subprocess.run.side_effect = Exception()
+        self._mock_guest_linux.return_value.push_file.side_effect = Exception()
 
-        error_msg = (
-            'Timed out while waiting for network on loaded operating system')
+        error_msg = 'Failed to upload ssh://some_url/kernel'
         with self.assertRaisesRegex(RuntimeError, error_msg):
             self.hmc_object.start(self.lpar_name, cpu, memory, parameters)
     # test_start_netboot_network_timeout()
