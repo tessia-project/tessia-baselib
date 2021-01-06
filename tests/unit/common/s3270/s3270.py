@@ -21,8 +21,8 @@ S3270 unittest
 #
 from unittest.mock import patch
 from unittest import TestCase
-from tessia.baselib.common.s3270.s3270 import S3270
 from tessia.baselib.common.s3270.exceptions import S3270StatusError
+from tessia.baselib.common.s3270.s3270 import S3270, TRANSFER_BUFFER_SIZE
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -30,6 +30,8 @@ from tessia.baselib.common.s3270.exceptions import S3270StatusError
 #
 # CODE
 #
+
+
 class TestS3270(TestCase):
     """
     Unit test for the S3270 class
@@ -58,8 +60,8 @@ class TestS3270(TestCase):
     # setUp()
 
     def tearDown(self):
-        #self.popen_patcher.stop()
-        #self.poll_patcher.stop()
+        # self.popen_patcher.stop()
+        # self.poll_patcher.stop()
         pass
     # tearDown()
 
@@ -303,7 +305,7 @@ class TestS3270(TestCase):
         self.mock_pipeconnector.return_value.run.side_effect = [
             ('break', ''),
             ('break', ''),
-            ]
+        ]
 
         time_patcher = patch('time.time', autospec=True)
         mock_time = time_patcher.start()
@@ -843,7 +845,8 @@ class TestS3270(TestCase):
         self.assertEqual(output, mock_output)
         self.mock_pipeconnector.return_value.run.assert_called_with(
             'Transfer(Direction=send, "LocalFile={}", "HostFile={}", '
-            'Mode=binary, Recfm=fixed, Host=vm)'.format(args[0], args[1]),
+            'Mode=binary, Recfm=fixed, Host=vm, BufferSize={})'.format(
+                args[0], args[1], TRANSFER_BUFFER_SIZE),
             timeout=10)
     # test_transfer_ok()
 
@@ -902,7 +905,8 @@ class TestS3270(TestCase):
         expected_args = (
             'Direction={direction}, "LocalFile={local_path}", '
             '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
-            'Host=vm, extra1="value1"'.format(**kwargs))
+            'Host=vm, BufferSize={buffer_size}, extra1="value1"'.format(
+                buffer_size=TRANSFER_BUFFER_SIZE, **kwargs))
 
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
