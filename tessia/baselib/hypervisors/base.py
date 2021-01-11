@@ -97,7 +97,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # logoff()
 
     @abc.abstractmethod
-    def start(self, guest_name, cpu, memory, parameters):
+    def start(self, guest_name, cpu, memory, parameters, notify=None):
         """
         Attach the given resources and start the guest using the method
         and devices specified.
@@ -108,6 +108,7 @@ class HypervisorBase(metaclass=abc.ABCMeta):
             memory (int):      Amount of memory to assin in megabytes.
             parameters (dict): A dictionary containing values specific to each
                                hypervisor type.
+            notify (Event):    A notification object
 
         Raises:
             NotImplementedError: as it has to be implemented by child class
