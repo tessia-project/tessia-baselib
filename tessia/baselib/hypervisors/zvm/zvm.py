@@ -306,7 +306,7 @@ class HypervisorZvm(HypervisorBase):
             # HCPCPU1456E is ok because base cpu cannot be detached,
             # but with unknown error cannot continue
             if (re_match.re.pattern != reset_msg and
-                    re_match.group() != 'HCPCPU1456E'):
+                    not re_match.group().startswith('HCPCPU1456E')):
                 raise RuntimeError(
                     'Detach CPU(s) failed with: {}'.format(re_match.group()))
 
