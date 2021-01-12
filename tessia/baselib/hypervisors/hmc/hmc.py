@@ -591,10 +591,20 @@ class HypervisorHmc(HypervisorBase):
 
         # the api has a limit of 200 chars per call so we need
         # to split the commands in smaller pieces
-        def _string_to_chunks(string, size=180):
+        def _string_to_chunks(string, size=200):
+            if len(string) < size:
+                yield string
+                return
+
+            # save command to a temporary file - 'tr' reads stdin as is
+            yield "tr -d '\\n' > /tmp/command"
             for start in range(0, len(string), size):
-                yield string[start:start+size] + (
-                    '\\' if start+size < len(string) else '')
+                yield string[start:start+size]
+
+            # stop reading stdin
+            yield '^D'
+            # run command from temporary file
+            yield '. /tmp/command'
 
         timeout = time.time() + OS_MESSAGES_TIMEOUT
         command_gen = _get_cmd(commands)
