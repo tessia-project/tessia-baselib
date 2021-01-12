@@ -674,8 +674,11 @@ class HypervisorHmc(HypervisorBase):
         image_profile.update_properties(updates)
         self._logger.debug("Image profile updated")
         # we need to activate the LPAR or re-activate so changes get applied
-        self._logger.info("Activating LPAR")
+        self._logger.info("LPAR needs to be reactivated after profile update")
+        self._logger.debug("Deactivating LPAR")
+        guest_obj.deactivate(wait_for_completion=True, force=True)
         try:
+            self._logger.debug("Activating LPAR")
             guest_obj.activate(activation_profile_name=img_properties['name'],
                                wait_for_completion=True, force=True)
         except zhmcclient.HTTPError as exc:
@@ -867,13 +870,17 @@ class HypervisorHmc(HypervisorBase):
                 self._update_resources_lpar(resource_args, guest_obj)
 
         # classic mode: make sure the LPAR is active before performing a load
+        guest_obj.pull_full_properties()
         if isinstance(guest_obj, zhmcclient.Lpar) and (
                 guest_obj.get_property('status') == 'not-activated'):
-            self._logger.info("Activating LPAR")
+            self._logger.info("LPAR is deactivated, activating")
             try:
                 guest_obj.activate(
                     activation_profile_name=guest_obj.properties['name'],
-                    wait_for_completion=True, force=True)
+                    wait_for_completion=False, force=True)
+                # wait for LPAR to become active in either state; see
+                # HMC Web Services API "Activate Logical Partition"
+                guest_obj.wait_for_status(['not-operating', 'operating'])
             except zhmcclient.HTTPError as exc:
                 if exc.http_status == 500 and exc.reason == 263:
                     # Activation is complete. The load was not processed.
