@@ -625,12 +625,17 @@ class HypervisorHmc(HypervisorBase):
                                        pattern)
                     continue
 
+                # log messages
                 for msg in messages:
                     self._logger.debug("OS message: %s", msg)
+
+                # react to pattern with one command only
+                for msg in messages:
                     if pattern in msg:
                         for chunk in _string_to_chunks(cmd):
                             guest_obj.send_os_command(chunk)
                         pattern, cmd = next(command_gen)
+                        break
 
         except StopIteration:
             pass
