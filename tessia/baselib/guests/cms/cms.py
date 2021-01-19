@@ -387,6 +387,10 @@ class GuestCms(GuestBase):
         """
         parsed_url = parse.urlsplit(source_url)
         scheme = parsed_url.scheme
+        transfer_parameters = {}
+        if 'transfer-buffer-size' in self.extensions:
+            transfer_parameters['BufferSize'] = self.extensions.get(
+                'transfer-buffer-size')
 
         # source is a local file: read it and push it
         if scheme == 'file':
@@ -396,7 +400,8 @@ class GuestCms(GuestBase):
                     "Local file '{}' does not exist.".format(local_path))
             self._terminal.transfer(
                 local_path, target_path, direction='send',
-                timeout=TRANSFER_TIMEOUT, mode=write_mode)
+                timeout=TRANSFER_TIMEOUT, mode=write_mode,
+                **transfer_parameters)
 
         # source is a http[s] or ftp URL: download it first to a local file
         elif scheme in ['http', 'https', 'ftp']:
@@ -420,7 +425,8 @@ class GuestCms(GuestBase):
                 # transfer downloaded file to host
                 self._terminal.transfer(
                     file_fd.name, target_path, direction='send',
-                    timeout=TRANSFER_TIMEOUT, mode=write_mode)
+                    timeout=TRANSFER_TIMEOUT, mode=write_mode,
+                    **transfer_parameters)
 
         # any other scheme: not supported
         else:

@@ -27,10 +27,6 @@ from tessia.baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
 # CONSTANTS AND DEFINITIONS
 #
 
-# 3270 buffer size for file transfer
-# Larger is better, but too close to 32K may cause significant speed drop
-TRANSFER_BUFFER_SIZE = 32000
-
 #
 # CODE
 #
@@ -420,12 +416,11 @@ class S3270:
 
         params_str = (
             'Direction={}, "LocalFile={}", "HostFile={}", Mode={}, Recfm={}, '
-            'Host=vm, BufferSize={}'.format(
-                direction, local_path, remote_path, mode, recfm,
-                TRANSFER_BUFFER_SIZE)
+            'Host=vm'.format(
+                direction, local_path, remote_path, mode, recfm)
         )
         for key, value in extra_params.items():
-            params_str += ', {}="{}"'.format(key, value)
+            params_str += ', "{}={}"'.format(key, value)
         self._logger.debug('calling Transfer with params: %s', params_str)
 
         status, output = self._s3270.run(

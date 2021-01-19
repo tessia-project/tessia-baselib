@@ -22,7 +22,7 @@ S3270 unittest
 from unittest.mock import patch
 from unittest import TestCase
 from tessia.baselib.common.s3270.exceptions import S3270StatusError
-from tessia.baselib.common.s3270.s3270 import S3270, TRANSFER_BUFFER_SIZE
+from tessia.baselib.common.s3270.s3270 import S3270
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -845,8 +845,8 @@ class TestS3270(TestCase):
         self.assertEqual(output, mock_output)
         self.mock_pipeconnector.return_value.run.assert_called_with(
             'Transfer(Direction=send, "LocalFile={}", "HostFile={}", '
-            'Mode=binary, Recfm=fixed, Host=vm, BufferSize={})'.format(
-                args[0], args[1], TRANSFER_BUFFER_SIZE),
+            'Mode=binary, Recfm=fixed, Host=vm)'.format(
+                args[0], args[1]),
             timeout=10)
     # test_transfer_ok()
 
@@ -900,13 +900,14 @@ class TestS3270(TestCase):
             'mode': 'ascii',
             'recfm': 'variable',
             'timeout': 100,
+            'BufferSize': 8000,
             'extra1': 'value1'
         }
         expected_args = (
             'Direction={direction}, "LocalFile={local_path}", '
             '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
-            'Host=vm, BufferSize={buffer_size}, extra1="value1"'.format(
-                buffer_size=TRANSFER_BUFFER_SIZE, **kwargs))
+            'Host=vm, "BufferSize={BufferSize}", "extra1=value1"'.format(
+                **kwargs))
 
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
