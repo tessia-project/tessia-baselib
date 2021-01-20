@@ -28,6 +28,7 @@ from tessia.baselib.hypervisors.hmc.messages import Messages
 from tessia.baselib.common.params_validators.utils import validate_params
 from urllib.parse import urlsplit
 
+import re
 import time
 import zhmcclient
 
@@ -35,8 +36,8 @@ import zhmcclient
 # CONSTANTS AND DEFINITIONS
 #
 
-# string to wait for in operating system messages
-MESSAGES_DEFAULT_PATTERN = 'debirf-rescue:~#'
+# regex to wait for in operating system messages
+MESSAGES_DEFAULT_PATTERN = r'debirf-rescue:~#\s*$'
 # how long to load messages after live image is booted into installer
 MSG_POST_LOAD_DURATION = 90  # seconds
 # timeout in seconds for network to be up
@@ -195,8 +196,20 @@ class HypervisorHmc(HypervisorBase):
         net_cmds = self._prepare_setup_network_cmds(net_setup)
 
         self._logger.debug("Opening OS messages channel")
-        os_channel_topic = guest_obj.open_os_message_channel(
-            include_refresh_messages=True)
+        timeout = time.monotonic() + MSG_POST_LOAD_DURATION
+        while timeout - time.monotonic() > 0:
+            try:
+                os_channel_topic = guest_obj.open_os_message_channel(
+                    include_refresh_messages=True)
+                break   # exit normally
+            except zhmcclient.HTTPError as exc:
+                if exc.http_status == 409 and exc.reason == 332:
+                    # The messages interface for the partition is not available
+                    time.sleep(2)
+                else:
+                    raise
+        else:
+            raise RuntimeError("Timed out waiting for OS messages channel")
 
         with Messages.connect(os_channel_topic, self.host_name,
                               self.user, self.passwd) as receiver:
@@ -220,11 +233,11 @@ class HypervisorHmc(HypervisorBase):
                     self._logger.debug("Notify initial boot complete")
                     notify_boot.set()
                 # wait a little to collect reboot logs
-                timeout = time.time() + MSG_POST_LOAD_DURATION
-                while timeout - time.time() > 0:
+                timeout = time.monotonic() + MSG_POST_LOAD_DURATION
+                while timeout - time.monotonic() > 0:
                     for msg in receiver.get_messages(
                             timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
-                                                 timeout-time.time()))):
+                                                 timeout-time.monotonic()))):
                         self._logger.debug('OS message: %s', msg)
 
         self._logger.debug("Live image stage finished")
@@ -250,7 +263,7 @@ class HypervisorHmc(HypervisorBase):
         cmdline = net_boot.get('cmdline')
 
         # send an empty string first to get a matching pattern in send_commands
-        kexec_cmds = [('', ' ')]
+        kexec_cmds = [('', '#')]
 
         for source, target in [(kernel_url, '/tmp/kernel'),
                                (initrd_url, '/tmp/initrd')]:
@@ -606,7 +619,7 @@ class HypervisorHmc(HypervisorBase):
             # run command from temporary file
             yield '. /tmp/command'
 
-        timeout = time.time() + OS_MESSAGES_TIMEOUT
+        timeout = time.monotonic() + OS_MESSAGES_TIMEOUT
         command_gen = _get_cmd(commands)
         pattern, cmd = next(command_gen)
         try:
@@ -617,7 +630,7 @@ class HypervisorHmc(HypervisorBase):
                     guest_obj.send_os_command(chunk)
                 pattern, cmd = next(command_gen)
 
-            while time.time() < timeout:
+            while time.monotonic() < timeout:
                 # wait for pattern to appear
                 messages = msg_channel.get_messages(60.0)
                 if not messages:
@@ -631,7 +644,7 @@ class HypervisorHmc(HypervisorBase):
 
                 # react to pattern with one command only
                 for msg in messages:
-                    if pattern in msg:
+                    if re.search(pattern, msg):
                         for chunk in _string_to_chunks(cmd):
                             guest_obj.send_os_command(chunk)
                         pattern, cmd = next(command_gen)
@@ -640,7 +653,7 @@ class HypervisorHmc(HypervisorBase):
         except StopIteration:
             pass
 
-        if time.time() > timeout:
+        if time.monotonic() > timeout:
             raise TimeoutError(
                 "Timed out communicating with OS Messages interface")
     # _send_commands()
@@ -690,10 +703,22 @@ class HypervisorHmc(HypervisorBase):
         self._logger.debug("Image profile updated")
         # we need to activate the LPAR or re-activate so changes get applied
         self._logger.info("LPAR needs to be reactivated after profile update")
-        self._logger.debug("Deactivating LPAR")
-        guest_obj.deactivate(wait_for_completion=True, force=True)
+
+        guest_obj.pull_full_properties()
+        if guest_obj.get_property('status') != 'not-activated':
+            self._logger.debug("Deactivating LPAR")
+            try:
+                guest_obj.deactivate(wait_for_completion=True, force=True)
+                self._logger.debug("LPAR deactivated")
+            except zhmcclient.HTTPError as exc:
+                if exc.http_status == 500 and exc.reason == 263:
+                    # LPAR is in a deactivated state.
+                    self._logger.debug("Already deactivated")
+                else:
+                    raise
+
+        self._logger.debug("Activating LPAR")
         try:
-            self._logger.debug("Activating LPAR")
             guest_obj.activate(activation_profile_name=img_properties['name'],
                                wait_for_completion=True, force=True)
         except zhmcclient.HTTPError as exc:
@@ -1002,7 +1027,19 @@ class HypervisorHmc(HypervisorBase):
                 'wait_for_completion': True,
                 'force': True,
             }
-        guest_obj.deactivate(wait_for_completion=True, force=True)
+
+        if guest_obj.get_property('status') != 'not-activated':
+            self._logger.info("Deactivating LPAR")
+            try:
+                guest_obj.deactivate(wait_for_completion=True, force=True)
+                self._logger.debug("LPAR deactivated")
+            except zhmcclient.HTTPError as exc:
+                if exc.http_status == 500 and exc.reason == 263:
+                    # LPAR is in a deactivated state.
+                    self._logger.debug("Already deactivated")
+                else:
+                    raise
+
         self._logger.info("Activating LPAR")
         try:
             guest_obj.activate(

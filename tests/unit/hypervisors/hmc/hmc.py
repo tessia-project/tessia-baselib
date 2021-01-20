@@ -146,7 +146,7 @@ class MockNotificationSource:
         self.msg_queue = [
             'debirf-rescue login:',
             'Password:',
-            hmc.MESSAGES_DEFAULT_PATTERN
+            'debirf-rescue:~#'
         ]
         self._stop = False
     # __init__()
@@ -241,6 +241,7 @@ class TestHypervisorHmc(TestCase):
                 yield start
         get_time = time_generator()
         self._mock_time.time.side_effect = lambda: next(get_time)
+        self._mock_time.monotonic.side_effect = lambda: next(get_time)
 
         def messages_connect(*args, **kwargs):
             """Provide mock notification source to Messages"""
