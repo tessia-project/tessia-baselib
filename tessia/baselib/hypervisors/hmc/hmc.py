@@ -720,7 +720,10 @@ class HypervisorHmc(HypervisorBase):
         self._logger.debug("Activating LPAR")
         try:
             guest_obj.activate(activation_profile_name=img_properties['name'],
-                               wait_for_completion=True, force=True)
+                               wait_for_completion=False, force=True)
+            # wait for LPAR to become active in either state; see
+            # HMC Web Services API "Activate Logical Partition"
+            guest_obj.wait_for_status(['not-operating', 'operating'])
         except zhmcclient.HTTPError as exc:
             if exc.http_status == 500 and exc.reason == 263:
                 # Activation is complete. The load was not processed.
@@ -1044,7 +1047,10 @@ class HypervisorHmc(HypervisorBase):
         try:
             guest_obj.activate(
                 activation_profile_name=img_profile,
-                wait_for_completion=True, force=True)
+                wait_for_completion=False, force=True)
+            # wait for LPAR to become active in either state; see
+            # HMC Web Services API "Activate Logical Partition"
+            guest_obj.wait_for_status(['not-operating', 'operating'])
         except zhmcclient.HTTPError as exc:
             if exc.http_status == 500 and exc.reason == 263:
                 # Activation is complete. The load was not processed.
