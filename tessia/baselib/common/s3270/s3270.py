@@ -20,6 +20,7 @@ S3270 module
 #
 import time
 
+from os import stat
 from tessia.baselib.common.logger import get_logger
 from tessia.baselib.common.s3270.exceptions import S3270StatusError
 from tessia.baselib.common.s3270.s3270pipeconnector import S3270PipeConnector
@@ -413,6 +414,18 @@ class S3270:
             raise ValueError("Invalid mode '{}'".format(mode))
         if recfm.lower() not in ('fixed', 'variable'):
             raise ValueError("Invalid recfm option '{}'".format(recfm))
+
+        # ensure that transfer buffer size is less than file size
+        transfer_buffer_size = extra_params.get('BufferSize', 0)
+        if direction == 'send' and transfer_buffer_size > 0:
+            file_stat = stat(local_path)
+            if transfer_buffer_size > file_stat.st_size:
+                transfer_buffer_size = 0
+        else:
+            transfer_buffer_size = 0
+
+        if not transfer_buffer_size:
+            extra_params.pop('BufferSize', None)
 
         params_str = (
             'Direction={}, "LocalFile={}", "HostFile={}", Mode={}, Recfm={}, '
