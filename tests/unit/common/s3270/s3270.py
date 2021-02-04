@@ -23,6 +23,7 @@ from unittest.mock import patch
 from unittest import TestCase
 from tessia.baselib.common.s3270.exceptions import S3270StatusError
 from tessia.baselib.common.s3270.s3270 import S3270
+from tessia.baselib.common.s3270 import s3270 as mod_s3270
 #
 # CONSTANTS AND DEFINITIONS
 #
@@ -57,6 +58,13 @@ class TestS3270(TestCase):
         self.mock_pipeconnector.return_value.run.return_value = [
             'ok\n', 'L U U N N 4 24 80 0 0 0x0 -\nok\n'
         ]
+
+        filestat_patcher = patch.object(
+            mod_s3270, 'stat',
+            autospec=True
+        )
+        self.filestat = filestat_patcher.start()
+        self.addCleanup(filestat_patcher.stop)
     # setUp()
 
     def tearDown(self):
@@ -906,11 +914,38 @@ class TestS3270(TestCase):
         expected_args = (
             'Direction={direction}, "LocalFile={local_path}", '
             '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
-            'Host=vm, "BufferSize={BufferSize}", "extra1=value1"'.format(
-                **kwargs))
+            'Host=vm, "extra1=value1"'.format(**kwargs))
 
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
+        self.filestat.assert_not_called()
+        self.mock_pipeconnector.return_value.run.assert_called_with(
+            'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
+
+        # send
+        kwargs['direction'] = 'send'
+        expected_args = (
+            'Direction={direction}, "LocalFile={local_path}", '
+            '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
+            'Host=vm, "BufferSize={BufferSize}", "extra1=value1"'.format(
+                **kwargs))
+        self.filestat.return_value.st_size = 50000
+
+        output = s3270.transfer(**kwargs)
+        self.assertEqual(output, mock_output)
+        self.filestat.assert_called_with(kwargs['local_path'])
+        self.mock_pipeconnector.return_value.run.assert_called_with(
+            'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
+
+        # send small file
+        self.filestat.return_value.st_size = 800
+        expected_args = (
+            'Direction={direction}, "LocalFile={local_path}", '
+            '"HostFile={remote_path}", Mode={mode}, Recfm={recfm}, '
+            'Host=vm, "extra1=value1"'.format(**kwargs))
+        output = s3270.transfer(**kwargs)
+        self.assertEqual(output, mock_output)
+        self.filestat.assert_called_with(kwargs['local_path'])
         self.mock_pipeconnector.return_value.run.assert_called_with(
             'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
 
