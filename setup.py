@@ -41,7 +41,7 @@ CLASSIFIERS = [
     'License :: OSI Approved :: Apache Software License',
     'Operating System :: POSIX :: Linux',
     'Programming Language :: Python :: 3',
-    'Programming Language :: Python :: 3.5',
+    'Programming Language :: Python :: 3.6',
     'Topic :: Software Development :: Libraries',
     'Topic :: Software Development :: Libraries :: Python Modules',
     'Topic :: System :: Hardware :: Mainframes',
@@ -237,7 +237,8 @@ if __name__ == '__main__':
         data_files=[('etc/tessia', _find_data_files('etc', False))],
         install_requires=_find_requirements(),
         package_data={'': _find_data_files('tessia')},
-        packages=find_packages(exclude=['tests', 'tests.*']),
+        packages=find_packages(exclude=[
+            'tests', 'tests.*', 'tests_pytest', 'tests_pytest.*']),
         setup_requires=['setuptools>=30.3.0'],
         url=URL,
         version=gen_version(),

@@ -19,3 +19,4 @@ script: |
   docker run --env TESSIA_BASELIB_INTERACTIVE=no --rm $IMAGE_NAME &&
   docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_pylint.py $IMAGE_NAME &&
   docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_tests.py $IMAGE_NAME
+  docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_pytest_tests.py $IMAGE_NAME
