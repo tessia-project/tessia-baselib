@@ -37,3 +37,4 @@ unittest:
     # pull to avoid caching issues
     - docker pull $IMAGE_NAME
     - docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_tests.py $IMAGE_NAME
+    - docker run -t --rm --entrypoint /assets/tessia-baselib/tools/run_pytest_tests.py $IMAGE_NAME
