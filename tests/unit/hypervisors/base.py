@@ -57,6 +57,8 @@ class TestHypervisorBase(TestCase):
                 super().logoff()
             def reboot(self, guest_name, parameters):
                 super().reboot(guest_name, parameters)
+            def set_boot_device(self, guest_name, parameters):
+                super().set_boot_device(guest_name, parameters)
             def start(self, guest_name, cpu, memory, parameters):
                 super().start(guest_name, cpu, memory, parameters)
             def stop(self, guest_name, parameters):
@@ -144,6 +146,7 @@ class TestHypervisorBase(TestCase):
             ('login', ()),
             ('logoff', ()),
             ('reboot', (None, None,)),
+            ('set_boot_device', (None, None,)),
             ('start', (None, None, None, None,)),
             ('stop', (None, None)),
             ('reboot', (None, None)),

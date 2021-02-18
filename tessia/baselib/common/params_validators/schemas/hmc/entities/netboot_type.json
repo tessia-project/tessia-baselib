@@ -1,0 +1,20 @@
+{
+    "properties": {
+        "cmdline": {
+            "maxLength": 4096,
+            "type": "string"
+        },
+        "initrd_url": {
+            "format": "uri",
+            "type": "string"
+        },
+        "kernel_url": {
+            "format": "uri",
+            "type": "string"
+        }
+    },
+    "required": [
+        "kernel_url"
+    ],
+    "type": "object"
+}

@@ -180,20 +180,22 @@ class HypervisorHmc(HypervisorBase):
         return ret_args
     # _compute_cpus()
 
-    def _do_netsetup(self, guest_obj, boot_params, notify_boot=None):
+    def _do_netsetup(self, guest_obj, net_setup, net_boot, notify_boot=None):
         """
         Perform the steps required to bring up the network on the Linux system
+
+        Args:
+            guest_obj (Lpar or Partition): zhmcclient object
+            net_setup (dict): net_setup parameters
+            net_boot (dict): net_boot parameters
+            notify_boot (Event): notification object for boot completion
+
+        Raises:
+            RuntimeError: timeout
+            HTTPError: HMC communication failure
         """
-        net_setup = boot_params.get('netsetup')
-        # no network setup requested: nothing to do
         if not net_setup:
             return
-
-        # password cannot be optional as GuestLinux would fail to connect to a
-        # system without password
-        os_passwd = net_setup['password']
-        # enable network on loaded operating system
-        net_cmds = self._prepare_setup_network_cmds(net_setup)
 
         self._logger.debug("Opening OS messages channel")
         timeout = time.monotonic() + MSG_POST_LOAD_DURATION
@@ -211,6 +213,12 @@ class HypervisorHmc(HypervisorBase):
         else:
             raise RuntimeError("Timed out waiting for OS messages channel")
 
+        # password cannot be optional as GuestLinux would fail to connect to a
+        # system without password
+        os_passwd = net_setup['password']
+        # enable network on loaded operating system
+        net_cmds = self._prepare_setup_network_cmds(net_setup)
+
         with Messages.connect(os_channel_topic, self.host_name,
                               self.user, self.passwd) as receiver:
             self._logger.debug("Waiting for live image login prompt")
@@ -222,7 +230,6 @@ class HypervisorHmc(HypervisorBase):
             self._logger.debug("Setting up network on live image")
             self._send_commands(guest_obj, net_cmds, receiver)
 
-            net_boot = boot_params.get('netboot')
             if net_boot:
                 self._logger.debug("Performing netboot")
                 self._execute_kexec(guest_obj, receiver,
@@ -314,6 +321,52 @@ class HypervisorHmc(HypervisorBase):
         return cpc
     # _get_cpc()
 
+    def _get_dpm_boot_props(self, guest_obj, boot_params):
+        """
+        Get boot properties for update on DPM guest from boot_params
+
+        Args:
+            guest_obj (Lpar or Partition): zhmcclient object
+            boot_params (dict): options as specified in json schema
+
+        Raises:
+            NotImplementedError: if cpc in dpm mode has no storage management
+                                 firmware feature
+
+        Returns:
+            dict: parameters to update on DPM guest
+        """
+        if boot_params['boot_method'] in ('dasd', 'scsi'):
+            # make sure storage management is available
+            try:
+                guest_obj.feature_enabled('dpm-storage-management')
+            except ValueError:
+                raise NotImplementedError(
+                    'Load operation on DPM enabled CPCs without storage '
+                    'management firmware feature is not supported')
+
+            svol_uri = self._get_svol_uri(guest_obj, boot_params)
+            # update_boot_params
+            return {
+                'boot-device': 'storage-volume',
+                'boot-storage-volume': svol_uri,
+            }
+        # network boot
+        if boot_params['boot_method'] in ('ftp', 'ftps', 'sftp'):
+            # update_boot_params
+            parsed_url = urlsplit('{boot_method}://{insfile}'.format(
+                **boot_params))
+            return {
+                'boot-device': boot_params['boot_method'],
+                'boot-ftp-host': parsed_url.hostname,
+                'boot-ftp-username': parsed_url.username or 'anonymous',
+                'boot-ftp-password': parsed_url.password or 'anonymous',
+                'boot-ftp-insfile': parsed_url.path,
+            }
+
+        return {}
+    # _get_dpm_boot_props()
+
     def _get_guest(self, cpc_obj, guest_name):
         """
         Return the Partition (if on DPM) or Lpar (non DPM) object which
@@ -398,43 +451,17 @@ class HypervisorHmc(HypervisorBase):
         # dpm mode
         if isinstance(guest_obj, zhmcclient.Partition):
             # perform load of a storage volume
-            if boot_params['boot_method'] in ('dasd', 'scsi'):
-                # make sure storage management is available
-                try:
-                    guest_obj.feature_enabled('dpm-storage-management')
-                except ValueError:
-                    raise NotImplementedError(
-                        'Load operation on DPM enabled CPCs without storage '
-                        'management firmware feature is not supported')
+            update_props = self._get_dpm_boot_props(guest_obj, boot_params)
+            if not update_props:
+                self._logger.warning("Unsupported boot parameters, "
+                                     "no boot performed")
+                return
 
-                svol_uri = self._get_svol_uri(guest_obj, boot_params)
-                # update_boot_params
-                update_props = {
-                    'boot-device': 'storage-volume',
-                    'boot-storage-volume': svol_uri,
-                }
-                if guest_obj.get_property('status') != 'stopped':
-                    guest_obj.stop(wait_for_completion=True)
-                    guest_obj.wait_for_status('stopped')
-                guest_obj.update_properties(update_props)
-                guest_obj.start(wait_for_completion=True)
-            # network boot
-            elif boot_params['boot_method'] in ('ftp', 'ftps', 'sftp'):
-                # update_boot_params
-                parsed_url = urlsplit('{boot_method}://{insfile}'.format(
-                    **boot_params))
-                update_props = {
-                    'boot-device': boot_params['boot_method'],
-                    'boot-ftp-host': parsed_url.hostname,
-                    'boot-ftp-username': parsed_url.username or 'anonymous',
-                    'boot-ftp-password': parsed_url.password or 'anonymous',
-                    'boot-ftp-insfile': parsed_url.path,
-                }
-                if guest_obj.get_property('status') != 'stopped':
-                    guest_obj.stop(wait_for_completion=True)
-                    guest_obj.wait_for_status('stopped')
-                guest_obj.update_properties(update_props)
-                guest_obj.start(wait_for_completion=True)
+            if guest_obj.get_property('status') != 'stopped':
+                guest_obj.stop(wait_for_completion=True)
+                guest_obj.wait_for_status('stopped')
+            guest_obj.update_properties(update_props)
+            guest_obj.start(wait_for_completion=True)
             return
 
         # perform load of a SCSI disk
@@ -838,6 +865,38 @@ class HypervisorHmc(HypervisorBase):
     # logoff()
 
     @validate_params
+    def set_boot_device(self, guest_name, parameters):
+        """
+        Set boot device for next load
+
+        Args:
+            guest_name (str): guest to operate on
+            parameters (dict): boot device config
+        """
+        self._logger.debug(
+            "performing SET_BOOT_DEVICE HypervisorHmc: name='%s', guest='%s' "
+            "boot_device='%s'",
+            self.name,
+            guest_name,
+            str(parameters)
+        )
+        needs_logon = not self._conn
+        if needs_logon:
+            self.login()
+
+        cpc_obj = self._get_cpc(self.name)
+        if cpc_obj.dpm_enabled:
+            self._logger.debug("DPM mode: set boot device")
+            guest_obj = self._get_guest(cpc_obj, guest_name)
+            update_props = self._get_dpm_boot_props(guest_obj, parameters)
+            guest_obj.update_properties(update_props)
+        else:
+            self._logger.debug("Non-DPM mode: set boot device is ignored")
+
+        if needs_logon:
+            self.logoff()
+
+    @validate_params
     def start(self, guest_name, cpu, memory, parameters, notify=None):
         """
         Activate (If necessary) and IPL a target LPAR
@@ -932,7 +991,14 @@ class HypervisorHmc(HypervisorBase):
                     raise
 
         self._load(guest_obj, parameters['boot_params'])
-        self._do_netsetup(guest_obj, parameters['boot_params'], notify)
+
+        # no network setup requested: nothing to do
+        if 'netsetup' in parameters['boot_params']:
+            self._do_netsetup(
+                guest_obj,
+                parameters['boot_params'].get('netsetup'),
+                parameters['boot_params'].get('netboot'),
+                notify)
     # start()
 
     @validate_params

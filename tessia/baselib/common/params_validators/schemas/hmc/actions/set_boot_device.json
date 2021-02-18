@@ -1,0 +1,4 @@
+{
+    "$ref": "../entities/boot_params_type.json",
+    "additionalProperties": false
+}

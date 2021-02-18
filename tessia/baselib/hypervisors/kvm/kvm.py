@@ -145,6 +145,23 @@ class HypervisorKvm(HypervisorBase):
         self._host_conn = None
     # logoff()
 
+    def set_boot_device(self, guest_name, parameters):
+        """
+        Set boot device for next load
+        For KVM it is a no-op
+
+        Args:
+            guest_name (str): guest to operate on
+            parameters (dict): boot device config
+        """
+        self._logger.debug(
+            "performing SET_BOOT_DEVICE HypervisorKvm: name='%s', guest='%s' "
+            "boot_device='%s'",
+            self.name,
+            guest_name,
+            str(parameters)
+        )
+
     @validate_params
     def start(self, guest_name, cpu, memory, parameters):
         """
