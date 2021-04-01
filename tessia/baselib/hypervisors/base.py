@@ -97,6 +97,17 @@ class HypervisorBase(metaclass=abc.ABCMeta):
     # logoff()
 
     @abc.abstractmethod
+    def set_boot_device(self, guest_name, boot_device):
+        """
+        Set boot device for next load
+
+        Args:
+            guest_name (str): guest to operate on
+            boot_device (dict): boot device config
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def start(self, guest_name, cpu, memory, parameters, notify=None):
         """
         Attach the given resources and start the guest using the method

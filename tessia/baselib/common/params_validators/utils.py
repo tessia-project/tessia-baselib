@@ -29,11 +29,14 @@ import os
 #
 ARGUMENT_TO_VALIDATE = "parameters"
 SCHEMAS_BASE_DIR = os.path.dirname(os.path.realpath(__file__)) + "/schemas"
-VALID_ACTIONS = ("start", "stop", "hotplug", "__init__", "reboot")
+VALID_ACTIONS = ("start", "stop", "hotplug", "__init__", "reboot",
+                 "set_boot_device")
 
 #
 # CODE
 #
+
+
 def validate_params(func):
     """
     A function decorator that is used to validate the "parameters" argument
@@ -69,13 +72,13 @@ def validate_params(func):
     # gather information about the module in order to choose the proper
     # json schema
     func_file = inspect.getfile(func)
-    func_dir_name = os.path.dirname(func_file).split("/")[-1]
+    func_dir_name = os.path.basename(os.path.dirname(func_file))
 
     # all json schemas must be placed inside the
     # tessia/baselib/common/validators/jsonschemas directory according to the
     # name of the module
-    schema_file = SCHEMAS_BASE_DIR + "/" + func_dir_name \
-                  + "/actions/" + func_name + ".json"
+    schema_file = os.path.join(SCHEMAS_BASE_DIR, func_dir_name,
+                               "actions", func_name + ".json")
 
     validator = JsonschemaValidator(schema_file)
 

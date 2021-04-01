@@ -5,17 +5,10 @@
                 "boot_method": {
                     "enum": [
                         "dasd"
-                    ],
-                    "type": "string"
+                    ]
                 },
                 "devicenr": {
                     "$ref": "../../common/entities/devicenr_type.json"
-                },
-                "netboot": {
-                    "$ref": "#/definitions/netboot"
-                },
-                "netsetup": {
-                    "$ref": "../../common/entities/netsetup_type.json"
                 }
             },
             "required": [
@@ -30,18 +23,11 @@
                         "ftp",
                         "ftps",
                         "sftp"
-                    ],
-                    "type": "string"
+                    ]
                 },
                 "insfile": {
                     "format": "uri-reference",
                     "type": "string"
-                },
-                "netboot": {
-                    "$ref": "#/definitions/netboot"
-                },
-                "netsetup": {
-                    "$ref": "../../common/entities/netsetup_type.json"
                 }
             },
             "required": [
@@ -49,91 +35,52 @@
                 "insfile"
             ]
         },
-        "netboot": {
-            "properties": {
-                "cmdline": {
-                    "maxLength": 4096,
-                    "type": "string"
-                },
-                "initrd_url": {
-                    "format": "uri",
-                    "type": "string"
-                },
-                "kernel_url": {
-                    "format": "uri",
-                    "type": "string"
-                }
-            },
-            "required": [
-                "kernel_url"
-            ]
-        },
         "scsi": {
             "properties": {
                 "boot_method": {
                     "enum": [
                         "scsi"
-                    ],
-                    "type": "string"
-                },
-                "lun": {
-                    "type": "string"
-                },
-                "wwpn": {
-                    "type": "string"
-                },
-                "devicenr": {
-                    "$ref": "../../common/entities/devicenr_type.json"
-                },
-                "uuid": {
-                    "type": "string"
-                },
-                "netboot": {
-                    "$ref": "#/definitions/netboot"
-                },
-                "netsetup": {
-                    "$ref": "../../common/entities/netsetup_type.json"
+                    ]
                 }
             },
             "required": [
-                "boot_method",
-                "devicenr",
-                "lun",
-                "wwpn"
+                "boot_method"
             ],
-            "additionalProperties": false
-        },
-        "scsi-dpm-only": {
-            "properties": {
-                "boot_method": {
-                    "enum": [
-                        "scsi"
-                    ],
-                    "type": "string"
+            "anyOf": [
+                {
+                    "properties": {
+                        "lun": {
+                            "type": "string"
+                        },
+                        "wwpn": {
+                            "type": "string"
+                        },
+                        "devicenr": {
+                            "$ref": "../../common/entities/devicenr_type.json"
+                        }
+                    },
+                    "required": [
+                        "lun",
+                        "wwpn",
+                        "devicenr"
+                    ]
                 },
-                "uuid": {
-                    "type": "string"
-                },
-                "netboot": {
-                    "$ref": "#/definitions/netboot"
-                },
-                "netsetup": {
-                    "$ref": "../../common/entities/netsetup_type.json"
+                {
+                    "properties": {
+                        "uuid": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "uuid"
+                    ]
                 }
-            },
-            "required": [
-                "boot_method",
-                "uuid"
-            ],
-            "additionalProperties": false
+            ]
         }
     },
     "oneOf": [
         {
             "$ref": "#/definitions/scsi"
-        },
-        {
-            "$ref": "#/definitions/scsi-dpm-only"
         },
         {
             "$ref": "#/definitions/dasd"

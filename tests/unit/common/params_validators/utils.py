@@ -32,10 +32,12 @@ VALIDATOR_NOT_IN_LIBS = "any validator"
 # CODE
 #
 
+
 class TestUtils(unittest.TestCase):
     """
     Unit tests for the utility functions of parameters validation.
     """
+
     def setUp(self):
         """
         Prepare the necessary mocks at the beginning of each testcase.
@@ -65,7 +67,7 @@ class TestUtils(unittest.TestCase):
         validate_params.
         """
         mock_func = mock.Mock()
-        #We use a valid function name here
+        # We use a valid function name here
         mock_func.__name__ = "start"
         func_specs_mock = mock.Mock()
         self._mock_inspect.getfullargspec.return_value = func_specs_mock
@@ -75,21 +77,22 @@ class TestUtils(unittest.TestCase):
                                utils.validate_params, mock_func)
     # test_func_argument_not_valid()
 
-    @mock.patch("tessia.baselib.common.params_validators.utils.os",
-                autospec=True)
+    @mock.patch(
+        "tessia.baselib.common.params_validators.utils.os.path.dirname",
+        autospec=True)
     @mock.patch("tessia.baselib.common.params_validators"
                 ".utils.JsonschemaValidator", autospec=True)
     @mock.patch("tessia.baselib.common.params_validators"
                 ".utils.SCHEMAS_BASE_DIR", new="BASE_DIR")
-    def test_validate_params(self, mock_json_validator, mock_os):
+    def test_validate_params(self, mock_json_validator, mock_dirname):
         """
         Test that the decorator was properly used.
 
         Args:
             mock_json_validator (Mock): Mock of the JsonschemaValidator class
-            mock_os (Mock): Mock of the os module
+            mock_dirname (Mock): Mock of the os module
         """
-        #Mock function that will be decorated
+        # Mock function that will be decorated
         func_name = "start"
         func = mock.Mock()
         func.__name__ = func_name
@@ -99,24 +102,24 @@ class TestUtils(unittest.TestCase):
         func_signature.parameters.keys.return_value.__iter__.return_value = (
             ["parameters"])
 
-        #Create a fake dir name for the function beeing decorated
-        mock_os.path.dirname.return_value = "/dir1/dir2"
+        # Create a fake dir name for the function beeing decorated
+        mock_dirname.return_value = "/dir1/dir2"
 
-        #This is the fake full path for the schema
+        # This is the fake full path for the schema
         schema_file = "BASE_DIR/dir2/actions/start.json"
 
-        #call the software under test
+        # call the software under test
         decorated_func = utils.validate_params(func)
         decorated_func(1, 2, 3)
 
-        #Assert that the schema file full path was created correctly
+        # Assert that the schema file full path was created correctly
         mock_json_validator.assert_called_with(schema_file)
 
         # Assert that the validator chose the correct parameter based on the
         # index returned by func_params.index
         mock_json_validator.return_value.validate.assert_called_with(1)
 
-        #Assert that the function was called with correct arguments
+        # Assert that the function was called with correct arguments
         func.assert_called_with(1, 2, 3)
     # test_validate_params()
 # TestUtils

@@ -1,7 +1,22 @@
 {
     "properties": {
         "boot_params": {
-            "$ref": "../entities/boot_params_type.json"
+            "type": "object",
+            "allOf": [
+                {
+                    "$ref": "../entities/boot_params_type.json"
+                },
+                {
+                    "properties": {
+                        "netboot": {
+                            "$ref": "../entities/netboot_type.json"
+                        },
+                        "netsetup": {
+                            "$ref": "../../common/entities/netsetup_type.json"
+                        }
+                    }
+                }
+            ]
         },
         "cpus_cp": {
             "type": "number"
