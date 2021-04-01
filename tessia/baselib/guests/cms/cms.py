@@ -195,7 +195,7 @@ class GuestCms(GuestBase):
         Raises:
             ValueError: in case an unsupported iface type is specified
         """
-        if iface_dict['type'] == 'osa':
+        if iface_dict['type'] in ('osa', 'hsi'):
             ch_list = iface_dict['id'].split(',')
             for channel in ch_list:
                 self._attach_dev(channel, 'ccw')
