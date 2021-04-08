@@ -152,7 +152,7 @@ class GuestCms(GuestBase):
             query_msgs.append('(?i) PCIF 0*{} ON '.format(dev_id))
         else:
             dev_type = ''
-            query_msgs.append('(?i) {} ON '.format(dev_id))
+            query_msgs.append('(?i) {}( ON| .* ON) '.format(dev_id))
 
         # if device is already attached the operation is skipped, with that
         # approach we make sure not to fail in case the device was already
