@@ -160,7 +160,7 @@ class HypervisorZvm(HypervisorBase):
 
         # commands to prepare the reader device and punch the files to it
         cmds = [
-            'spool punch *',
+            'spool punch * rdr',
             'close reader',
             'purge reader all',
             'punch {} (noh'.format(self.NETBOOT_KERNEL_FILE),
@@ -169,6 +169,8 @@ class HypervisorZvm(HypervisorBase):
         if params.get('initrd_uri'):
             cmds.append('punch {} (noh'.format(self.NETBOOT_INITRD_FILE))
         cmds.append('change reader all keep')
+        # reset puncher to defaults
+        cmds.append('spool pun off')
 
         # execute all commands, abort in case of error
         wait_prompts = [r'Ready;', r'Ready\(\d+\);']
