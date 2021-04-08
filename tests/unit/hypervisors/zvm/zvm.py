@@ -482,7 +482,7 @@ class TestHypervisorZvm(TestCase):
             mock.call('q v ffff'),
             mock.call('define vfb-512 as ffff blk 200000'),
             mock.call(r'format ffff t\n1\ntmpdsk'),
-            mock.call('spool punch *'),
+            mock.call('spool punch * rdr'),
             mock.call('close reader'),
             mock.call('purge reader all'),
             mock.call('punch {} (noh'.format(
@@ -492,6 +492,7 @@ class TestHypervisorZvm(TestCase):
             mock.call('punch {} (noh'.format(
                 zvm.HypervisorZvm.NETBOOT_INITRD_FILE)),
             mock.call('change reader all keep'),
+            mock.call('spool pun off'),
             mock.call('ipl 00c clear'),
         ]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)

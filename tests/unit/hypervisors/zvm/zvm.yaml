@@ -1344,7 +1344,7 @@ start_netboot:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
-    data: spool punch *                                                                   
+    data: spool punch * rdr                                                               
     data: Ready; T=0.01/0.01 11:36:14                                                     
     data:                                                                                 
     data:                                                                                 
@@ -1807,6 +1807,52 @@ start_netboot:
     data: change reader all keep                                                          
     data: 00: 0000003 FILES CHANGED                                                       
     data: Ready; T=0.01/0.01 11:36:43                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: spool pun off                                                                   
+    data: Ready; T=0.01/0.01 11:36:43                                                     
+    data:                                                                                 
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
