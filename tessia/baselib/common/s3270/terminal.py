@@ -607,6 +607,7 @@ class Terminal:
         if not self._is_connected():
             raise RuntimeError('Not connected or connection to host was lost.')
         try:
+            self._s3270.clear()
             output = self._s3270.transfer(*args, **kwargs)
         except S3270StatusError as exc:
             # format the output consumed until the exception happened
