@@ -16,7 +16,7 @@
 # perform the build of the live image using debirf inside a debian container
 
 # configurable variables
-BUILD_DOCKER_IMAGE="debian:stretch-20200607"
+BUILD_DOCKER_IMAGE="ubuntu:20.04"
 
 set -e
 
@@ -33,7 +33,7 @@ build() {
     local root_pwd="$1"
 
     # start container
-    run_cmd="docker run -d -v $(realpath `dirname $0`):/usr/local/bin --privileged $BUILD_DOCKER_IMAGE tail -f /dev/null"
+    run_cmd="docker run -d -v $(realpath `dirname $0`):/usr/local/bin --privileged --init $BUILD_DOCKER_IMAGE tail -f /dev/null"
     echocmd $run_cmd
     container_name=$($run_cmd)
 
@@ -53,7 +53,7 @@ build() {
     execcmd docker cp $container_name:/root/live-image.tgz .
 
     # clean up
-    execcmd docker kill $container_name
+    execcmd docker stop $container_name
     execcmd docker rm $container_name
 
     echo 'Success!' "Live image tarball available at $(pwd)/live-image.tgz"
