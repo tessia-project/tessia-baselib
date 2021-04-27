@@ -98,8 +98,8 @@ class TestVirsh(unittest.TestCase):
         self._mock_guest_linux.push_file.assert_called_with(
             source_url, domain_file)
         self._mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
-        self._mock_open.return_value.write.assert_called_with(xml)
-        self._mock_open.return_value.close.assert_called_with()
+        self._mock_open.return_value.__enter__.return_value.write.\
+            assert_called_with(xml)
         self._mock_remove.assert_called_with(path)
         cmd = "virsh define {}".format(domain_file)
         self._mock_session.run.assert_any_call(cmd)
@@ -138,8 +138,8 @@ class TestVirsh(unittest.TestCase):
         self._mock_guest_linux.push_file.assert_called_with(source_url,
                                                             domain_file)
         self._mock_open.assert_called_with(mock_file_descriptor, mock.ANY)
-        self._mock_open.return_value.write.assert_called_with(xml)
-        self._mock_open.return_value.close.assert_called_with()
+        self._mock_open.return_value.__enter__.return_value.write.\
+            assert_called_with(xml)
         self._mock_remove.assert_called_with(path)
         cmd = "virsh define {}".format(domain_file)
         self._mock_session.run.assert_any_call(cmd)

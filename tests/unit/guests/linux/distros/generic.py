@@ -189,12 +189,10 @@ class TestDistroGeneric(TestCase):
             # read the content from txt file under folder named after package
             # manager type in directory where this file is located
             my_dir = os.path.dirname(os.path.abspath(__file__))
-            file_obj = open(
+            with open(
                 '{}/{}/{}'.format(my_dir, self._pkg_manager, file_name),
-                'r'
-            )
-            resp_output = file_obj.read()
-            file_obj.close()
+                'r') as file_obj:
+                resp_output = file_obj.read()
 
             return (exit_code, resp_output)
 

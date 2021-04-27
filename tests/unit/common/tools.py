@@ -57,9 +57,8 @@ class TestImportModules(TestCase):
             None
         """
         # create dummy module import os
-        mod_file = open(file_path, 'w')
-        mod_file.write(file_content)
-        mod_file.close()
+        with open(file_path, 'w') as mod_file:
+            mod_file.write(file_content)
 
         spec = util.spec_from_file_location(
             os.path.basename(file_path[:-3]), file_path)
@@ -80,7 +79,7 @@ class TestImportModules(TestCase):
             None
         """
         # create temp directory
-        self.temp_dir = TemporaryDirectory(prefix='unit_test-')
+        self.temp_dir = TemporaryDirectory(prefix='unit_test-') # pylint: disable=consider-using-with
 
         # create dummy module list_dir
         dummy_content = "import os\n"
@@ -206,10 +205,9 @@ class TestImportModules(TestCase):
             AssertionError: if the result from function call is not correct
         """
         # create an invalid module
-        invalid_file = open(
-            os.path.join(self.temp_dir.name, 'invalid.py'), 'w')
-        invalid_file.write('invalid content')
-        invalid_file.close()
+        with open(os.path.join(self.temp_dir.name, 'invalid.py'),
+                  'w') as invalid_file:
+            invalid_file.write('invalid content')
 
         # exercise the function raising exception due to an invalid module
         # found
