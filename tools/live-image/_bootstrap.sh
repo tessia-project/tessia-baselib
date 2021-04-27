@@ -22,17 +22,28 @@ function build() {
     set -x
     apt-get update
     apt-get install -y debirf python3
-    tar xzf /usr/share/doc/debirf/example-profiles/rescue.tgz
+
+    # create live image structure
+    mkdir -p rescue/modules
+    for module in a0_add_extra_repos a0_add_security_repos a0_motd install-manpages mdadm network root-bashrc z0_remove-locales z1_clean-root; do
+        ln -s /usr/share/debirf/modules/$module rescue/modules/$module
+    done
+    # make some changes here
+    cp /usr/share/debirf/modules/a0_prep-root rescue/modules/a0_prep-root
+    sed -i -e 's/--force-yes/--allow-downgrades --allow-remove-essential --allow-change-held-packages/'  rescue/modules/a0_prep-root
+    sed -i -e '/apt-get/ s/$/ || :/'  rescue/modules/a0_prep-root
+
+    cp /usr/share/debirf/modules/install-kernel rescue/modules/install-kernel
+    sed -i -e '/install kernel deb/ a\cp "${DEBIRF_KERNEL_PACKAGE/image/modules}" "$DEBIRF_ROOT"/var/cache/apt/archives/' rescue/modules/install-kernel
+    sed -i -e '/dpkg --extract/ a\debirf_exec dpkg --unpack /var/cache/apt/archives/"${KPKG/image/modules}" ' rescue/modules/install-kernel
 
     # add our packages
-    for include_pkg in s390-tools openssh-server multipath-tools kexec-tools net-tools; do
-        echo -e "\n+$include_pkg" >> rescue/packages
+    for include_pkg in bonnie++ cryptsetup eject ethtool hdparm hfsplus hfsutils initramfs-tools-core kexec-tools lsof lsscsi lvm2 mtd-utils multipath-tools net-tools openssh-server parted pciutils rsync s390-tools sg3-utils socat squashfs-tools wget; do
+        echo "+$include_pkg" >> rescue/packages
     done
 
-    # remove non s390x packages
-    for remove_pkg in nvramtool grub2 inteltool msrtool dmidecode superiotool; do
-        sed -i "/$remove_pkg/ d" rescue/packages
-    done
+    # add configuration
+    echo DEBIRF_LABEL="debirf-rescue" > rescue/debirf.conf
 
     # add module to configure password
     if [ -n "$root_pwd" ] ; then
@@ -101,11 +112,12 @@ EOF
 
     # use the newest kernel available
     suite=$(lsb_release --codename --short)
-    echo "deb http://deb.debian.org/debian $suite-backports main" > /etc/apt/sources.list.d/backports_repo.list
     apt-get update
-    kernel_pkg=$(apt-cache show linux-image-s390x | grep '^Depends: ' | sed 's/^Depends: //' | tr ',' '\n' | tr -d ' ' | grep ^linux-image | sort | head -1)
-    ( cd rescue && apt-get download $kernel_pkg )
+    kernel_pkg=$(apt-cache show linux-image-generic | grep '^Depends: ' | sed 's/^Depends: //' | tr ',' '\n' | tr -d ' ' | grep ^linux-image | sort -V -r | head -1)
+    ( cd rescue && apt-get download $kernel_pkg ${kernel_pkg/image/modules} )
     echo "DEBIRF_KERNEL_PACKAGE=$(realpath rescue/linux-image-*.deb)" >> rescue/debirf.conf
+
+    echo "DEBIRF_MIRROR=http://ports.ubuntu.com/ubuntu-ports" >> rescue/debirf.conf
 
     # -r (real chroot) is needed until https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=855234 gets fixed
     debirf make --no-warning -r rescue
@@ -115,13 +127,16 @@ EOF
 
     # generate addrsize file
     initrd_size=$(stat -c%s rescue/initrd)
-    python3 -c "import sys, struct; buffer = struct.pack('>IIII', 0, 0x02000000, 0, $initrd_size); sys.stdout.buffer.write(buffer)" > rescue/initrd.addrsize
+    kernel_size=$(stat -c%s rescue/kernel)
+    # round up kernel size to 16 MB
+    initrd_offset=$(python3 -c "print(format(($kernel_size | 0x00ffffff) + 1, '#010x'))")
+    python3 -c "import sys, struct; buffer = struct.pack('>QQ', $initrd_offset, $initrd_size); sys.stdout.buffer.write(buffer)" > rescue/initrd.addrsize
 
     # generate ins file
-    cat > rescue/live-img.ins <<EOF
+    sed -e "s/INITRD_OFFSET/$initrd_offset/" > rescue/live-img.ins <<EOF
 * tessia live image $build_id
 kernel 0x00000000
-initrd 0x02000000
+initrd INITRD_OFFSET
 parmfile 0x00010480
 initrd.addrsize 0x00010408
 EOF
@@ -139,7 +154,7 @@ EOF
 
     # re-generate addrsize file
     initrd_size=$(stat -c%s rescue/initrd)
-    python3 -c "import sys, struct; buffer = struct.pack('>IIII', 0, 0x02000000, 0, $initrd_size); sys.stdout.buffer.write(buffer)" > rescue/initrd.addrsize
+    python3 -c "import sys, struct; buffer = struct.pack('>QQ', $initrd_offset, $initrd_size); sys.stdout.buffer.write(buffer)" > rescue/initrd.addrsize
 
     # final packaging
     tar zcvf live-image.tgz -C rescue kernel initrd initrd.addrsize parmfile live-img.ins
