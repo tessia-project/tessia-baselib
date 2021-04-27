@@ -56,6 +56,7 @@ class S3270PipeConnector:
         self._logger = get_logger(__name__)
 
         # create new s3270 process and connects to its pipes
+        # pylint: disable=consider-using-with
         self._s3270 = subprocess.Popen(
             [
                 's3270',

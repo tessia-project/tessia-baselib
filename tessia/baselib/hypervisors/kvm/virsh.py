@@ -222,9 +222,8 @@ class Virsh:
 
         # create local file with the xml content
         file_descriptor, path = mkstemp(suffix=".xml", text=True)
-        tmp_file = open(file_descriptor, "w")
-        tmp_file.write(domain_xml)
-        tmp_file.close()
+        with open(file_descriptor, "w") as local_domain_file:
+            local_domain_file.write(domain_xml)
 
         # push the local file to the host in our temporary directory
         source_url = "file://" + path

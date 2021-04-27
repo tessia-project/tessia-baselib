@@ -220,7 +220,7 @@ class TestGuestLinux(TestCase):
         """
         # set a simple log configuration to catch messages from all levels
         # and output to a file which we will check later
-        log_file = NamedTemporaryFile()
+        log_file = NamedTemporaryFile() # pylint: disable=consider-using-with
         logging.basicConfig(filename=log_file.name, filemode='w',
                             level=logging.DEBUG)
 
@@ -257,9 +257,9 @@ class TestGuestLinux(TestCase):
             "{}:logoff system_name='{}'\n".format(log_prefix, guest_obj.name)
         )
         # retrieve the content written in the log file
-        log_fd = open(log_file.name, 'r')
-        actual_log = log_fd.read()
-        log_fd.close()
+        with open(log_file.name, 'r') as log_fd:
+            actual_log = log_fd.read()
+
         # allow unittest class to show the full diff in case of error
         # pylint: disable=invalid-name
         self.maxDiff = None
