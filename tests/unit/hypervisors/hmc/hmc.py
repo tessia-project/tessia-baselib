@@ -245,7 +245,7 @@ class TestHypervisorHmc(TestCase):
 
         def messages_connect(*args, **kwargs):
             """Provide mock notification source to Messages"""
-            return hmc.Messages(MockNotificationSource(*args, **kwargs))
+            return hmc.Messages(lambda: MockNotificationSource(*args, **kwargs))
         # messages_connect()
         patcher_messages = patch.object(
             hmc.Messages, 'connect', new=messages_connect)

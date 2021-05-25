@@ -197,29 +197,13 @@ class HypervisorHmc(HypervisorBase):
         if not net_setup:
             return
 
-        self._logger.debug("Opening OS messages channel")
-        timeout = time.monotonic() + MSG_POST_LOAD_DURATION
-        while timeout - time.monotonic() > 0:
-            try:
-                os_channel_topic = guest_obj.open_os_message_channel(
-                    include_refresh_messages=True)
-                break   # exit normally
-            except zhmcclient.HTTPError as exc:
-                if exc.http_status == 409 and exc.reason == 332:
-                    # The messages interface for the partition is not available
-                    time.sleep(2)
-                else:
-                    raise
-        else:
-            raise RuntimeError("Timed out waiting for OS messages channel")
-
         # password cannot be optional as GuestLinux would fail to connect to a
         # system without password
         os_passwd = net_setup['password']
         # enable network on loaded operating system
         net_cmds = self._prepare_setup_network_cmds(net_setup)
 
-        with Messages.connect(os_channel_topic, self.host_name,
+        with Messages.connect(self._get_os_channel, self.host_name,
                               self.user, self.passwd) as receiver:
             self._logger.debug("Waiting for live image login prompt")
             self._send_commands(
@@ -389,6 +373,70 @@ class HypervisorHmc(HypervisorBase):
                     'this HMC user'.format(guest_name.upper())) from None
         return guest_obj
     # _get_guest()
+
+    def _get_os_channel(self, guest_obj):
+        """
+        Retrieve OS channel topic from guest object
+
+        Args:
+            guest_obj (Union[LPAR, Partition]): LPAR or DPM Partition
+
+        Returns:
+            str: os messages channel name (STOMP topic)
+
+        Raises:
+            RuntimeError: OS messages channel could not be found
+            zhmcclient.HTTPError: other HMC errors
+        """
+        self._logger.debug("Opening OS messages channel ")
+        timeout = time.monotonic() + MSG_POST_LOAD_DURATION
+        while timeout - time.monotonic() > 0:
+            try:
+                return guest_obj.open_os_message_channel(
+                    include_refresh_messages=True)
+            except zhmcclient.HTTPError as exc:
+                if exc.http_status == 409 and exc.reason == 332:
+                    # The messages interface for the partition
+                    # is not available, try again once more
+                    time.sleep(2)
+                elif exc.http_status == 409 and exc.reason == 331:
+                    # Topic already exists for this partition
+                    # for the current API session
+                    # Which means, we need to get the list of existing topics
+                    # and pick one from there
+                    all_topics = self._conn[0].session.get_notification_topics(
+                    )
+                    # From all the topics returned we only need those that are
+                    # related to os-message-notification AND have the desired
+                    # LPAR object specified
+                    # LPAR object has its unique ID, and we search for it
+                    # in the 'object-uri' field (comparing this directly is
+                    # not robust enough)
+                    os_topics = [
+                        topic['topic-name'] for topic in all_topics if (
+                            topic['topic-type'] == 'os-message-notification'
+                            and topic['object-uri'].split(
+                                '/')[-1] == guest_obj.uri.split('/')[-1]
+                        )]
+                    if not os_topics:
+                        # none found - that is very much an error
+                        self._logger.debug(
+                            'No matching topic found for LPAR object %s: %s',
+                            guest_obj.uri, all_topics)
+                        raise RuntimeError(
+                            'Could not determine OS messages topic') from None
+
+                    if len(os_topics) > 1:
+                        # make a note, but can probably work
+                        self._logger.debug(
+                            'Multiple topics found for LPAR object %s: %s',
+                            guest_obj.uri, all_topics)
+
+                    return os_topics[0]
+                else:
+                    raise
+
+        raise RuntimeError("Timed out waiting for OS messages channel")
 
     def _get_svol_uri(self, part_obj, boot_params):
         """
@@ -667,11 +715,12 @@ class HypervisorHmc(HypervisorBase):
 
                 # log messages
                 for msg in messages:
-                    self._logger.debug("OS message: %s", msg)
+                    self._logger.debug("%s: %s", msg['type'], msg['text'])
 
                 # react to pattern with one command only
-                for msg in messages:
-                    if re.search(pattern, msg):
+                for text in [msg['text'] for msg in messages
+                             if msg['type'] == 'OS message']:
+                    if re.search(pattern, text):
                         for chunk in _string_to_chunks(cmd):
                             guest_obj.send_os_command(chunk)
                         pattern, cmd = next(command_gen)
