@@ -496,6 +496,10 @@ class HypervisorHmc(HypervisorBase):
                                  firmware feature
             ValueError: if an unsupported boot method is specified
         """
+        if boot_params['boot_method'] == 'none':
+            self._logger.debug("No boot should be performed")
+            return
+
         # dpm mode
         if isinstance(guest_obj, zhmcclient.Partition):
             # perform load of a storage volume
@@ -955,7 +959,7 @@ class HypervisorHmc(HypervisorBase):
             cpu (int): number of CPU's to assign
             memory (int): amount of memory to assign in megabytes.
             parameters (dict): contains the CPC name and boot type config
-            notify (Event):    A notification object
+            notify (Event): a notification object
 
         Raises:
             ConnectionError: if session does not exist yet
