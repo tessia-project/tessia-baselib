@@ -811,6 +811,21 @@ class TestHypervisorHmc(TestCase):
             self.hmc_object.logoff()
     # test_logoff()
 
+    def test_no_boot(self):
+        """
+        Verify that a "none" boot method is valid
+        """
+        parameters = {
+            'boot_params': {
+                "boot_method": "none"
+            }
+        }
+        self._fake_lpar.properties['status'] = 'operating'
+        self.hmc_object.start(self.lpar_name, 0, 0, parameters)
+        self.hmc_object.stop(self.lpar_name, {})
+        self.hmc_object.logoff()
+    # test_no_boot()
+
     def test_ops_no_login(self):
         """
         Exercise the scenario where operations are called without a previous

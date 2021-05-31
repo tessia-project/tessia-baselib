@@ -76,6 +76,18 @@
                     ]
                 }
             ]
+        },
+        "skip": {
+            "properties": {
+                "boot_method": {
+                    "enum": [
+                        "none"
+                    ]
+                }
+            },
+            "required": [
+                "boot_method"
+            ]
         }
     },
     "oneOf": [
@@ -87,6 +99,9 @@
         },
         {
             "$ref": "#/definitions/network"
+        },
+        {
+            "$ref": "#/definitions/skip"
         }
     ],
     "type": "object"
