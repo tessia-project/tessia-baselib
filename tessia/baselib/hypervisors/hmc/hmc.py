@@ -203,7 +203,10 @@ class HypervisorHmc(HypervisorBase):
         # enable network on loaded operating system
         net_cmds = self._prepare_setup_network_cmds(net_setup)
 
-        with Messages.connect(self._get_os_channel, self.host_name,
+        def _get_guest_os_channel():
+            return self._get_os_channel(guest_obj)
+
+        with Messages.connect(_get_guest_os_channel, self.host_name,
                               self.user, self.passwd) as receiver:
             self._logger.debug("Waiting for live image login prompt")
             self._send_commands(
