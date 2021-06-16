@@ -503,6 +503,8 @@ class HypervisorHmc(HypervisorBase):
             self._logger.debug("No boot should be performed")
             return
 
+        self._logger.debug("Performing boot")
+
         # dpm mode
         if isinstance(guest_obj, zhmcclient.Partition):
             # perform load of a storage volume
@@ -513,9 +515,11 @@ class HypervisorHmc(HypervisorBase):
                 return
 
             if guest_obj.get_property('status') != 'stopped':
+                self._logger.debug("Stopping partition")
                 guest_obj.stop(wait_for_completion=True)
                 guest_obj.wait_for_status('stopped')
             guest_obj.update_properties(update_props)
+            self._logger.debug("Starting partition")
             guest_obj.start(wait_for_completion=True)
             return
 
@@ -919,6 +923,97 @@ class HypervisorHmc(HypervisorBase):
         self._conn[1].logoff()
         self._conn = None
     # logoff()
+
+    def query_dpm_storage_devices(self, guest_name):
+        """
+        Ask HMC the specifics of storage devices defined in a storage group.
+        Only valid for CPC in DPM mode.
+
+        Args:
+            guest_name (str): guest name
+
+        Returns:
+            list: information about volumes obtained from HMC
+        """
+
+        def _make_volume_descriptor(volume: zhmcclient.StorageVolume):
+            """
+            Return volume descriptor from zhmcclient volume object
+            """
+            desc = {
+                'uri': volume.uri,
+                # a volume mightn ot be ready yet - this is indicated by
+                # fulfillment state. HPAV aliases have null here
+                'is_fulfilled': volume.get_property('fulfillment-state') in [
+                    'complete', 'overprovisioned'
+                ],
+                'size': volume.prop('active-size', 0.),
+                'attachment': volume.manager.storage_group.get_property(
+                    'type'),
+            }
+            if desc['attachment'] == 'fc':
+                # ECKD volume
+                desc.update({
+                    'type': 'ECKD',
+                    'is_alias': volume.get_property('eckd-type') == 'alias',
+                    'device_nr': volume.get_property('device-number')
+                })
+            elif desc['attachment'] == 'fcp':
+                # SCSI on FCP
+                desc.update({
+                    'type': 'SCSI',
+                    'uuid': volume.get_property('uuid'),
+                })
+                # from all paths available to a volume
+                # pick only those for current partition
+                desc['paths'] = [
+                    {
+                        'device_nr': path['device-number'],
+                        'wwpn': path['target-world-wide-port-name'],
+                        'lun': path['logical-unit-number']
+                    } for path in (volume.prop('paths') or [])
+                    if path['partition-uri'] == guest_obj.uri
+                ]
+
+            return desc
+        # _make_volume_descriptor()
+
+        self._logger.debug(
+            "Query storage group: cpc='%s', guest='%s'",
+            self.name, guest_name)
+
+        needs_logon = not self._conn
+        if needs_logon:
+            self.login()
+
+        cpc_obj = self._get_cpc(self.name)
+        guest_obj = self._get_guest(cpc_obj, guest_name)
+        if not isinstance(guest_obj, zhmcclient.Partition):
+            self._logger.debug("No additional storage information available")
+            return []
+
+        try:
+            storage_groups = guest_obj.list_attached_storage_groups()
+        except zhmcclient.Error as exc:
+            self._logger.debug("Error retrieving storage data: %s", str(exc))
+            return []
+
+        if not storage_groups:
+            self._logger.warning("No storage groups found for guest '%s'",
+                                 guest_name)
+            return []
+
+        attached_volumes = []
+        for group in storage_groups:
+            self._logger.debug("Requesting volumes for storage group %s",
+                               group.uri)
+            volumes = group.storage_volumes.list(full_properties=True)
+            for volume in volumes:
+                attached_volumes.append(_make_volume_descriptor(volume))
+
+        return attached_volumes
+
+    # query_dpm_storage_devices()
 
     @validate_params
     def set_boot_device(self, guest_name, parameters):
