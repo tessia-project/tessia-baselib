@@ -232,7 +232,7 @@ class HypervisorHmc(HypervisorBase):
                     for msg in receiver.get_messages(
                             timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
                                                  timeout-time.monotonic()))):
-                        self._logger.debug('OS message: %s', msg)
+                        self._logger.debug("%s: %s", msg['type'], msg['text'])
 
         self._logger.debug("Live image stage finished")
     # _do_netsetup()
