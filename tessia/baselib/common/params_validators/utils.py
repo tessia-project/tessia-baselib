@@ -19,6 +19,7 @@ Module for utility functions
 #
 # IMPORTS
 #
+from functools import wraps
 from tessia.baselib.common.params_validators.jsonschema import \
     JsonschemaValidator
 
@@ -37,7 +38,7 @@ VALID_ACTIONS = ("start", "stop", "hotplug", "__init__", "reboot",
 #
 
 
-def validate_params(func):
+def validate_params(func, validated_argument=ARGUMENT_TO_VALIDATE):
     """
     A function decorator that is used to validate the "parameters" argument
     of a function.
@@ -63,11 +64,11 @@ def validate_params(func):
     func_params = list(func_signature.parameters.keys())
     # get the correct function argument
     try:
-        parameters_index = func_params.index(ARGUMENT_TO_VALIDATE)
+        parameters_index = func_params.index(validated_argument)
     # the parameter to validate must be present in the function parameters
     except ValueError:
         raise NameError("Decorated function does not have correct argument"
-                        "to validate: {}".format(ARGUMENT_TO_VALIDATE))
+                        "to validate: {}".format(validated_argument))
 
     # gather information about the module in order to choose the proper
     # json schema
@@ -88,7 +89,7 @@ def validate_params(func):
         """
         if (len(params)-1) < parameters_index:
             raise ValueError("Method call has missing argument '{}'".format(
-                ARGUMENT_TO_VALIDATE))
+                validated_argument))
         validator.validate(params[parameters_index])
 
         return func(*params)
@@ -96,3 +97,14 @@ def validate_params(func):
 
     return validate
 # validate_params()
+
+def validate_params_named(param_name):
+    """
+    Call validate_params with a different parameter name
+    """
+    @wraps(validate_params)
+    def wrap(validated_fn):
+        """Validate_params wrapper"""
+        return validate_params(validated_fn, param_name)
+    return wrap
+# validate_params_named()
