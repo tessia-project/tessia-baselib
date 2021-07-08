@@ -102,8 +102,9 @@ class TestImportModules(TestCase):
         self.mod_init = self._create_module(module_path, '')
 
         # create two non .py files
-        open(os.path.join(self.temp_dir.name, 'dummy.txt'), 'w').close()
-        open(os.path.join(self.temp_dir.name, 'dummy'), 'w').close()
+        with open(os.path.join(self.temp_dir.name, 'dummy.txt'), 'w'):
+            with open(os.path.join(self.temp_dir.name, 'dummy'), 'w'):
+                pass
     # setUp()
 
     def tearDown(self):

@@ -25,7 +25,8 @@ from tessia.baselib.common.logger import get_logger
 from tessia.baselib.guests.linux.linux import GuestLinux
 from tessia.baselib.hypervisors.base import HypervisorBase
 from tessia.baselib.hypervisors.hmc.messages import Messages
-from tessia.baselib.common.params_validators.utils import validate_params
+from tessia.baselib.common.params_validators.utils import validate_params,\
+    validate_params_named
 from urllib.parse import urlsplit
 
 import re
@@ -1015,21 +1016,21 @@ class HypervisorHmc(HypervisorBase):
 
     # query_dpm_storage_devices()
 
-    @validate_params
-    def set_boot_device(self, guest_name, parameters):
+    @validate_params_named(param_name='boot_device')
+    def set_boot_device(self, guest_name, boot_device):
         """
         Set boot device for next load
 
         Args:
             guest_name (str): guest to operate on
-            parameters (dict): boot device config
+            boot_device (dict): boot device config
         """
         self._logger.debug(
             "performing SET_BOOT_DEVICE HypervisorHmc: name='%s', guest='%s' "
             "boot_device='%s'",
             self.name,
             guest_name,
-            str(parameters)
+            str(boot_device)
         )
         needs_logon = not self._conn
         if needs_logon:
@@ -1039,7 +1040,7 @@ class HypervisorHmc(HypervisorBase):
         if cpc_obj.dpm_enabled:
             self._logger.debug("DPM mode: set boot device")
             guest_obj = self._get_guest(cpc_obj, guest_name)
-            update_props = self._get_dpm_boot_props(guest_obj, parameters)
+            update_props = self._get_dpm_boot_props(guest_obj, boot_device)
             guest_obj.update_properties(update_props)
         else:
             self._logger.debug("Non-DPM mode: set boot device is ignored")

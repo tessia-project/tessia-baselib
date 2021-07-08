@@ -254,21 +254,21 @@ class HypervisorZvm(HypervisorBase):
         self._cms.logoff()
     # logoff()
 
-    def set_boot_device(self, guest_name, parameters):
+    def set_boot_device(self, guest_name, boot_device):
         """
         Set boot device for next load
         For ZVM it is a no-op
 
         Args:
             guest_name (str): guest to operate on
-            parameters (dict): boot device config
+            boot_device (dict): boot device config
         """
         self._logger.debug(
             "performing SET_BOOT_DEVICE HypervisorZvm: name='%s', guest='%s' "
             "boot_device='%s'",
             self.name,
             guest_name,
-            str(parameters)
+            str(boot_device)
         )
 
     @validate_params

@@ -114,8 +114,7 @@ class TestStoragePool(TestCase):
         Exercise collecting the xml representation of each disk
         """
         expected_xml = ''
-        for i in range(0, len(self._pool_obj._disks)):
-            disk = self._pool_obj._disks[i]
+        for i, disk in enumerate(self._pool_obj._disks):
             disk.to_xml.return_value = 'disk_xml{}'.format(i)
             expected_xml += disk.to_xml.return_value
 
