@@ -77,5 +77,17 @@ from tessia.baselib.common.params_validators.utils import validate_params
 
     @validate_params
     def start(self, guest_name, cpu, memory, parameters):
-	....
+	...
+```
+
+`validate_params` decorator expected parameters argument to be named "parameters". If you have to use a differently named argument, it can be validated with `validate_params_named` decorator:
+
+```python
+#hmc.py
+from tessia.baselib.common.params_validators.utils import validate_params_named
+...
+
+    @validate_params_named(param_name='boot_device')
+    def set_boot_device(self, guest_name, boot_device):
+	...
 ```
