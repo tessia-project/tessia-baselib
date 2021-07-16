@@ -25,6 +25,8 @@ from tessia.baselib.common.logger import get_logger
 from tessia.baselib.guests.linux.linux import GuestLinux
 from tessia.baselib.hypervisors.base import HypervisorBase
 from tessia.baselib.hypervisors.hmc.messages import Messages
+from tessia.baselib.hypervisors.hmc.volume_descriptor import \
+    describe_storage_volume
 from tessia.baselib.common.params_validators.utils import validate_params,\
     validate_params_named
 from urllib.parse import urlsplit
@@ -934,50 +936,8 @@ class HypervisorHmc(HypervisorBase):
             guest_name (str): guest name
 
         Returns:
-            list: information about volumes obtained from HMC
+            list[VolumeDescriptor]: information about volumes obtained from HMC
         """
-
-        def _make_volume_descriptor(volume: zhmcclient.StorageVolume):
-            """
-            Return volume descriptor from zhmcclient volume object
-            """
-            desc = {
-                'uri': volume.uri,
-                # a volume mightn ot be ready yet - this is indicated by
-                # fulfillment state. HPAV aliases have null here
-                'is_fulfilled': volume.get_property('fulfillment-state') in [
-                    'complete', 'overprovisioned'
-                ],
-                'size': volume.prop('active-size', 0.),
-                'attachment': volume.manager.storage_group.get_property(
-                    'type'),
-            }
-            if desc['attachment'] == 'fc':
-                # ECKD volume
-                desc.update({
-                    'type': 'ECKD',
-                    'is_alias': volume.get_property('eckd-type') == 'alias',
-                    'device_nr': volume.get_property('device-number')
-                })
-            elif desc['attachment'] == 'fcp':
-                # SCSI on FCP
-                desc.update({
-                    'type': 'SCSI',
-                    'uuid': volume.get_property('uuid'),
-                })
-                # from all paths available to a volume
-                # pick only those for current partition
-                desc['paths'] = [
-                    {
-                        'device_nr': path['device-number'],
-                        'wwpn': path['target-world-wide-port-name'],
-                        'lun': path['logical-unit-number']
-                    } for path in (volume.prop('paths') or [])
-                    if path['partition-uri'] == guest_obj.uri
-                ]
-
-            return desc
-        # _make_volume_descriptor()
 
         self._logger.debug(
             "Query storage group: cpc='%s', guest='%s'",
@@ -1010,7 +970,8 @@ class HypervisorHmc(HypervisorBase):
                                group.uri)
             volumes = group.storage_volumes.list(full_properties=True)
             for volume in volumes:
-                attached_volumes.append(_make_volume_descriptor(volume))
+                attached_volumes.append(
+                    describe_storage_volume(volume, guest_obj))
 
         return attached_volumes
 

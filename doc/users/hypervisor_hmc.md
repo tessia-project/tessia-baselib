@@ -1,5 +1,5 @@
 <!--
-Copyright 2016, 2017, 2019 IBM Corp.
+Copyright 2016, 2017, 2019, 2021 IBM Corp.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,14 +28,14 @@ The definition of the parameters format is available in the jsonschema folder:
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                    hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -73,14 +73,14 @@ hmc.logoff()
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                        hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -123,14 +123,14 @@ provides the `dpm-storage-management` feature.
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                    hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -177,14 +177,14 @@ and on machines where the firmware provides the `dpm-storage-management` feature
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                    hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -225,14 +225,14 @@ hmc.logoff()
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                    hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -250,14 +250,14 @@ hmc.logoff()
 ```python
 from tessia.baselib.hypervisors.hmc import hmc
 
-hypervisor_name = "CP23" # this is the CEC/CPC hosting the target LPAR
-hypervisor_hostname = "hmc.domain.com" # URL where HMC API is running
-hypervisor_user = "some_user"
-hypervisor_pwd = "some_password"
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
 # Currently there are no parameters for instantiating a hmc hypervisor
 hypervisor_params = None
-hmc = hmc.HypervisorHmc(hypervisor_name, hypervisor_hostname,
-                    hypervisor_user, hypervisor_pwd, hypervisor_params)
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
 
 # We must be logged in before submitting any command.
 hmc.login()
@@ -268,4 +268,38 @@ parameters = {} # no special parameters are used currently
 
 hmc.reboot(guest_name, parameters)
 hmc.logoff()
+```
+
+
+## Query DPM partition volumes
+
+**Important:** note that the `dpm-storage-management` feature should be enabled
+to use this option.
+
+In DPM mode storage volumes may dynamically assigned to partitions. To query current storage volume configuration use the following method of `HypervisorHmc`:
+
+```python
+from tessia.baselib.hypervisors.hmc import hmc
+
+cpc_name = "CP23" # this is the CEC/CPC hosting the target LPAR
+hmc_address = "hmc.domain.com" # URL where HMC API is running
+hmc_user = "some_user"
+hmc_password = "some_password"
+hypervisor_params = None
+hmc = hmc.HypervisorHmc(cpc_name, hmc_address,
+                        hmc_user, hmc_password, hypervisor_params)
+
+# We must be logged in before submitting any command.
+hmc.login()
+guest_name = "CP23LP12"
+storage_info = hmc.query_dpm_storage_devices(guest_name)
+# storage_info is a list of VolumeDescriptor instances
+```
+All reported volumes have `uri`, `size` and `is_fulfilled` fields indicating their status. 
+FCP-attached volumes are instances of `FcpVolumeDescriptor` and additionally have `uuid` and `paths`,
+whereas FICON-attached volumes are instances of `FiconVolumeDescriptor` and have `device_nr` and `is_alias` properties.
+
+For more information refer to module
+```bash
+tessia/baselib/hypervisors/hmc/volume_descriptor
 ```

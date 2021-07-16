@@ -1,0 +1,111 @@
+test_client:
+  hmc_host: "hmc.example.com"
+  hmc_name: "test-hmc"
+  hmc_version: "2.13.1"
+  api_version: "1.8"
+  cpcs:
+    - properties:
+        name: "CPC1"
+        description: "Faked CPC CPC1 (z13 in DPM mode)"
+        machine-type: "2964"
+        status: active
+        dpm-enabled: true
+        is-ensemble-member: false
+        iml-mode: dpm
+      partitions:
+        - properties:
+            name: "PART1"
+            description: "Faked partition PART1 on CPC1"
+            autogenerate-partition-id: true
+            partition-id: 0x41
+            type: linux
+            status: active
+            auto-start: true
+            processor-mode: shared
+            ifl-processors: 2
+            initial-ifl-processing-weight: 20
+            initial-memory: 4096
+            maximum-memory: 4096
+            boot-device: network-adapter
+            boot-network-device: null  # Should be resource URI
+            available-features-list':
+              name: dpm-storage-management
+              state: on
+      adapters:
+        - properties:
+            name: "OSA1"
+            description: "Faked OSA adapter OSA1 in CPC1"
+            adapter-id: "108"
+            status: active
+            state: online
+            physical-channel-status: operating
+            type: osd
+            adapter-family: osa
+            detected-card-type: "osa-express-6s-1000base-t"
+            card-location: "A14B-D104J.01-D204J.01"
+            configured-capacity: 63
+            maximum-total-capacity: 1920
+          ports:
+            - properties:
+                name: "Port 0"
+                description: "Faked port 0 of OSA adapter OSA1 in CPC1"
+                index: 0
+            - properties:
+                name: "Port 1"
+                description: "Faked port 1 of OSA adapter OSA1 in CPC1"
+                index: 1
+  consoles:
+    - properties:
+        name: 'Test console'
+      storage_groups:
+        - properties:
+            name: 'SG1'
+            description: "Test Ficon Storage Group"
+            type: fc
+          storage_volumes:
+            - properties:
+                name: "SV-DASD1"
+                description: "DASD volume 1"
+                fulfillment-state: 'completed'
+                device-number: 'abcd'
+                eckd-type: base
+                size: 25.93
+                active-size: 25.93
+                model: '27'
+            - properties:
+                name: "SV-DASD2"
+                description: "DASD volume 2"
+                fulfillment-state: 'completed'
+                device-number: 'abce'
+                eckd-type: base
+                size: 51.86
+                active-size: 51.86
+                model: '54'
+            - properties:
+                name: "SV-ALIAS"
+                description: "HPAV alias"
+                fulfillment-state: null
+                device-number: 'abff'
+                eckd-type: alias
+        - properties:
+            name: 'SG2'
+            description: "Test zFCP Storage Group"
+            type: fcp
+          storage_volumes:
+            - properties:
+                name: "LU01"
+                description: "FCP volume 1"
+                fulfillment-state: 'completed'
+                device-number: 'abcd'
+                size: 20.00
+                active-size: 20.00
+                uuid: '60064019bcda2f4e'
+                paths:
+                  - partition-uri: /api/partitions/1
+                    device-number: 'fc00'
+                    target-world-wide-port-name: '5005789a0'
+                    logical-unit-number: 40bc40de
+                  - partition-uri: /api/partitions/1
+                    device-number: 'fc40'
+                    target-world-wide-port-name: '5005789a1'
+                    logical-unit-number: 40bc40de
