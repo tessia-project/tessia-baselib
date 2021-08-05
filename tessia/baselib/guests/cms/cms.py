@@ -118,20 +118,27 @@ class GuestCms(GuestBase):
 
         self._logger.debug('Number of CPU(s) detected is: %s', last_cpu)
 
+        # initialize variables for use in loop, use a loop to avoid
+        # more than a page of output for a large number of cpus
         last_cpu_dec = int(last_cpu, base=16)
+        cpu_addr = last_cpu_addr = (last_cpu_dec+1)
+        if cpus > 1:
+            last_cpu_addr = last_cpu_dec+cpus
 
         # define new cpus starting from last detected
-        def_cpu = 'define cpu {:x}'.format(last_cpu_dec+1)
-        if cpus > 1:
-            def_cpu += '-{:x}'.format(last_cpu_dec+cpus)
-        attach_msg = r'(?i)cpu [0-9A-Fa-f]+ defined'
-        _, re_match = self._terminal.send_cmd(
-            def_cpu, wait_for=[attach_msg, ERROR_REGEX], timeout=10)
-        if not re_match:
-            raise RuntimeError('Define CPU(s) returned unexpected output')
-        if re_match.re.pattern == ERROR_REGEX:
-            raise RuntimeError(
-                'Define CPU(s) failed with: {}'.format(re_match.group()))
+        while cpu_addr <= last_cpu_addr:
+            if cpus == 0:
+                break
+            def_cpu = 'define cpu {:x}'.format(cpu_addr)
+            attach_msg = r'(?i)cpu [0-9A-Fa-f]+ defined'
+            _, re_match = self._terminal.send_cmd(
+                def_cpu, wait_for=[attach_msg, ERROR_REGEX], timeout=10)
+            if not re_match:
+                raise RuntimeError('Define CPU(s) returned unexpected output')
+            if re_match.re.pattern == ERROR_REGEX:
+                raise RuntimeError(
+                    'Define CPU(s) failed with: {}'.format(re_match.group()))
+            cpu_addr = cpu_addr+1
     # _attach_cpu()
 
     def _attach_dev(self, dev_id, dev_type):
