@@ -326,11 +326,103 @@ hotplug_ok:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
-    data: define cpu 2-4                                                                  
-    data: 00: CPU 02 defined                                                              
-    data: 00: CPU 03 defined                                                              
-    data: 00: CPU 04 defined                                                              
+    data: define cpu 2                                                                  
+    data: 00: CPU 02 defined                                                                                                                          
     data: Ready; T=0.01/0.01 14:39:29                                                     
+    data:                                                                               
+    data:                                                                                
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: define cpu 3                                                                  
+    data: 00: CPU 03 defined                                                                                                                          
+    data: Ready; T=0.01/0.01 14:39:29                                                     
+    data:                                                                               
+    data:                                                                                
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: define cpu 4                                                                  
+    data: 00: CPU 04 defined                                                                                                                          
+    data: Ready; T=0.01/0.01 14:39:29                                                     
+    data:                                                                               
+    data:                                                                                
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
