@@ -7,7 +7,7 @@
                 },
                 "wwpns": {
                     "items": {
-                        "pattern": "^[a-f0-9]{16}$",
+                        "pattern": "^[a-fA-F0-9]{16}$",
                         "type": "string"
                     },
                     "type": "array"
