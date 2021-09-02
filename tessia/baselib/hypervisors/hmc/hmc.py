@@ -48,7 +48,7 @@ NETBOOT_LOAD_TIMEOUT = 300  # seconds
 # timeout in seconds before the partition is operating
 OS_MESSAGES_TIMEOUT = 600  # seconds
 # list of manageable DPM partition statuses
-VALID_DPM_STATUSES = ('active', 'paused', 'terminated', 'stopped')
+VALID_DPM_STATUSES = ('active', 'degraded', 'paused', 'terminated', 'stopped')
 # command used to download kernel and initrd
 WGET_CMD = "wget --no-check-certificate -nv -O '{tgt}' '{src}'"
 
@@ -109,8 +109,7 @@ class HypervisorHmc(HypervisorBase):
         )
     # __init__()
 
-    @staticmethod
-    def _assert_dpm_status(status):
+    def _assert_dpm_status(self, status):
         """
         Validate that the DPM partition is in a manageable status
         """
@@ -119,6 +118,10 @@ class HypervisorHmc(HypervisorBase):
                 "Partition cannot be managed because its current status "
                 "<{}> is invalid, valid statuses are: {}"
                 .format(status, ','.join(VALID_DPM_STATUSES)))
+
+        if status == 'degraded':
+            self._logger.warning(
+                "The current status of the partition is <degraded>")
     # _assert_dpm_status()
 
     def _compute_cpus(self, cpus_gen, cpus_cp, cpus_ifl, cpc_avail):
