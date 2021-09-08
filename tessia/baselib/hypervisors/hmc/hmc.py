@@ -878,7 +878,8 @@ class HypervisorHmc(HypervisorBase):
             timeout (int): how long in seconds to wait for connection
 
         Raises:
-            None
+            ValueError: invalid credentials
+            RuntimeError: other logon failures
         """
         self._logger.debug(
             "performing LOGIN HypervisorHMC: name='%s' host_name='%s' "
@@ -901,7 +902,24 @@ class HypervisorHmc(HypervisorBase):
             self.host_name, self.user, self.passwd,
             retry_timeout_config=rt_config,
             port=self.parameters.get('port', zhmcclient.DEFAULT_HMC_PORT))
-        session.logon()
+        try:
+            session.logon()
+        except zhmcclient.ServerAuthError as exc:
+            if exc.details.http_status == 403:  # forbidden - logon failed
+                explanation = 'HMC login failed: ' + {
+                    0: 'User authentication failed.'
+                       ' Please check if the user exists on HMC and valid'
+                       ' credentials are specified in hypervisor profile.',
+                    40: 'The user is disabled on HMC. Please reactivate the'
+                        ' the user on HMC.',
+                    41: 'The user is not authorized to use the'
+                        ' HMC Web Services interface. Please check'
+                        ' user access rights on HMC.'
+                }.get(exc.details.reason, exc.details.message)
+                raise ValueError(explanation) from exc
+            # raise default
+            raise RuntimeError('HMC login failed') from exc
+
         self._conn = (zhmcclient.Client(session), session)
     # login()
 
