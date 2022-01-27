@@ -145,6 +145,52 @@ start_dasd:
     data: 00:                                                                             
     data: 00: CP I CMS                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: CP I CMS                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
     data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 10:04:49                                                     
     data:                                                                                 
@@ -465,6 +511,52 @@ start_dasd:
     data:                                                                                 
     data:                                                                                 
     data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: cp i cms                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
@@ -1113,6 +1205,52 @@ start_dasd:
     ok
 
 start_netboot:
+  - |
+    data: 00: I CMS                                                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
   - |
     data: 00: I CMS                                                                       
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
@@ -2227,6 +2365,52 @@ start_fcp:
     data: 00:                                                                             
     data: 00: CP I CMS                                                                    
     data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: CP I CMS                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
     data: access (noprof                                                                  
     data: Ready; T=0.01/0.01 17:13:19                                                     
     data:                                                                                 
@@ -2501,6 +2685,52 @@ start_fcp:
     data:                                                                                 
     data:                                                                                 
     data:                                                             CP READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00:                                                                             
+    data: 00: cp i cms                                                                    
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
@@ -3379,6 +3609,52 @@ start_fcp:
     ok
 
 start_cms:
+  - |
+    data: 00: I CMS                                                                       
+    data: z/VM V6.3.0    2015-04-01 14:32                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
   - |
     data: 00: I CMS                                                                       
     data: z/VM V6.3.0    2015-04-01 14:32                                                 

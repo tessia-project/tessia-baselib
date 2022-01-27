@@ -174,7 +174,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('l {} here noipl'.format(self._user)),
             mock.call(self._passwd, hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp system clear'),
             mock.call('#cp logoff'),
@@ -185,7 +186,8 @@ class TestHypervisorZvm(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp detach cpu all'),
             mock.call('#cp define storage {}M'.format(guest_memory)),
@@ -195,7 +197,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('q v  f5f0'),
             mock.call('q v  f5f1'),
             mock.call('q v  f5f2'),
-            mock.call(r'i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
         ]
         self.assertListEqual(mock_s3270.string.mock_calls, call_list)
@@ -255,7 +258,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('l {} here noipl'.format(self._user)),
             mock.call(self._passwd, hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp system clear'),
             mock.call('#cp logoff'),
@@ -266,7 +270,8 @@ class TestHypervisorZvm(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp detach cpu all'),
             mock.call('#cp define storage {}M'.format(guest_memory)),
@@ -335,7 +340,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('l {} here noipl'.format(self._user)),
             mock.call(self._passwd, hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp system clear'),
             mock.call('#cp logoff'),
@@ -343,7 +349,8 @@ class TestHypervisorZvm(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp detach cpu all'),
             mock.call('#cp define storage {}M'.format(guest_memory)),
@@ -456,7 +463,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('l {} here noipl'.format(self._user)),
             mock.call(self._passwd, hide=True),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp system clear'),
             mock.call('#cp logoff'),
@@ -467,7 +475,8 @@ class TestHypervisorZvm(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('#cp detach cpu all'),
             mock.call('#cp define storage {}M'.format(guest_memory)),
@@ -477,7 +486,8 @@ class TestHypervisorZvm(TestCase):
             mock.call('q v  f5f0'),
             mock.call('q v  f5f1'),
             mock.call('q v  f5f2'),
-            mock.call(r'i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('q v ffff'),
             mock.call('define vfb-512 as ffff blk 200000'),
@@ -550,7 +560,7 @@ class TestHypervisorZvm(TestCase):
             }
         }
         hyp.login()
-        with self.assertRaisesRegex(RuntimeError, 'Failed to initialize CMS'):
+        with self.assertRaisesRegex(RuntimeError, 'Failed to IPL CMS'):
             hyp.start(self._user, guest_cpu, guest_memory, guest_parameters)
     # test_start_netboot_cms_fail()
 

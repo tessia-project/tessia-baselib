@@ -40,6 +40,7 @@ VIRTUAL_NIC_TYPES = ('hiper', 'qdio', 'iedn', 'inmn')
 # CODE
 #
 
+
 class GuestCms(GuestBase):
     """
     This class implements the driver to support the CMS guest type
@@ -290,6 +291,34 @@ class GuestCms(GuestBase):
                 self._attach_iface(iface)
     # hotplug()
 
+    def ipl_cms(self, no_profile=None):
+        """
+        Perform an IPL CMS step
+
+        Args:
+            no_profile (bool): skip profile loading
+
+        Raises:
+            RuntimeError: IPL failed
+        """
+        output, re_match = self._terminal.send_cmd(
+            r'i cms', use_cp=True, wait_for=['z/VM'])
+        if not re_match:
+            raise RuntimeError('Failed to IPL CMS')
+
+        if no_profile is None:
+            no_profile = self.extensions.get('noprof', True)
+
+        if no_profile:
+            cms_output, re_match = self._terminal.send_cmd(
+                r'access (noprof', use_cp=False, wait_for=['Ready;'])
+            if not re_match:
+                raise RuntimeError('CMS access failed')
+            output += cms_output
+
+        self._logger.debug("IPL CMS process: \n%s", output)
+    # ipl_cms()
+
     def login(self, timeout=60):
         """
         Execute the login to the guest system using the credentials
@@ -313,15 +342,13 @@ class GuestCms(GuestBase):
         output = self._terminal.login(
             self.host_name, self.user, self.passwd, self.extensions, timeout
         )
-        cms_output, re_match = self._terminal.send_cmd(
-            r'i cms\naccess (noprof', use_cp=True, wait_for=['Ready;'])
-        if not re_match:
-            raise RuntimeError('Failed to IPL CMS')
+        self._logger.debug("LOGIN process: \n%s", output)
+
+        self.ipl_cms()
         # make sure terminal waits before clearing the screen to prevent
         # missing content
         self._terminal.send_cmd('term more 50 10', use_cp=True)
 
-        self._logger.debug("LOGIN process: \n%s", output+cms_output)
     # login()
 
     def logoff(self):
