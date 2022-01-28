@@ -206,7 +206,8 @@ class TestGuestCms(TestCase):
             mock.call(self._passwd, hide=True),
             mock.call('begin'),
             mock.call('#cp term more 50 10'),
-            mock.call(r'#cp i cms\naccess (noprof'),
+            mock.call('#cp i cms'),
+            mock.call('access (noprof'),
             mock.call('#cp term more 50 10'),
             mock.call('q v cpus'),
             mock.call('define cpu 2'),
@@ -497,6 +498,7 @@ class TestGuestCms(TestCase):
         ret_cmd = ('Some output', re.search('output', 'output'))
         # mock return of login and then return of command
         self._mock_terminal.send_cmd.side_effect = [
+            ('z/VM 6.4', re.search('z/VM', 'Content\nz/VM 6.4\n')),
             ('Some logon output', re.search('Ready;', 'Content\nReady;\n')),
             ('TERM MORE OUTPUT', None),
             ret_cmd,

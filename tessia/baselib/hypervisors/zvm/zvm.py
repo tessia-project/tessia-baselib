@@ -97,10 +97,7 @@ class HypervisorZvm(HypervisorBase):
         Raises:
             RuntimeError: if any zVM command fails
         """
-        _, re_match = self._cms.run(
-            r'i cms\naccess (noprof', wait_for=['Ready;'])
-        if not re_match:
-            raise RuntimeError('Failed to initialize CMS')
+        self._cms.ipl_cms()
         # make sure terminal waits before clearing the screen to prevent
         # missing content
         self._cms.run('term more 50 10', use_cp=True)
@@ -350,10 +347,7 @@ class HypervisorZvm(HypervisorBase):
 
         # boot method 'cms': enter ipl command
         if parameters['boot_method'] == 'cms':
-            _, re_match = self._cms.run(
-                r'i cms\naccess (noprof', wait_for=['Ready;'])
-            if not re_match:
-                raise RuntimeError('Failed to IPL CMS')
+            self._cms.ipl_cms()
             # make sure terminal waits before clearing the screen to prevent
             # missing content
             self._cms.run('term more 50 10', use_cp=True)
