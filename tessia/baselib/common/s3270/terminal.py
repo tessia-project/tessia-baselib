@@ -230,7 +230,7 @@ class Terminal:
         if self._s3270.host_name and self._s3270.host_name in output:
             return True
         return False
-    #_is_connected()
+    # _is_connected()
 
     def _is_output_full(self, output=''):
         """
@@ -260,12 +260,13 @@ class Terminal:
         return False
     # _is_output_full()
 
-    def _parse_output(self, wait_for=None, timeout=60):
+    def _parse_output(self, wait_for=None, retain_vmread=False, timeout=60):
         """
         Parse the output looking for 'wait_for'.
 
         Args:
             wait_for (list): [regex_str1, regex_str2]
+            retain_vmread (bool): stay in VM READ mode
             timeout (int): how many seconds to wait for action to complete
 
         Returns:
@@ -309,7 +310,8 @@ class Terminal:
                 # pending output can be consumed
                 elif self._check_status(buf_output) == 'VM READ':
                     output += self._cleanup_status_line(buf_output)
-                    self._s3270.enter()
+                    if not retain_vmread:
+                        self._s3270.enter()
                     # clear buffer so that it won't be appended twice to the
                     # collected output when we leave the loop
                     buf_output = None
@@ -336,7 +338,8 @@ class Terminal:
                 # pending output can be consumed
                 if self._check_status(buf_output) == 'VM READ':
                     output += self._cleanup_status_line(buf_output)
-                    self._s3270.enter()
+                    if not retain_vmread:
+                        self._s3270.enter()
                     continue
 
                 # in case output is not full we will leave the loop as all
@@ -405,7 +408,8 @@ class Terminal:
         return None
     # host_name
 
-    def send_cmd(self, cmd, use_cp=False, wait_for=None, timeout=60):
+    def send_cmd(self, cmd, use_cp=False, wait_for=None, no_clear=False,
+                 retain_vmread=False, timeout=60):
         """
         Issue a command on zVM.
 
@@ -413,6 +417,8 @@ class Terminal:
             cmd (str): command to be executed
             use_cp (bool): whether the command should be executed on CP
             wait_for (list): [regex_str1, regex_str2] or regex_str1
+            no_clear (bool): do not clear before command
+            retain_vmread (bool): stay in VM READ mode
             timeout (int): how many seconds to wait for command to execute
 
         Returns:
@@ -430,8 +436,9 @@ class Terminal:
         if isinstance(wait_for, str):
             wait_for = [wait_for]
 
-        # make sure we have a clear screen for output
-        self._s3270.clear()
+        if not no_clear:
+            # make sure we have a clear screen for output
+            self._s3270.clear()
         # put command on input line
         if use_cp:
             self._s3270.string("#cp "+cmd)
@@ -441,7 +448,8 @@ class Terminal:
         self._s3270.enter()
 
         # return output and matched regex of command issued
-        return self._parse_output(wait_for, timeout)
+        return self._parse_output(wait_for, retain_vmread=retain_vmread,
+                                  timeout=timeout)
     # send_cmd()
 
     def login(self, host_name, user, password, parameters=None, timeout=60):
@@ -552,7 +560,7 @@ class Terminal:
 
             # invalid credentials: raise appropriate exception
             if error_msg[0] in ['RPIMGR042I', 'RPIMGR046T', 'HCPLGA050E',
-                                'RPIMGR043E',]:
+                                'RPIMGR043E', ]:
                 raise PermissionError('{} {}'.format(*error_msg))
 
             # another type of error occurred: cannot continue

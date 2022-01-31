@@ -302,7 +302,7 @@ class GuestCms(GuestBase):
             RuntimeError: IPL failed
         """
         output, re_match = self._terminal.send_cmd(
-            r'i cms', use_cp=True, wait_for=['z/VM'])
+            r'i cms', use_cp=True, wait_for=['z/VM'], retain_vmread=True)
         if not re_match:
             raise RuntimeError('Failed to IPL CMS')
 
@@ -311,7 +311,8 @@ class GuestCms(GuestBase):
 
         if no_profile:
             cms_output, re_match = self._terminal.send_cmd(
-                r'access (noprof', use_cp=False, wait_for=['Ready;'])
+                r'access (noprof', use_cp=False, wait_for=['Ready;'],
+                no_clear=True)
             if not re_match:
                 raise RuntimeError('CMS access failed')
             output += cms_output
