@@ -193,20 +193,18 @@ class TestHypervisorKvm(unittest.TestCase):
         self._mock_virsh.return_value.is_running.return_value = True
         self._hyp.login()
         self._hyp.stop(guest_name, parameters_stop)
-        self._mock_virsh.return_value.destroy.assert_called_with(guest_name)
+        self._mock_virsh.return_value.shutdown.assert_called_with(
+            guest_name, timeout=mock.ANY)
     # test_stop()
 
     def test_stop_not_running(self):
         """
         Test the stop operation of the guest in the case it is not running.
         """
-        guest_name = "some guest"
-        parameters_stop = {}
         self._mock_virsh.return_value.is_defined.return_value = True
         self._mock_virsh.return_value.is_running.return_value = False
         self._hyp.login()
-        self.assertRaisesRegex(RuntimeError, "is not running",
-                               self._hyp.stop, guest_name, parameters_stop)
+        self._mock_virsh.return_value.shutdown.assert_not_called()
     # test_stop_not_running()
 
     def test_stop_not_defined(self):
@@ -231,7 +229,8 @@ class TestHypervisorKvm(unittest.TestCase):
         self._mock_virsh.return_value.is_running.return_value = True
         self._hyp.login()
         self._hyp.reboot(guest_name, parameters_stop)
-        self._mock_virsh.return_value.destroy.assert_called_with(guest_name)
+        self._mock_virsh.return_value.shutdown.assert_called_with(
+            guest_name, timeout=mock.ANY)
         self._mock_virsh.return_value.start.assert_called_with(guest_name)
     # test_reboot()
 
@@ -240,12 +239,13 @@ class TestHypervisorKvm(unittest.TestCase):
         Test the reboot operation of the guest in the case it is not running.
         """
         guest_name = "some guest"
-        parameters_reboot = {}
+        parameters_stop = {}
         self._mock_virsh.return_value.is_defined.return_value = True
         self._mock_virsh.return_value.is_running.return_value = False
         self._hyp.login()
-        self.assertRaisesRegex(RuntimeError, "is not running",
-                               self._hyp.reboot, guest_name, parameters_reboot)
+        self._hyp.reboot(guest_name, parameters_stop)
+        self._mock_virsh.return_value.shutdown.assert_not_called()
+        self._mock_virsh.return_value.start.assert_called_with(guest_name)
     # test_reboot_not_running()
 
     def test_reboot_not_defined(self):

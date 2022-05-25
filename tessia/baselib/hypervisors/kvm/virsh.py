@@ -24,6 +24,7 @@ from tempfile import mkstemp
 from xml.etree import ElementTree
 
 import os
+import time
 
 #
 # CONSTANTS AND DEFINITIONS
@@ -35,11 +36,14 @@ INITRD_FILENAME = 'initrd'
 #
 # CODE
 #
+
+
 class Virsh:
     """
     This class provides a wrapper for the virsh commands that are executed in
     the hypervisor.
     """
+
     def __init__(self, host_cnn):
         """
         Class constructor. Initialize object variables and logging.
@@ -358,6 +362,38 @@ class Virsh:
             self._raise_and_cleanup("Error while reseting domain "
                                     "{}: {}".format(domain_name, output))
     # reset()
+
+    def shutdown(self, domain_name, timeout=120):
+        """
+        Shutdown (stop) a domain.
+
+        Args:
+            domain_name (str): Name of the domain to be shut down.
+            timeout (float): Timeout to wait for shutdown in seconds.
+
+        Raises:
+            RuntimeError: If the shutdown command fails.
+        """
+        self._logger.debug("Shutting down domain %s", domain_name)
+        cmd = f"virsh shutdown {domain_name}"
+        status, output = self._cmd_channel.run(cmd)
+
+        if status != 0:
+            self._raise_and_cleanup("Error while shutting down domain: "
+                                    f"{domain_name}: {output}")
+
+        time_end = time.monotonic() + timeout
+        while True:
+            if not self.is_running(domain_name):
+                break
+
+            if time.monotonic() > time_end:
+                self._logger.debug("Timed out waiting for shutdown of %s",
+                                   domain_name)
+                self.destroy(domain_name)
+                break
+            time.sleep(5.)
+    # shutdown()
 
     def start(self, domain_name):
         """

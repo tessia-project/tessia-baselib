@@ -29,10 +29,13 @@ from tessia.baselib.hypervisors.kvm.virsh import Virsh
 #
 # CONSTANTS AND DEFINITIONS
 #
+# how long to wait for shutdown to complete, in seconds
+SHUTDOWN_TIMEOUT = 30
 
 #
 # CODE
 #
+
 
 class HypervisorKvm(HypervisorBase):
     """
@@ -187,7 +190,9 @@ class HypervisorKvm(HypervisorBase):
 
         # vm is already running: stop it
         if self._virsh.is_running(guest_name):
-            self._virsh.destroy(guest_name)
+            self._logger.debug("Domain is %s running, shutting down",
+                               guest_name)
+            self._virsh.shutdown(guest_name, timeout=SHUTDOWN_TIMEOUT)
 
         guest_kvm = GuestKvm(guest_name, cpu, memory,
                              parameters, self._host_conn)
@@ -243,19 +248,18 @@ class HypervisorKvm(HypervisorBase):
             "parameters=%s", guest_name, str(parameters))
 
         if not self._virsh.is_defined(guest_name):
-            raise RuntimeError("Domain {} is not "
-                               "defined".format(guest_name))
+            raise RuntimeError(f"Domain {guest_name} is not defined")
 
         if not self._virsh.is_running(guest_name):
-            raise RuntimeError("Domain {} is not "
-                               "running".format(guest_name))
+            self._logger.info("Domain %s is not running", guest_name)
+        else:
+            self._virsh.shutdown(guest_name, timeout=SHUTDOWN_TIMEOUT)
 
         # We cannot use "virsh reset" here since it won't work if we do a
         # network boot. This happens due to the fact that we redefine
         # a running domain (we remove the kernel, initrd, and cmdline tags),
         # and libvirt seems to still use the domain that was used in the start
         # while performing the reset operation.
-        self._virsh.destroy(guest_name)
         self._virsh.start(guest_name)
     # reboot()
 
@@ -280,13 +284,11 @@ class HypervisorKvm(HypervisorBase):
             "parameters=%s", guest_name, str(parameters))
 
         if not self._virsh.is_defined(guest_name):
-            raise RuntimeError("Domain {} is not "
-                               "defined".format(guest_name))
+            raise RuntimeError(f"Domain {guest_name} is not defined")
 
         if not self._virsh.is_running(guest_name):
-            raise RuntimeError("Domain {} is not "
-                               "running".format(guest_name))
-
-        self._virsh.destroy(guest_name)
+            self._logger.info("Domain %s is not running", guest_name)
+        else:
+            self._virsh.shutdown(guest_name, timeout=SHUTDOWN_TIMEOUT)
     # stop()
 # HypervisorKvm
