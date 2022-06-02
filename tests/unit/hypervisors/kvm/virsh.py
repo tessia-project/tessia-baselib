@@ -418,6 +418,40 @@ class TestVirsh(unittest.TestCase):
                                self._virsh.reset, domain_name)
     # test_reset_fails()
 
+    def test_shutdown(self):
+        """
+        Test the virsh shutdown operation.
+        """
+        domain_name = "some domain"
+        self._mock_session.run.return_value = (0, "")
+        cmd_info = f"virsh dominfo {domain_name}"
+        cmd_shutdown = f"virsh shutdown {domain_name}"
+        self._virsh.shutdown(domain_name, timeout=2)
+        self._mock_session.run.assert_has_calls([
+            mock.call(cmd_shutdown), mock.call(cmd_info)
+        ])
+    # test_shutdown()
+
+    def test_shutdown_timeout(self):
+        """
+        Test the virsh shutdown operation with a timeout.
+        """
+        domain_name = "some domain"
+        self._mock_session.run.side_effect = [
+            (0, ""),    # shutdown
+            (0, "State:  running\n"), # dominfo
+            (0, "")     # destroy
+        ]
+        cmd_info = f"virsh dominfo {domain_name}"
+        cmd_shutdown = f"virsh shutdown {domain_name}"
+        cmd_destroy = f"virsh destroy {domain_name}"
+        self._virsh.shutdown(domain_name, timeout=-1)
+        self._mock_session.run.assert_has_calls([
+            mock.call(cmd_shutdown), mock.call(cmd_info),
+            mock.call(cmd_destroy)
+        ])
+    # test_shutdown_timeout()
+
     def test_start(self):
         """
         Test the virsh start command.
