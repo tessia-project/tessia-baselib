@@ -100,7 +100,7 @@ class HypervisorZvm(HypervisorBase):
         self._cms.ipl_cms()
         # make sure terminal waits before clearing the screen to prevent
         # missing content
-        self._cms.run('term more 50 10', use_cp=True)
+        self._cms.run('term more 1 1', use_cp=True)
 
         # prepare a vdisk where we can upload the files to
         vdisk_dev = 'ffff'
