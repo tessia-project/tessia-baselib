@@ -226,8 +226,15 @@ class Terminal:
         # remove unnecessary data
         output = self._format_output(output, strip=True)
 
+        # remove the prefixes and portnumber from the hostname
+        host_name_elements = self._s3270.host_name.split(":")
+        for element in host_name_elements:
+            if len(element) > 1 :
+                sep_host_name = element
+                break
+
         # check if object has a connection
-        if self._s3270.host_name and self._s3270.host_name in output:
+        if self._s3270.host_name and sep_host_name in output:
             return True
         return False
     # _is_connected()

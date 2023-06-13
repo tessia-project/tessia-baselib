@@ -75,7 +75,7 @@ class TestHypervisorZvm(TestCase):
 
         # patch the s3270 object in order to use mocked console outputs
         cms_obj = hyp._cms
-        mock_s3270 = patch_s3270(self, cms_obj, mock_outputs)
+        mock_s3270 = patch_s3270(self, mock_outputs)
 
         # this patching is needed in order to assure the terminal object keeps
         # using our mocked s3270 even after a disconnect
