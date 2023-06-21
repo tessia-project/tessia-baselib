@@ -176,6 +176,36 @@ class TestTerminal(TestCase):
         ])
     # test_disconnect()
 
+    def verify_is_connected(self, hostname):
+        """
+        Validate the behaviour of is_connected function
+        """
+        self._mock_s3270.query.side_effect = [
+            'data: host hostname.com 923\nU F U C(hostname.com) \nok\n',
+            'data: host hostname.com 923\nU F U C(hostname.com) \nok\n',
+        ]
+
+        # perform action
+        self._term.connect(hostname[0])
+
+        # validate behaviour
+        self.assertEqual(hostname[1],self._term._is_connected())
+    # verify_is_connected
+
+    def test_is_connected(self):
+        """
+        Exercise a is_connected function check with some examples
+        """
+        hostnames= [("L:Y:hostname.com:923",True),
+                    ("L:hostname.com:923",True),
+                    ("Y:hostname.com:923",True),
+                    ("hostname.com",True),
+                    ("L:Y:hostname1.com:923",False)]
+        for hostname in hostnames:
+            self.verify_is_connected(hostname)
+    # test_is_connected()
+
+
     def test_empty_output(self):
         """
         Test the scenario where a command generates empty output. Should not

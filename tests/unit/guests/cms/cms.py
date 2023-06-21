@@ -36,7 +36,7 @@ import yaml
 #
 # CODE
 #
-def patch_s3270(test_obj, guest_obj, mock_outputs):
+def patch_s3270(test_obj, mock_outputs):
     """
     Mock the s3270 object of the passed GuestCms object. This function is
     defined outside the testcase class because it is also consumed by the zvm
@@ -48,14 +48,13 @@ def patch_s3270(test_obj, guest_obj, mock_outputs):
 
     Args:
         test_obj (TestCase): testcase class instance
-        guest_obj (GuestCms): object instance to be patched
         mock_outputs (list): list of mocked console outputs to use
 
     Returns:
         MagicMock: mocked s3270 object
     """
-    patcher = patch.object(guest_obj._terminal, '_s3270', autospec=True)
-    mock_s3270 = patcher.start()
+    patcher = patch.object(terminal, 'S3270', autospec=True)
+    mock_s3270 = patcher.start().return_value
     test_obj.addCleanup(patcher.stop)
     mock_s3270.host_name = None
     def mock_connect(host_name, *_, **__):
@@ -172,7 +171,7 @@ class TestGuestCms(TestCase):
             self._user, self._hostname, self._user, self._passwd, None)
         # mock the expected console output
         mock_s3270 = patch_s3270(
-            self, guest_obj, self._data['hotplug_ok'])
+            self, self._data['hotplug_ok'])
 
         # create new instance of terminal
         guest_cpu = 3
@@ -246,7 +245,7 @@ class TestGuestCms(TestCase):
                 mock_output.append(output)
                 break
             mock_output.append(output)
-        patch_s3270(self, guest_obj, mock_output)
+        patch_s3270(self, mock_output)
 
         # perform action
         guest_cpu = 3
@@ -272,7 +271,7 @@ class TestGuestCms(TestCase):
                 mock_outputs.append(output)
                 break
             mock_outputs.append(output)
-        patch_s3270(self, guest_obj, mock_outputs)
+        patch_s3270(self, mock_outputs)
 
         guest_cpu = 3
         guest_obj.login()
@@ -297,7 +296,7 @@ class TestGuestCms(TestCase):
                 mock_outputs.append(output)
                 break
             mock_outputs.append(output)
-        patch_s3270(self, guest_obj, mock_outputs)
+        patch_s3270(self, mock_outputs)
 
         # perform action
         guest_cpu = 3
@@ -324,7 +323,7 @@ class TestGuestCms(TestCase):
                 mock_outputs.append(output)
                 break
             mock_outputs.append(output)
-        patch_s3270(self, guest_obj, mock_outputs)
+        patch_s3270(self, mock_outputs)
 
         # perform action
         guest_cpu = 3
