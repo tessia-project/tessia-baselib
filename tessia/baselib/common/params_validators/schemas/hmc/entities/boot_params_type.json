@@ -16,6 +16,22 @@
                 "devicenr"
             ]
         },
+        "nvme": {
+            "properties": {
+                "boot_method": {
+                    "enum": [
+                        "nvme"
+                    ]
+                },
+                "devicenr": {
+                    "$ref": "../../common/entities/devicenr_type.json"
+                }
+            },
+            "required": [
+                "boot_method",
+                "devicenr"
+            ]
+        },
         "network": {
             "properties": {
                 "boot_method": {
@@ -96,6 +112,9 @@
         },
         {
             "$ref": "#/definitions/dasd"
+        },
+        {
+            "$ref": "#/definitions/nvme"
         },
         {
             "$ref": "#/definitions/network"
