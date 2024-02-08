@@ -557,8 +557,8 @@ class HypervisorHmc(HypervisorBase):
             uri = guest_obj.uri + '/operations/nvme-load'
 
             body['load-address'] = boot_params['devicenr']
-            self._conn[1].post(uri,
-                 body,
+            self._conn[1].post(uri=uri,
+                 body=body,
                  wait_for_completion=True,
                  operation_timeout=None)
 
@@ -919,7 +919,8 @@ class HypervisorHmc(HypervisorBase):
         session = zhmcclient.Session(
             self.host_name, self.user, self.passwd,
             retry_timeout_config=rt_config,
-            port=self.parameters.get('port', zhmcclient.DEFAULT_HMC_PORT))
+            port=self.parameters.get('port', zhmcclient.DEFAULT_HMC_PORT),
+            verify_cert=False)
         try:
             session.logon()
         except zhmcclient.ServerAuthError as exc:

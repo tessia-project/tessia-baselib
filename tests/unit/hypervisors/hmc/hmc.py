@@ -76,6 +76,7 @@ def fixed_init(self, hmc, storage_group):
         base_uri=storage_group.uri + '/storage-volumes',
         oid_prop='element-id',
         uri_prop='element-uri',
+        name_prop='name',
         class_value='storage-volume')
 zhmc_hmc.FakedStorageVolumeManager.__init__ = fixed_init
 
@@ -102,7 +103,7 @@ class MockFakedSession(FakedSession):
         valid_kwargs = {
             'host': host_name,
             'hmc_name': 'fake-hmc',
-            'hmc_version': '2.13.1',
+            'hmc_version': '2.14.1',
             'api_version': '1.8',
         }
         super().__init__(**valid_kwargs)
