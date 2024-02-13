@@ -1021,15 +1021,61 @@ start_dasd:
     ok
   - |
     data: 00: I 1C5D                                                                      
-    data: 00: zIPL v1.23.0-24.el7 interactive boot menu                                   
-    data: 00:                                                                             
-    data: 00:  0. default (linux)                                                         
-    data: 00:                                                                             
-    data: 00:  1. linux                                                                   
-    data: 00:  2. linux-0-rescue-50b2e8bb3730421f8462ae1e5d1c450b                         
-    data: 00: Note: VM users please use '#cp vi vmsg <input>'                             
-    data: 00: Please choose (default will boot in 5 seconds):                             
+    data: 00: zIPL v2.22.0-2.el9 interactive boot menu
+    data: 00:
+    data: 00:  0. default ((5.14.0-162.6.1.el9_1.s390x))
+    data: 00:
+    data: 00:  1. (5.14.0-162.6.1.el9_1.s390x)
+    data: 00:  2. (0-rescue-4f3ac466f1fa436891f8d4fe11961e61)
+    data: 00: Note: VM users please use '#cp vi vmsg <input>'
+    data: 00: Please choose (default will boot in 5 seconds):
+    data: 00: Booting default ((5.14.0-162.6.1.el9_1.s390x))
+    data:
     data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: 00: I 1C5D                                                                      
+    data: 00: zIPL v2.22.0-2.el9 interactive boot menu
+    data: 00:
+    data: 00:  0. default ((5.14.0-162.6.1.el9_1.s390x))
+    data: 00:
+    data: 00:  1. (5.14.0-162.6.1.el9_1.s390x)
+    data: 00:  2. (0-rescue-4f3ac466f1fa436891f8d4fe11961e61)
+    data: 00: Note: VM users please use '#cp vi vmsg <input>'
+    data: 00: Please choose (default will boot in 5 seconds):
+    data: 00: Booting default ((5.14.0-162.6.1.el9_1.s390x))
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -1067,142 +1113,44 @@ start_dasd:
     ok
   - |
     data: 00: I 1C5D                                                                      
-    data: 00: zIPL v1.23.0-24.el7 interactive boot menu                                   
+    data: 00: zIPL v2.22.0-2.el9 interactive boot menu                                    
     data: 00:                                                                             
-    data: 00:  0. default (linux)                                                         
+    data: 00:  0. default ((linux))                                  
     data: 00:                                                                             
-    data: 00:  1. linux                                                                   
-    data: 00:  2. linux-0-rescue-50b2e8bb3730421f8462ae1e5d1c450b                         
+    data: 00:  1. (linux)                                            
+    data: 00:  2. (0-rescue-linux)                             
     data: 00: Note: VM users please use '#cp vi vmsg <input>'                             
     data: 00: Please choose (default will boot in 5 seconds):                             
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
+    data: 00: Booting default ((5.14.0-162.6.1.el9_1.s390x))                              
+    data: Ý    0.068755¨ Linux version 5.14.0-162.6.1.el9_1.s390x (mockbuild@s390-070.buil
+    data: d.eng.bos.redhat.com) (gcc (GCC) 11.3.1 20220421 (Red Hat 11.3.1-2), GNU ld vers
+    data: ion 2.35.2-24.el9) #1 SMP Fri Sep 30 09:42:53 EDT 2022                                                                                              
+    data: Ý    0.068760¨ setup: Linux is running as a z/VM guest operating system in 64-bi
+    data: t mode                                                                                           
+    data: Ý    0.070948¨ Zone ranges:                                                     
+    data: Ý    0.070949¨   DMA      Ýmem 0x0000000000-0x000007fffff¨           
+    data: Ý    0.070952¨   Normal   Ýmem 0x0000000080-0x00000ffffff¨           
+    data: Ý    0.070954¨ Movable zone start for each node                                 
+    data: Ý    0.070955¨ Early memory node ranges                                         
+    data: Ý    0.070956¨   node   0: Ýmem 0x0000000000-0x00000ffffff¨          
+    data: Ý    0.070959¨ Initmem setup node 0 Ýmem 0x0000000000-0x00000ffffff¨ 
+    data: Ý    0.126371¨ percpu: Embedded 32 pages/cpu s93696 r8192 d29184 u131072        
+    data: Ý    0.126431¨ Built 1 zonelists, mobility grouping on.  Total pages: 1032192   
+    data: Ý    0.126433¨ Policy zone: Normal                                              
+    data: Ý    0.126434¨ Kernel command line: root=root_path_mentioned_by_user rd.dasd=
+    data: 0.0.1c5d cio_ignore=all,!condev rd.znet=qeth,0.0.f5f0,0.0.f5f1,0.0.f5f2,layer
+    data: 2=1,portno=0 BOOT_IMAGE=0     
+    data: Ý    0.126881¨ Unknown kernel command line parameters "BOOT_IMAGE=0", will be pa
+    data: ssed to user space.                                                             
+    data: Ý    0.126882¨ printk: log_buf_len individual max cpu contribution: 4096 bytes    
+    data: Ý    0.126882¨ printk: log_buf_len total cpu_extra contributions: 258048 bytes
+    data: Ý    0.126882¨ printk: log_buf_len min size: 65536 bytes 
+    data: Ý    0.126882¨ printk: log_buf_len: 524288 bytes
+    data: Ý    0.126882¨ 0.215803¨ printk: early log buf free: 63248(96%)
     data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
-  - |
-    data: 00: I 1C5D                                                                      
-    data: 00: zIPL v1.23.0-24.el7 interactive boot menu                                   
-    data: 00:                                                                             
-    data: 00:  0. default (linux)                                                         
-    data: 00:                                                                             
-    data: 00:  1. linux                                                                   
-    data: 00:  2. linux-0-rescue-50b2e8bb3730421f8462ae1e5d1c450b                         
-    data: 00: Note: VM users please use '#cp vi vmsg <input>'                             
-    data: 00: Please choose (default will boot in 5 seconds):                             
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             RUNNING   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data: Ý    3.063748¨ Bridge firewalling registered                                    
-    data: Ý    3.227629¨ IPv6: ADDRCONF(NETDEV_UP): enccw0.0.f5f0: link is not ready      
-    data:  Ýr ÝH ÝJ                                                                       
-    data: Red Hat Enterprise Linux Server 7.2 (Maipo)                                     
-    data: Kernel 3.10.0-327.el7.s390x on an s390x                                         
-    data:                                                                                 
-    data: system login:                                                                   
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             RUNNING   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
+  
 
 start_netboot:
   - |
@@ -3427,9 +3375,9 @@ start_fcp:
     data: 00: I 1740                                                                      
     data: 00: HCPLDI2816I Acquiring the machine loader from the processor controller.     
     data: 00: HCPLDI2817I Load completed from the processor controller.                   
-    data: 00: HCPLDI2817I Now starting the machine loader.                                
-    data: 01: HCPGSP2630I The virtual machine is placed in CP mode due to a SIGP stop and 
-    data: store status from CPU 00.                                                       
+    data: 00: HCPLDI2817I Now starting the machine loader.                                  
+    data:
+    data:                                                        
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -3474,13 +3422,13 @@ start_fcp:
     data: 00: HCPLDI2816I Acquiring the machine loader from the processor controller.     
     data: 00: HCPLDI2817I Load completed from the processor controller.                   
     data: 00: HCPLDI2817I Now starting the machine loader.                                
-    data: 01: HCPGSP2630I The virtual machine is placed in CP mode due to a SIGP stop and 
-    data: store status from CPU 00.                                                       
-    data: 00: MLOEVL012I: Machine loader up and running (version v2.4.4).                 
-    data: 00: MLOPDM003I: Machine loader finished, moving data to final storage location. 
-    data: 00: Uncompressing Linux...                                                      
-    data: 00: Ok, booting the kernel.                                                     
-    data: 00:                                                                             
+    data: 00: Ý    1.138196¨ MLOEVL012I: Machine loader up and running (version v3.1.4).  
+    data: 00: Ý    1.198227¨ MLOPDM003I: Machine loader finished, moving data to final sto
+    data: 00: rage location.     
+    data:  
+    data:                                                      
+    data:                                                    
+    data:                                                                            
     data:                                                                                 
     data:                                                                                 
     data:                                                                                 
@@ -3516,95 +3464,41 @@ start_fcp:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
-    data: :1 across:1023996k FS                                                           
-    data: Ý Ý32m  OK   Ý0m¨ Activated swap /dev/disk/by-uuid/1f99f255-a304-485a-8f3c-64527
-    data: 76664b8.                                                                        
-    data: Ý Ý32m  OK   Ý0m¨ Reached target Swap.                                          
-    data: Ý Ý32m  OK   Ý0m¨ Started Security Auditing Service.                            
-    data:          Starting Update UTMP about System Boot/Shutdown...                     
-    data: Ý Ý32m  OK   Ý0m¨ Started Update UTMP about System Boot/Shutdown.               
-    data: Ý Ý32m  OK   Ý0m¨ Reached target System Initialization.                         
-    data: Ý Ý32m  OK   Ý0m¨ Reached target Timers.                                        
-    data: Ý Ý32m  OK   Ý0m¨ Listening on D-Bus System Message Bus Socket.                 
-    data: Ý Ý32m  OK   Ý0m¨ Reached target Sockets.                                       
-    data: Ý Ý32m  OK   Ý0m¨ Reached target Paths.                                         
-    data: Ý Ý32m  OK   Ý0m¨ Reached target Basic System.                                  
-    data:          Starting NTP client/server...                                          
-    data:          Starting LSB: Configure s390 dump feature...                           
-    data:          Starting Login Service...                                              
-    data:          Starting Dump dmesg to /var/log/dmesg...                               
-    data:          Starting firewalld - dynamic firewall daemon...                        
-    data: Ý Ý32m  OK   Ý0m¨ Started D-Bus System Message Bus.                             
-    data:          Starting D-Bus System Message Bus...                                   
-    data:          Starting System Logging Service...                                     
-    data:          Starting Permit User Sessions...                                       
-    data: Ý Ý32m  OK   Ý0m¨ Started LSB: Configure s390 dump feature.                     
-    data: Ý Ý32m  OK   Ý0m¨ Started Dump dmesg to /var/log/dmesg.                         
-    data: Ý Ý32m  OK   Ý0m¨ Started Login Service.                                        
-    data: Ý Ý32m  OK   Ý0m¨ Started System Logging Service.                               
-    data: Ý Ý32m  OK   Ý0m¨ Started NTP client/server.                                    
-    data: Ý Ý32m  OK   Ý0m¨ Started Permit User Sessions.                                 
-    data:          Starting Wait for Plymouth Boot Screen to Quit...                      
-    data:          Starting Terminate Plymouth Boot Screen...                             
-    data: Ý Ý32m  OK   Ý0m¨ Started Command Scheduler.                                    
-    data:          Starting Command Scheduler...                                          
-    data: Ý    9.637419¨ nf_conntrack version 0.5.0 (16384 buckets, 65536 max)            
-    data: Ý    9.650020¨ ip6_tables: (C) 2000-2006 Netfilter Core Team                    
-    data: Ý    9.680752¨ Ebtables v2.0 registered                                         
-    data: Ý    9.690628¨ Bridge firewalling registered                                    
-    data: Ý    9.837761¨ IPv6: ADDRCONF(NETDEV_UP): enccw0.0.f5f0: link is not ready      
-    data: Ý   15.143005¨ blk_update_request: critical target error, dev dm-0, sector 50442
-    data: 32                                                                              
-    data: Ý   15.143016¨ dm-1: WRITE SAME failed. Manually zeroing.                       
-    data:  Ýr ÝH ÝJ                                                                       
-    data:                                                                                 
+    data: 00: I 1740                                                          
+    data: 00: HCPLDI2816I Acquiring the machine loader from the processor controller.     
+    data: 00: HCPLDI2817I Load completed from the processor controller.                   
+    data: 00: HCPLDI2817I Now starting the machine loader.                                
+    data: 00: Ý    1.138196¨ MLOEVL012I: Machine loader up and running (version v3.1.4).  
+    data: 00: Ý    1.198227¨ MLOPDM003I: Machine loader finished, moving data to final sto
+    data: 00: rage location.                                                              
+    data: Ý    0.053236¨ Linux version 5.14.0-162.6.1.el9_1.s390x (mockbuild@s390-070.buil
+    data: d.eng.bos.redhat.com) (gcc (GCC) 11.3.1 20220421 (Red Hat 11.3.1-2), GNU ld vers
+    data: ion 2.35.2-24.el9) #1 SMP Fri Sep 30 09:42:53 EDT 2022                                                                                             
+    data: Ý    0.053249¨ setup: Linux is running as a z/VM guest operating system in 64-bi
+    data: t mode                                                                          
+    data: Ý    0.057308¨ Zone ranges:                                                     
+    data: Ý    0.057309¨   DMA      Ýmem 0x000000000-0x000007fffff¨           
+    data: Ý    0.057312¨   Normal   Ýmem 0x000000008-0x00000ffffff¨           
+    data: Ý    0.057315¨ Movable zone start for each node                                 
+    data: Ý    0.057316¨ Early memory node ranges                                         
+    data: Ý    0.057317¨   node   0: Ýmem 0x000000000-0x00000ffffff¨          
+    data: Ý    0.057320¨ Initmem setup node 0 Ýmem 0x0000000000-0x00000ffffff¨ 
+    data: Ý    0.112777¨ percpu: Embedded 32 pages/cpu s93696 r8192 d29184 u131072        
+    data: Ý    0.112838¨ Built 1 zonelists, mobility grouping on.  Total pages: 1032192   
+    data: Ý    0.112840¨ Policy zone: Normal                                              
+    data: Ý    0.112841¨ Kernel command line: root=UUID=34785884-3897-9090-9i08-o0u9800000
+    data: 38 rd.zfcp=0.0.1740 rd.zfcp=0.0.1742 cio_ignore=all,!condev rd.znet=qeth,0.0.f5f
+    data: 0,0.0.f5f1,0.0.f5f2,layer2=1,portno=0                                                                             
+    data: Ý    0.113253¨ printk: log_buf_len individual max cpu contribution: 4096 bytes  
+    data: Ý    0.113254¨ printk: log_buf_len total cpu_extra contributions: 258048 bytes  
+    data: Ý    0.113255¨ printk: log_buf_len min size: 131072 bytes                       
+    data: Ý    0.114257¨ printk: log_buf_len: 524288 bytes                                
+    data: Ý    0.114257¨ printk: early log buf free: 128640(98%)                          
+    data: Ý    0.115666¨ Dentry cache hash table entries: 524288 (order: 10, 4194304 byte 
+    data: 01: HCPGSP2627I The virtual machine is placed in CP mode due to a SIGP initial C
+    data: PU reset from CPU 00. 
+    data:                                                                
     data:                                                             MORE...   HOSTNAME  
-    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
-    ok
-  - |
-    data: Red Hat Enterprise Linux Server 7.2 (Maipo)                                     
-    data: Kernel 3.10.0-327.el7.s390x on an s390x                                         
-    data:                                                                                 
-    data: guest login:                                                                    
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                                                 
-    data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
 
