@@ -384,7 +384,15 @@ class Virsh:
 
         time_end = time.monotonic() + timeout
         while True:
-            if not self.is_running(domain_name):
+            try:
+                dominfo = self.get_dominfo(domain_name)
+            except RuntimeError:
+                raise RuntimeError("Error while getting dominfo for "
+                               "domain {}".format(domain_name))
+
+            state = dominfo.get("State")
+
+            if state == "shut off":
                 break
 
             if time.monotonic() > time_end:

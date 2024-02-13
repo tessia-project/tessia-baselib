@@ -440,15 +440,16 @@ class TestVirsh(unittest.TestCase):
         self._mock_session.run.side_effect = [
             (0, ""),    # shutdown
             (0, "State:  running\n"), # dominfo
+            (0, "State:  in shutdown\n"), # dominfo
             (0, "")     # destroy
         ]
         cmd_info = f"virsh dominfo {domain_name}"
         cmd_shutdown = f"virsh shutdown {domain_name}"
         cmd_destroy = f"virsh destroy {domain_name}"
-        self._virsh.shutdown(domain_name, timeout=-1)
+        self._virsh.shutdown(domain_name, timeout=1)
         self._mock_session.run.assert_has_calls([
             mock.call(cmd_shutdown), mock.call(cmd_info),
-            mock.call(cmd_destroy)
+            mock.call(cmd_info), mock.call(cmd_destroy)
         ])
     # test_shutdown_timeout()
 
