@@ -544,6 +544,24 @@ class HypervisorHmc(HypervisorBase):
                 load_address=self._normalize_address(boot_params['devicenr']),
                 wait_for_completion=True,
                 force=True)
+
+        # perform load of a NVME disk
+        elif boot_params['boot_method'] == 'nvme':
+            body=dict()
+            body['load-parameter']=''
+            body['secure-boot']=False
+            body['clear-indicator']=True
+            body['disk-partition-id']=0
+            body['force']=True
+
+            uri = guest_obj.uri + '/operations/nvme-load'
+
+            body['load-address'] = boot_params['devicenr']
+            self._conn[1].post(uri,
+                 body,
+                 wait_for_completion=True,
+                 operation_timeout=None)
+
         # sanity check
         elif boot_params['boot_method'] in ('ftp', 'ftps', 'sftp'):
             raise ValueError('{} boot is only available in DPM mode'.format(

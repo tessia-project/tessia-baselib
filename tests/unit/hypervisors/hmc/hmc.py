@@ -120,6 +120,8 @@ class MockFakedSession(FakedSession):
               MessagesChannelHandler),
              (r'/api/logical-partitions/([^/]+)/operations/open-os-message-channel',
               MessagesChannelHandler),
+             (r'/api/logical-partitions/([^/]+)/operations/nvme-load',
+              zhmc_urihandler.LparLoadHandler),
             ]
         )
         self._urihandler = zhmc_urihandler.UriHandler(new_uris)
@@ -1113,6 +1115,24 @@ class TestHypervisorHmc(TestCase):
             self._fake_part, self._fake_sv_scsi.properties['element-uri'],
             memory, parameters['cpus_ifl'], parameters['cpus_cp'])
     # test_start_scsi_update_static()
+
+    def test_start_nvme(self):
+        """
+        Check if the start() method works as expected for a NVME based
+        activation with LPAR.
+        """
+        parameters = {
+            'boot_params': {
+                'boot_method': 'nvme',
+                'devicenr':'0001'
+            }
+        }
+
+        self._fake_lpar.properties['status'] = 'operating'
+        self.hmc_object.start(self.lpar_name, 0, 0, parameters)
+
+        # validate if the last-used-load-address is nvme's uid
+        assert parameters['boot_params']['devicenr']==self._fake_lpar.properties['last-used-load-address']
 
     def test_start_netsetup(self):
         """
