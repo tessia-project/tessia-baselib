@@ -917,7 +917,7 @@ class HypervisorHmc(HypervisorBase):
 
         rt_config = zhmcclient.RetryTimeoutConfig(connect_timeout=timeout)
         session = zhmcclient.Session(
-            self.host_name, self.user, self.passwd,
+            self.host_name, self.user, self.passwd, verify_cert=False,
             retry_timeout_config=rt_config,
             port=self.parameters.get('port', zhmcclient.DEFAULT_HMC_PORT))
         try:
