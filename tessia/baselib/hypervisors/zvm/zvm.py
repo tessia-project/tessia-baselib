@@ -383,7 +383,8 @@ class HypervisorZvm(HypervisorBase):
                         re_match.group()))
 
             _, re_match = self._cms.run('i {}'.format(
-                devno), wait_for=['Kernel command line: '], timeout=180)
+                devno), wait_for=['Kernel command line: ', 'login: '],
+                timeout=180)
             if not re_match:
                 raise RuntimeError('Failed to IPL disk')
     # start()

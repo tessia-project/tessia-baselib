@@ -1122,35 +1122,79 @@ start_dasd:
     data: 00: Note: VM users please use '#cp vi vmsg <input>'                             
     data: 00: Please choose (default will boot in 5 seconds):                             
     data: 00: Booting default ((5.14.0-162.6.1.el9_1.s390x))                              
-    data: Ý    0.068755¨ Linux version 5.14.0-162.6.1.el9_1.s390x (mockbuild@s390-070.buil
-    data: d.eng.bos.redhat.com) (gcc (GCC) 11.3.1 20220421 (Red Hat 11.3.1-2), GNU ld vers
-    data: ion 2.35.2-24.el9) #1 SMP Fri Sep 30 09:42:53 EDT 2022                                                                                              
-    data: Ý    0.068760¨ setup: Linux is running as a z/VM guest operating system in 64-bi
-    data: t mode                                                                                           
-    data: Ý    0.070948¨ Zone ranges:                                                     
-    data: Ý    0.070949¨   DMA      Ýmem 0x0000000000-0x000007fffff¨           
-    data: Ý    0.070952¨   Normal   Ýmem 0x0000000080-0x00000ffffff¨           
-    data: Ý    0.070954¨ Movable zone start for each node                                 
-    data: Ý    0.070955¨ Early memory node ranges                                         
-    data: Ý    0.070956¨   node   0: Ýmem 0x0000000000-0x00000ffffff¨          
-    data: Ý    0.070959¨ Initmem setup node 0 Ýmem 0x0000000000-0x00000ffffff¨ 
-    data: Ý    0.126371¨ percpu: Embedded 32 pages/cpu s93696 r8192 d29184 u131072        
-    data: Ý    0.126431¨ Built 1 zonelists, mobility grouping on.  Total pages: 1032192   
-    data: Ý    0.126433¨ Policy zone: Normal                                              
-    data: Ý    0.126434¨ Kernel command line: root=root_path_mentioned_by_user rd.dasd=
-    data: 0.0.1c5d cio_ignore=all,!condev rd.znet=qeth,0.0.f5f0,0.0.f5f1,0.0.f5f2,layer
-    data: 2=1,portno=0 BOOT_IMAGE=0     
-    data: Ý    0.126881¨ Unknown kernel command line parameters "BOOT_IMAGE=0", will be pa
-    data: ssed to user space.                                                             
-    data: Ý    0.126882¨ printk: log_buf_len individual max cpu contribution: 4096 bytes    
-    data: Ý    0.126882¨ printk: log_buf_len total cpu_extra contributions: 258048 bytes
-    data: Ý    0.126882¨ printk: log_buf_len min size: 65536 bytes 
-    data: Ý    0.126882¨ printk: log_buf_len: 524288 bytes
-    data: Ý    0.126882¨ 0.215803¨ printk: early log buf free: 63248(96%)
+    data: 
+    data: 
+    data:                                                                                            
+    data: 
+    data:                                                                                           
+    data:                                                    
+    data:          
+    data:           
+    data:                                
+    data:                                        
+    data:          
+    data: 
+    data:       
+    data: 
+    data:                                             
+    data: 
+    data: 
+    data:  
+    data: 
+    data:                                                            
+    data:    
+    data: 
+    data:
+    data: 
+    data: 
     data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
-  
+  - |
+    data: Ý    3.063748¨ Bridge firewalling registered                                    
+    data: Ý    3.227629¨ IPv6: ADDRCONF(NETDEV_UP): enccw0.0.f5f0: link is not ready      
+    data:  Ýr ÝH ÝJ                                                                       
+    data: Red Hat Enterprise Linux Server 9.0 (Plow)                                        
+    data:                                                                                 
+    data: system login:                                                                   
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
 
 start_netboot:
   - |
