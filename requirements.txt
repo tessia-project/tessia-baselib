@@ -1,6 +1,6 @@
 # order is the order pip will install, so if package A depends on B make sure B comes first
 paramiko>=1.16
 PyYAML>=3.11
-jsonschema>=2.5.1
+jsonschema>=2.5.1,<=4.14.0
 requests>=2.10.0
 zhmcclient==1.14
