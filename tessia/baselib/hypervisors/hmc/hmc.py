@@ -51,6 +51,10 @@ OS_MESSAGES_TIMEOUT = 600  # seconds
 VALID_DPM_STATUSES = ('active', 'degraded', 'paused', 'terminated', 'stopped')
 # command used to download kernel and initrd
 WGET_CMD = "wget --no-check-certificate -nv -O '{tgt}' '{src}'"
+# Waiting time to check whether kexec command has failed
+KEXEC_WAIT_TIME = 10 # seconds
+# Pattern to be checked
+KEXEC_ERROR_PATTERN = "Cannot read"
 
 #
 # CODE
@@ -228,17 +232,23 @@ class HypervisorHmc(HypervisorBase):
                 self._execute_kexec(guest_obj, receiver,
                                     net_setup, net_boot)
 
-                # check if we have a notification event in parameters
-                if notify_boot:
-                    self._logger.debug("Notify initial boot complete")
-                    notify_boot.set()
-                # wait a little to collect reboot logs
+                kexec_stime = time.monotonic()
+                # wait a little to collect reboot logs and
+                # check whether kexec is successful
                 timeout = time.monotonic() + MSG_POST_LOAD_DURATION
                 while timeout - time.monotonic() > 0:
                     for msg in receiver.get_messages(
                             timeout=max(1.0, min(MSG_POST_LOAD_DURATION,
                                                  timeout-time.monotonic()))):
                         self._logger.debug("%s: %s", msg['type'], msg['text'])
+                        if time.monotonic() - kexec_stime <= KEXEC_WAIT_TIME :
+                            if re.search(KEXEC_ERROR_PATTERN, msg['text']):
+                                raise RuntimeError(
+                                    "Cannot read /tmp/kernel or /tmp/initrd")
+                        # check if we have a notification event in parameters
+                        elif notify_boot and not notify_boot.is_set() :
+                            self._logger.debug("Notify initial boot complete")
+                            notify_boot.set()
 
         self._logger.debug("Live image stage finished")
     # _do_netsetup()
