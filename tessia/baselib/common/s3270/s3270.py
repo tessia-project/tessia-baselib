@@ -438,7 +438,7 @@ class S3270:
 
         status, output = self._s3270.run(
             'Transfer({})'.format(params_str), timeout=timeout)
-
+        time.sleep(5)
         if 'ok' not in status:
             raise S3270StatusError(
                 'Failed to execute Transfer command', output)
