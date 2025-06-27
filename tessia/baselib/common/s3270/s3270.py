@@ -438,10 +438,24 @@ class S3270:
 
         status, output = self._s3270.run(
             'Transfer({})'.format(params_str), timeout=timeout)
-        time.sleep(5)
+
         if 'ok' not in status:
             raise S3270StatusError(
                 'Failed to execute Transfer command', output)
+
+        start_time = time.time()
+        while True:
+            if time.time() - start_time >= timeout:
+                raise TimeoutError(
+                    f"Timeout while transferring file {remote_path}"
+                )
+            _, screen_output = self._s3270.run("Ascii()", timeout=timeout)
+            if "Ready" not in screen_output:
+                continue
+            self._logger.info(
+                "File %s transferred successfully.", remote_path
+            )
+            break
 
         return output
     # transfer()
