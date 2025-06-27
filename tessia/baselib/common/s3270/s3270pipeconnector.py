@@ -242,7 +242,7 @@ class S3270PipeConnector:
         """
         # write command to s3270 stdin
         self._write(cmd, timeout, hide=hide)
-        time.sleep(0.5) #delay is added to read output
+        time.sleep(1) #delay is added to read output
         # read status and output from stdout
         (status, output) = self._read(timeout)
 

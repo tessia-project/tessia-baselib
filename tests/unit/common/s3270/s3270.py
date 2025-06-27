@@ -840,6 +840,7 @@ class TestS3270(TestCase):
         mock_output = (
             'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.008\n'
             'ok                                             \n'
+            'Ready                                           \n'
         )
         self.mock_pipeconnector.return_value.run.return_value = (
             'ok', mock_output)
@@ -851,7 +852,7 @@ class TestS3270(TestCase):
 
         output = s3270.transfer(*args, timeout=10)
         self.assertEqual(output, mock_output)
-        self.mock_pipeconnector.return_value.run.assert_called_with(
+        self.mock_pipeconnector.return_value.run.assert_any_call(
             'Transfer(Direction=send, "LocalFile={}", "HostFile={}", '
             'Mode=binary, Recfm=fixed, Host=vm)'.format(
                 args[0], args[1]),
@@ -894,6 +895,7 @@ class TestS3270(TestCase):
         mock_output = (
             'U U U C(hostname.com) I 4 24 80 0 0 0x0 0.008\n'
             'ok                                             \n'
+            'Ready                                           \n'
         )
         self.mock_pipeconnector.return_value.run.return_value = (
             'ok', mock_output)
@@ -919,7 +921,7 @@ class TestS3270(TestCase):
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
         self.filestat.assert_not_called()
-        self.mock_pipeconnector.return_value.run.assert_called_with(
+        self.mock_pipeconnector.return_value.run.assert_any_call(
             'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
 
         # send
@@ -934,7 +936,7 @@ class TestS3270(TestCase):
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
         self.filestat.assert_called_with(kwargs['local_path'])
-        self.mock_pipeconnector.return_value.run.assert_called_with(
+        self.mock_pipeconnector.return_value.run.assert_any_call(
             'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
 
         # send small file
@@ -946,7 +948,7 @@ class TestS3270(TestCase):
         output = s3270.transfer(**kwargs)
         self.assertEqual(output, mock_output)
         self.filestat.assert_called_with(kwargs['local_path'])
-        self.mock_pipeconnector.return_value.run.assert_called_with(
+        self.mock_pipeconnector.return_value.run.assert_any_call(
             'Transfer({})'.format(expected_args), timeout=kwargs['timeout'])
 
     # test_transfer_extra_params()
