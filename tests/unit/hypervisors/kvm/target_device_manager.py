@@ -67,7 +67,7 @@ class TestTargetDeviceManager(TestCase):
         self.assertIs(len(self._target_dev_mngr._devno_blacklist), 0)
         self.assertIsInstance(self._target_dev_mngr._generate_devname,
                               types.GeneratorType)
-        self.assertIs(self._target_dev_mngr._next_devno, 0x0001)
+        self.assertIs(self._target_dev_mngr._next_devno, 0x0000)
     # test_init()
 
     def _waste_valid_devs(self, num_devices):
@@ -153,14 +153,14 @@ class TestTargetDeviceManager(TestCase):
         """
         # for practical reasons, we do not test the total range here
         valid_devno = self._target_dev_mngr.get_valid_devno()
-        self.assertEqual(valid_devno, "0x0001")
+        self.assertEqual(valid_devno, "0x0000")
     # test_valid_devno()
 
     def test_out_of_valid_devnos(self):
         """
         Test the case when the device manager is out of valid device numbers
         """
-        self._target_dev_mngr._next_devno = 0xffff
+        self._target_dev_mngr._next_devno = 0x10000
         self.assertRaisesRegex(RuntimeError, "No more device numbers",
                                self._target_dev_mngr.get_valid_devno)
     # test_out_of_valid_devnos()
@@ -170,10 +170,10 @@ class TestTargetDeviceManager(TestCase):
         Test the case that a device number is in the blacklist.
         """
         self._mock_etree.fromstring.return_value.findall.return_value = [
-            {"devno": "0x0001"}]
+            {"devno": "0x0000"}]
         self._target_dev_mngr.update_devno_blacklist("somexml")
         self.assertNotEqual(self._target_dev_mngr.get_valid_devno(),
-                            "0x0001")
+                            "0x0000")
     # test_devno_in_blacklist()
 
     def test_devno_already_in_blacklist(self):
@@ -181,9 +181,9 @@ class TestTargetDeviceManager(TestCase):
         Test the case that a device number is already in blacklist.
         """
         self._mock_etree.fromstring.return_value.findall.return_value = [
-            {"devno": "0x0001"}]
+            {"devno": "0x0000"}]
         self._target_dev_mngr.update_devno_blacklist("somexml")
-        self.assertRaisesRegex(ValueError, "Device number 0x0001",
+        self.assertRaisesRegex(ValueError, "Device number 0x0000",
                                self._target_dev_mngr.update_devno_blacklist,
                                "somexml")
     # test_devno_already_in_blacklist()

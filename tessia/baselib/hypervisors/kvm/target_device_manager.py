@@ -53,7 +53,7 @@ class TargetDeviceManager:
         # generator to be called whenever a new dev name is needed
         self._generate_devname = TargetDeviceManager._valid_devs_generator()
         # beginning of the devno range
-        self._next_devno = 0x0001
+        self._next_devno = 0x0000
     # __init__()
 
     @staticmethod
@@ -83,7 +83,7 @@ class TargetDeviceManager:
         Raises:
             RuntimeError: If there is no more device numbers available.
         """
-        if self._next_devno == 0xffff:
+        if self._next_devno > 0xffff:
             raise RuntimeError("No more device numbers available.")
         devno = "0x{:04x}".format(self._next_devno)
         self._next_devno += 1
