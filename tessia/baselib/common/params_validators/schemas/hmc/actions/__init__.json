@@ -3,6 +3,9 @@
         {
             "type": "object",
             "properties": {
+                "private-key": {
+                    "type": "string"
+                }
             },
             "additionalProperties": false
         },

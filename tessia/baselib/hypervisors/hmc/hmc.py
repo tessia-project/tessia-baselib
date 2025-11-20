@@ -27,6 +27,7 @@ from tessia.baselib.hypervisors.base import HypervisorBase
 from tessia.baselib.hypervisors.hmc.messages import Messages
 from tessia.baselib.hypervisors.hmc.volume_descriptor import \
     describe_storage_volume
+from tessia.baselib.common.ssh.client import SshClient
 from tessia.baselib.common.params_validators.utils import validate_params,\
     validate_params_named
 from urllib.parse import urlsplit
@@ -93,6 +94,13 @@ class HypervisorHmc(HypervisorBase):
             passwd,
             parameters
         )
+
+        self._private_key = None
+
+        if  parameters and "private-key" in parameters:
+            self._private_key = parameters["private-key"]
+            parameters.pop("private-key")
+
 
         # HMC session and client objects to be initialized by login()
         self._conn = None
@@ -215,6 +223,9 @@ class HypervisorHmc(HypervisorBase):
 
         def _get_guest_os_channel():
             return self._get_os_channel(guest_obj)
+
+        if self._private_key:
+            self._get_otp_for_login()
 
         with Messages.connect(_get_guest_os_channel, self.host_name,
                               self.user, self.passwd) as receiver:
@@ -456,6 +467,29 @@ class HypervisorHmc(HypervisorBase):
                     raise
 
         raise RuntimeError("Timed out waiting for OS messages channel")
+
+    def _get_otp_for_login(self):
+        """
+        SSH to the HMC using the private key
+        Fetches the OTP for Login and set it as password in HMC object.
+        """
+        user = "hmcmanager"
+
+        ssh_conn = SshClient()
+        ssh_conn.login(
+            host_name = self.host_name,
+            user = user,
+            passwd = None,
+            private_key_str = self._private_key,
+            timeout=60
+        )
+
+        shell_obj = ssh_conn.open_shell()
+
+        _, output = shell_obj.run("w3idtool getpw")
+
+        hmc_password = output.split()[-1]
+        self.passwd = hmc_password
 
     def _get_svol_uri(self, part_obj, boot_params):
         """
@@ -924,6 +958,9 @@ class HypervisorHmc(HypervisorBase):
                 "Login called with connection already active:"
                 " dropping previous connection object"
             )
+
+        if self._private_key:
+            self._get_otp_for_login()
 
         rt_config = zhmcclient.RetryTimeoutConfig(connect_timeout=timeout)
         session = zhmcclient.Session(
