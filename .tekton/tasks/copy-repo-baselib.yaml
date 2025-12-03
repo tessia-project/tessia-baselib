@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: copy-repo-baselib
+spec:
+  steps:
+    - computeResources: {}
+      image: registry.redhat.io/ubi8/ubi-minimal
+      name: copy-and-move
+      script: |
+        #!/bin/bash
+        set -euo pipefail
+        SRC=/workspace/output
+        TMP=/tmp/tessia-baselib.git
+        DST=/workspace/output/tools/ci/docker/assets/tessia-baselib.git
+        echo "Creating temporary copy..."
+        rm -rf "$TMP"
+        cp -r "$SRC"/. "$TMP"
+        echo "Checking destination..."
+        if [ ! -d "$DST" ]; then
+          echo "tessia-baselib.git not found in  assets. Copying..."
+          mkdir -p "$(dirname "$DST")"
+          mv "$TMP" "$DST"
+        else
+          echo "assets already contain tessia-baselib.git. Skipping copy."
+          rm -rf "$TMP"
+        fi
+  workspaces:
+    - description: Git repo workspace
+      name: output
