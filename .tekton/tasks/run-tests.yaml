@@ -1,0 +1,39 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: run-tests
+spec:
+  params:
+    - name: IMAGE_TAG
+      type: string
+  stepTemplate:
+    computeResources: {}
+    env:
+      - name: TESSIA_BASELIB_INTERACTIVE
+        value: 'no'
+      - name: PYLINTHOME
+        value: /tmp/pylint
+      - name: XDG_CACHE_HOME
+        value: /tmp/pytest_cache
+  steps:
+    - computeResources: {}
+      image: "image-registry.openshift-image-registry.svc:5000/tessia-baselib/tessia-baselib:$(params.IMAGE_TAG)"
+      name: unittest
+      script: |
+        #!/bin/sh
+        set -e
+        cd $(workspaces.source.path)
+        echo "Setting up environment inside Tessia baselib Container..."
+        echo "Cleaning Python caches..."
+        find . -type d -name "__pycache__" -exec rm -rf {} + || true
+        find . -type f -name "*.pyc" -delete || true
+
+        echo "\n\nRunning pylint..."
+        python3 tools/run_pylint.py 
+        echo "\n\nRunning pytest suite..."
+        python3 tools/run_pytest_tests.py 
+        echo "\n\nRunning unittest suite..."
+        python3 tools/run_tests.py
+        echo "All lint and test suites passed successfully!"       
+  workspaces:
+    - name: source

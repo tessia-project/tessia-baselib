@@ -1,0 +1,30 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: cleanup
+spec:
+  params:
+    - name: IMAGE_TAG
+      type: string
+      description: Image tag to deploy
+  description: 'Delete deployments, services, routes'
+  steps:
+    - computeResources: {}
+      image: 'image-registry.openshift-image-registry.svc:5000/openshift/cli:latest'
+      name: delete-deployments
+      script: |
+        #!/usr/bin/bash
+
+        # Deleting imagestreams
+        oc delete imagestreamtag tessia-baselib:$(params.IMAGE_TAG)
+
+        # Deleting repos
+        cd $(workspaces.source.path)/
+        ls -a
+        shopt -s dotglob
+        rm -rf -- *
+        echo "Cleanup completed."
+        ls -a
+  workspaces:
+    - name: source
+      description: 'Workspace containing the source code repository'

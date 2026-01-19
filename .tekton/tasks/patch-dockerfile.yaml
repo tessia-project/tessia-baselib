@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: patch-dockerfile
+spec:
+  steps:
+    - computeResources: {}
+      image: registry.redhat.io/ubi8/ubi-minimal
+      name: patch-dockerfile
+      script: |
+        #!/bin/sh
+        set -e
+
+        DOCKERFILE="$(workspaces.output.path)/tools/ci/docker/Dockerfile"
+
+        # 1. Add rustc, cargo, pkg-config, and zlib1g-dev to the apt-get install line.
+        # We look for the line that installs libffi-dev (a dependency already present in that
+        # installation command) and append the new packages right after it.
+        sed -i '/libffi-dev \\/a\    rustc \\\n    cargo \\\n    pkg-config \\\n    zlib1g-dev \\' "$DOCKERFILE"
+
+        # --- REMOVAL AND FINAL FIXES ---
+
+        # 2. Remove the cleanup/purge block entirely.
+        # This targets and deletes the 3 lines starting with the `# remove unneeded dependencies...` comment 
+        # in the final RUN instruction (library installation).
+        sed -i '/# remove unneeded dependencies used only for building paramiko and uwsgi/,+2d' "$DOCKERFILE"
+
+        # 3. REMOVE TRAILING CONTINUATION: Remove the ' && \' from the end of the pip3 install line.
+        # This line is now the last command in the RUN instruction, so it should not have a continuation.
+        # We look for the line ending in ' . && \' (which was created in step 1) and replace it
+        # with the line ending only in ' .'.
+        sed -i 's|pip3 install -U -r requirements.txt -r dev-requirements.txt . && \\|pip3 install -U -r requirements.txt -r dev-requirements.txt .|' "$DOCKERFILE"
+
+        echo "Dockerfile patched successfully."
+        cat $DOCKERFILE
+  workspaces:
+    - name: output

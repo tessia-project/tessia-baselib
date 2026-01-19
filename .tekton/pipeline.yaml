@@ -1,0 +1,130 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: tessia-baselib
+spec:
+  finally:
+    - name: delete-deployments
+      params:
+        - name: IMAGE_TAG
+          value: $(params.IMAGE_TAG)
+      taskRef:
+        kind: Task
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: tessia-baselib-workspace
+  params:
+    - default: 'latest'
+      name: IMAGE_TAG
+      type: string
+    - default: master
+      description: The branch to check out in tessia-mesh
+      name: revision
+      type: string 
+    - default: ""
+      description: pull-request number
+      name: pr-number
+      type: string
+    - default: push
+      description: tells which event the pipelinerun for
+      name: event
+      type: string        
+  tasks:
+    - name: fetch-source
+      params:
+        - name: url
+          value: 'https://github.ibm.com/tessia-project/tessia-baselib.git'
+        - name: revision
+          value: $(params.revision)
+        - name: depth
+          value: '1'
+        - name: submodules
+          value: 'true'
+      taskRef:
+        kind: ClusterTask
+        name: git-clone
+      when:
+        - input: $(params.event)
+          operator: notin
+          values:
+            - pull_request  
+      workspaces:
+        - name: output
+          workspace: tessia-baselib-workspace
+    - name: fetch-source-pr
+      params:
+        - name: url
+          value: 'https://github.ibm.com/tessia-project/tessia-baselib.git'
+        - name: pr-number
+          value: $(params.pr-number)
+        - name: deleteExisting
+          value: "true"
+      taskRef:
+        kind: Task
+        name: git-clone-pr
+      when:
+        - input: $(params.event)
+          operator: in
+          values:
+            - pull_request
+      workspaces:
+        - name: output
+          workspace: tessia-baselib-workspace
+    - name: copy-repo
+      runAfter:
+        - fetch-source
+        - fetch-source-pr
+      taskRef:
+        kind: Task
+        name: copy-repo-baselib
+      workspaces:
+        - name: output
+          workspace: tessia-baselib-workspace
+    - name: patch-dockerfile
+      runAfter:
+        - copy-repo
+      taskRef:
+        kind: Task
+        name: patch-dockerfile
+      workspaces:
+        - name: output
+          workspace: tessia-baselib-workspace
+    - name: build-baselib
+      params:
+        - name: IMAGE
+          value: 'image-registry.openshift-image-registry.svc:5000/tessia-baselib/tessia-baselib:$(params.IMAGE_TAG)'
+        - name: STORAGE_DRIVER
+          value: vfs
+        - name: DOCKERFILE
+          value: ./tools/ci/docker/Dockerfile
+        - name: CONTEXT
+          value: ./tools/ci/docker
+        - name: TLSVERIFY
+          value: 'true'
+        - name: FORMAT
+          value: docker
+        - name: SKIP_PUSH
+          value: 'false'
+      runAfter:
+        - patch-dockerfile
+      taskRef:
+        kind: ClusterTask
+        name: buildah
+      workspaces:
+        - name: source
+          workspace: tessia-baselib-workspace                 
+    - name: run-tests
+      params:
+        - name: IMAGE_TAG
+          value: $(params.IMAGE_TAG)
+      runAfter:
+        - build-baselib
+      taskRef:
+        kind: Task
+        name: run-tests
+      workspaces:
+        - name: source
+          workspace: tessia-baselib-workspace
+  workspaces:
+    - name: tessia-baselib-workspace
