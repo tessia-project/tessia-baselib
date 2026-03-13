@@ -19,11 +19,12 @@ Module for GuestKvm class
 #
 # IMPORTS
 #
+from tessia.baselib.common.logger import get_logger
 from tessia.baselib.hypervisors.kvm.iface import Iface
 from tessia.baselib.hypervisors.kvm.storage.pool import StoragePool
 from tessia.baselib.hypervisors.kvm.target_device_manager \
     import TargetDeviceManager
-
+from tessia.baselib.hypervisors.kvm.iface import AARCH64, S390X
 import os
 import uuid
 
@@ -32,6 +33,12 @@ import uuid
 #
 TEMPLATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "resources/vm_template.xml")
+
+AARCH64_TEMPLATE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "resources/vm_template_aarch64.xml",
+)
+
 
 #
 # CODE
@@ -54,12 +61,19 @@ class GuestKvm:
         Raises:
             None
         """
+        self._logger = get_logger(__name__)
         self._guest_name = guest_name
         self._cpu = cpu
         self._memory = memory
         self._parameters = parameters
+        self._arch = self._parameters.get("arch", S390X)
 
-        with open(TEMPLATE_FILE, "r") as template_file:
+        if self._arch == AARCH64:
+            template_file_path = AARCH64_TEMPLATE_FILE
+        else:
+            template_file_path = TEMPLATE_FILE
+
+        with open(template_file_path, "r") as template_file:
             self._template_xml = template_file.read()
 
         self._guest_obj = guest_linux
@@ -105,13 +119,14 @@ class GuestKvm:
             self._parameters.get("storage_volumes", []),
             self._active_hw['vols'],
             target_dev_mngr,
+            arch=self._arch,
         )
         disks_xml = storage_pool.to_xml()
 
         # create an iface object for each entry in the parameters dict
         ifaces_xml = ""
         for iface_params in self._parameters.get("ifaces", []):
-            iface_obj = Iface(iface_params, target_dev_mngr)
+            iface_obj = Iface(iface_params, target_dev_mngr, arch=self._arch)
             ifaces_xml += iface_obj.to_xml()
 
         # generate a uuid for the domain xml, necessary in order to redefine

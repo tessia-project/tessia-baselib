@@ -20,12 +20,18 @@ Module for the Disk Class
 # IMPORTS
 #
 import os
+from tessia.baselib.hypervisors.kvm.iface import AARCH64, S390X
 
 #
 # CONSTANTS AND DEFINITIONS
 #
 TEMPLATE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                              "resources/disk_template.xml")
+
+AARCH64_TEMPLATE_FILE = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)),
+    "resources/disk_template_aarch64.xml",
+)
 
 #
 # CODE
@@ -34,7 +40,7 @@ class DiskBase:
     """
     Base class for all type of physical disks.
     """
-    def __init__(self, parameters, target_dev_mngr):
+    def __init__(self, parameters, target_dev_mngr, arch=S390X):
         """
         Constructor. Initialize instance variables.
 
@@ -46,6 +52,7 @@ class DiskBase:
             ValueError: in case device path information is not provided
         """
         self._parameters = parameters
+        self._arch = arch
         # useful to uniquely identify the instance
         self.volume_id = self._parameters['volume_id']
         # make sure we know the device path on hypervisor
@@ -54,8 +61,14 @@ class DiskBase:
 
         # xml device definition
         self._libvirt_xml = None
+        # Choose template aarch64 or s390x
+        if self._arch == AARCH64:
+            template_file = AARCH64_TEMPLATE_FILE
+        else:
+            template_file = TEMPLATE_FILE
+
         # template used to create the xml device definition
-        with open(TEMPLATE_FILE, "r") as template_fd:
+        with open(template_file, "r") as template_fd:
             self._xml_template = template_fd.read()
 
         system_attributes = self._parameters.get("system_attributes")
@@ -70,13 +83,19 @@ class DiskBase:
             # be raised.
             self._target_dev = target_dev_mngr.update_dev_blacklist(
                 self._libvirt_xml)
-            self._target_devno = target_dev_mngr.update_devno_blacklist(
-                self._libvirt_xml)
+            if self._arch == S390X:
+                self._target_devno = target_dev_mngr.update_devno_blacklist(
+                    self._libvirt_xml)
+            else:
+                self._target_devno = None
 
         # no xml specified: get a dynamic generated device and device number
         else:
             self._target_dev = target_dev_mngr.get_valid_dev()
-            self._target_devno = target_dev_mngr.get_valid_devno()
+            if self._arch == S390X:
+                self._target_devno = target_dev_mngr.get_valid_devno()
+            else:
+                self._target_devno = None
 
     # __init__()
 
@@ -103,13 +122,21 @@ class DiskBase:
         if self._parameters.get("boot_device"):
             boot_tag = '<boot order="1"/>'
 
-        self._libvirt_xml = (
-            self._xml_template.format(
-                dev=self._parameters['hyp_dev_path'],
-                target_dev=self._target_dev,
-                devno=self._target_devno,
-                boot_tag=boot_tag)
-        )
+        # s390x XML
+        if self._arch == S390X:
+            self._libvirt_xml = (
+                self._xml_template.format(
+                    dev=self._parameters['hyp_dev_path'],
+                    target_dev=self._target_dev,
+                    devno=self._target_devno,
+                    boot_tag=boot_tag)
+            )
+        # aarch64 XML
+        else:
+            self._libvirt_xml = self._xml_template.format(
+                dev=self._parameters['hyp_dev_path'], #guest.qcow2
+                #boot_tag is not added need to check
+                target_dev=self._target_dev)
         return self._libvirt_xml
     # to_xml()
 # DiskBase

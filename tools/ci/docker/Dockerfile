@@ -13,6 +13,8 @@ RUN apt-get update -q && \
     python3-pip python3-distutils \
     # used by pbr (in setuptools) to detect module version numbers
     git \
+    # required to install rustup
+    curl \
     # these are needed to build cryptography (dep chain is paramiko -> cryptography)
     build-essential \
     libssl-dev \
@@ -24,6 +26,14 @@ RUN apt-get update -q && \
     pip3 install -U setuptools && \
     # update the pip version if necessary
     pip3 install -U pip
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+ENV CARGO_HOME="/root/.cargo"
+ENV RUSTUP_HOME="/root/.rustup"
+
+RUN cargo --version && rustc --version
 
 COPY assets /assets/
 

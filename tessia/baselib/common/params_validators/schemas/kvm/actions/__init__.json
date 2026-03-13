@@ -3,7 +3,11 @@
         {
             "type": "object",
             "properties": {
-            },
+                "system_type": {
+                    "type": "string",
+                    "enum": ["KVM", "KVMA"]
+                }
+        },
             "additionalProperties": false
         },
         {

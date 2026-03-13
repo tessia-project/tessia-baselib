@@ -21,6 +21,7 @@ Handles a pool of disks for a kvm guest
 #
 from copy import deepcopy
 from tessia.baselib.hypervisors.kvm.storage.disk import DiskBase
+from tessia.baselib.hypervisors.kvm.iface import S390X
 
 #
 # CONSTANTS AND DEFINTIONS
@@ -33,7 +34,7 @@ class StoragePool:
     """
     This class represents a pool of disks to be handled
     """
-    def __init__(self, disks, hyp_dev_paths, target_dev_mngr):
+    def __init__(self, disks, hyp_dev_paths, target_dev_mngr, arch=S390X):
         """
         Constructor
 
@@ -48,6 +49,7 @@ class StoragePool:
             ValueError: in case a volume's device path is missing
         """
         self._disks = []
+        self._arch = arch
         # merge the hypervisor devpath information
         for disk in disks:
             disk_copy = deepcopy(disk)
@@ -57,7 +59,11 @@ class StoragePool:
                 raise ValueError('Missing device path on hypervisor for '
                                  'volume {}'.format(disk_copy['volume_id']))
             disk_copy['hyp_dev_path'] = dev_path
-            self._disks.append(DiskBase(disk_copy, target_dev_mngr))
+            self._disks.append(DiskBase(
+                disk_copy,
+                target_dev_mngr,
+                arch=self._arch
+            ))
     # __init__()
 
     def to_xml(self):

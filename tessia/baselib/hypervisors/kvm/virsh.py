@@ -422,20 +422,26 @@ class Virsh:
                                     "{}: {}".format(domain_name, output))
     # start()
 
-    def undefine(self, domain_name):
+    def undefine(self, domain_name, remove_nvram=False):
         """
         Undefine a domain xml.
 
         Args:
             domain_name (str): Name of the domain to be undefined.
+            remove_nvram (bool): To remove NVRAM associated
+            with domain.
 
         Raises:
-            RuntimeError: in case there is a error while executing the
-                         undefine command.
+            RuntimeError: in case there is an error while executing the
+                        undefine command.
         """
         self._logger.debug("Undefining domain %s", domain_name)
 
-        cmd = "virsh undefine {}".format(domain_name)
+        if remove_nvram:
+            cmd = "virsh undefine {} --nvram".format(domain_name)
+        else:
+            cmd = "virsh undefine {}".format(domain_name)
+
         status, output = self._cmd_channel.run(cmd)
 
         if status != 0:

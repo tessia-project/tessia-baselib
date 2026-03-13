@@ -21,6 +21,7 @@ Handles a pool of disks for a kvm guest
 #
 from tessia.baselib.guests.linux.storage.disk_dasd import DiskDasd
 from tessia.baselib.guests.linux.storage.disk_fcp import DiskFcp
+from tessia.baselib.guests.linux.storage.disk_qcow2 import DiskQcow2
 from time import sleep
 
 import logging
@@ -31,7 +32,8 @@ import threading
 #
 DISK_TYPEMAP = {
     "DASD": DiskDasd,
-    "FCP": DiskFcp
+    "FCP": DiskFcp,
+    "QCOW2": DiskQcow2
 }
 
 MPATH_TEMPLATE = (r'''

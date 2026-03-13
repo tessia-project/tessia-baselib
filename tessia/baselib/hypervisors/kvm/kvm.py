@@ -207,7 +207,7 @@ class HypervisorKvm(HypervisorBase):
         # domain already defined in libvirt: remove it to avoid error when
         # trying to re-define
         if self._virsh.is_defined(guest_name):
-            self._virsh.undefine(guest_name)
+            self._virsh.undefine(guest_name, remove_nvram=True)
 
         # network boot: define a temporary domain xml using kernel/initrd
         # to boot

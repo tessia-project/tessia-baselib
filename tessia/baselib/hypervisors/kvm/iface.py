@@ -25,7 +25,10 @@ import os
 # CONSTANTS AND DEFINITIONS
 #
 TEMPLATE_FILE = os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "resources/{}_template.xml")
+    os.path.dirname(os.path.abspath(__file__)), "resources/{}.xml")
+
+S390X = "s390x"
+AARCH64 = "aarch64"
 
 #
 # CODE
@@ -35,7 +38,7 @@ class Iface:
     """
     Abstraction for a network Interfaces
     """
-    def __init__(self, parameters, target_dev_mngr):
+    def __init__(self, parameters, target_dev_mngr, arch=S390X):
         """
         Constructor. Initialize instance variables.
 
@@ -43,19 +46,30 @@ class Iface:
             parameters (dict): Interface parameters as defined in the
                                json schema.
             target_dev_mngr (TargetDeviceManager): instance
+            arch (str): guest architecture (s390x or aarch64)
 
         Raises:
             ValueError: in case an invalid network type is specified
         """
         self._parameters = parameters
+        self._arch = arch
 
         attributes = self._parameters.get("attributes")
         self._libvirt_xml = attributes.get("libvirt")
         if self._libvirt_xml is not None:
-            target_dev_mngr.update_devno_blacklist(self._libvirt_xml)
+            if self._arch == S390X:
+                target_dev_mngr.update_devno_blacklist(self._libvirt_xml)
             return
 
-        template_path = TEMPLATE_FILE.format(self._parameters['type'].lower())
+        # Choose template aarch64 or s390x
+        iface_type = self._parameters['type'].lower()
+
+        if self._arch == AARCH64:
+            template_path = TEMPLATE_FILE.format(
+                f"{iface_type}_template_aarch64")
+        else:
+            template_path = TEMPLATE_FILE.format(f"{iface_type}_template")
+
         if not os.path.exists(template_path):
             raise ValueError('Unknown interface type {}'.format(
                 self._parameters['type']))
@@ -65,11 +79,18 @@ class Iface:
 
         devno = target_dev_mngr.get_valid_devno()
 
-        self._libvirt_xml = xml_template.format(
-            mac=self._parameters['mac_address'],
-            hostiface=attributes['hostiface'],
-            devno=devno
-        )
+        if self._arch == S390X:
+            devno = target_dev_mngr.get_valid_devno()
+            self._libvirt_xml = xml_template.format(
+                mac=self._parameters['mac_address'],
+                hostiface=attributes['hostiface'],
+                devno=devno
+            )
+        else:
+            self._libvirt_xml = xml_template.format(
+                mac=self._parameters['mac_address'],
+                hostiface=attributes['hostiface']
+            )
     # __init__()
 
     def to_xml(self):

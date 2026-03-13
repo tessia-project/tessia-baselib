@@ -5,13 +5,17 @@
         },
         {
             "$ref": "../../common/entities/fcp_disk_type.json"
+        },
+        {
+            "$ref": "../../common/entities/qcow_type.json"
         }
     ],
     "properties": {
         "type": {
             "enum": [
                 "FCP",
-                "DASD"
+                "DASD",
+                "QCOW2"
             ],
             "type": "string"
         },
