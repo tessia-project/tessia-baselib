@@ -469,13 +469,11 @@ class SshClient:
             except paramiko.ssh_exception.SSHException as exc:
                 raise ValueError(
                     'Invalid private key provided: {}'.format(str(exc)))
-            key_str = key_obj.get_base64()
         else:
             key_obj = None
-            key_str = 'None'
         self._logger.debug(
-            "login: hostname='%s' port='%s' user='%s' priv_key='%s' "
-            "timeout='%s'", host_name, port, user, key_str, timeout
+            "login: hostname='%s' port='%s' user='%s' "
+            "timeout='%s'", host_name, port, user, timeout
         )
 
         # create underlying library object
