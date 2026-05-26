@@ -52,7 +52,7 @@ class TestStoragePool(TestCase):
         id_generate = self._disk_id_gen()
         patcher = patch.object(pool, 'DiskBase', autospec=True)
         self._mock_disk = patcher.start()
-        self._mock_disk.side_effect = lambda a, b: mock.Mock(
+        self._mock_disk.side_effect = lambda a, b, **kwargs: mock.Mock(
             volume_id='disk{}'.format(next(id_generate)))
 
         self.addCleanup(patcher.stop)
@@ -92,8 +92,8 @@ class TestStoragePool(TestCase):
 
         # verify that correct disks were created
         self._mock_disk.assert_has_calls([
-            mock.call(check_vols[0], self._mock_tgt_mngr),
-            mock.call(check_vols[1], self._mock_tgt_mngr)
+            mock.call(check_vols[0], self._mock_tgt_mngr, arch=pool.S390X),
+            mock.call(check_vols[1], self._mock_tgt_mngr, arch=pool.S390X)
         ])
         self.assertEqual(len(self._pool_obj._disks), 2)
     # test_init()

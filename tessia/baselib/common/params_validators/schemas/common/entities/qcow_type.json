@@ -1,0 +1,17 @@
+{
+    "type": "object",
+    "properties": {
+        "type": { "enum": ["QCOW2"] },
+        "volume_id": { "type": "string" },
+        "system_attributes": {
+            "type": "object",
+            "properties": {
+            "libvirt": { "type": "string" },
+            "path": { "type": "string" }
+            },
+            "required": ["libvirt", "path"]
+        },
+        "specs": { "type": "object" }
+    },
+    "required": ["type", "system_attributes"]
+}

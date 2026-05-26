@@ -121,7 +121,8 @@ class TestGuestKvm(TestCase):
         self._mock_pool.assert_called_with(
             self._parameters['storage_volumes'],
             self._mock_guest_linux.hotplug.return_value['vols'],
-            self._mock_tgt_dv_mngr.return_value)
+            self._mock_tgt_dv_mngr.return_value,
+            arch="s390x")
         self._mock_pool.return_value.to_xml.assert_called_with()
         disk_xml = self._mock_pool.return_value.to_xml.return_value
 

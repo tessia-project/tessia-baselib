@@ -42,7 +42,7 @@ spec:
         - name: submodules
           value: 'true'
       taskRef:
-        kind: ClusterTask
+        kind: Task
         name: git-clone
       when:
         - input: $(params.event)
@@ -109,7 +109,7 @@ spec:
       runAfter:
         - patch-dockerfile
       taskRef:
-        kind: ClusterTask
+        kind: Task
         name: buildah
       workspaces:
         - name: source

@@ -1,0 +1,30 @@
+<domain type='qemu'>
+    <name>{name}</name>
+    <uuid>{uuid}</uuid>
+    <memory unit='MiB'>{memory}</memory>
+    <currentMemory unit='MiB'>{memory}</currentMemory>
+    <vcpu placement='static'>{cpu}</vcpu>
+    <os>
+        <type arch='aarch64' machine='virt'>hvm</type>
+        <loader readonly='yes'>/usr/share/edk2/aarch64/QEMU_EFI.silent.fd</loader>
+        <nvram  template='/usr/share/edk2/aarch64/vars-template-pflash.raw'>/var/lib/libvirt/qemu/nvram/{name}_VARS.fd</nvram>
+    </os>
+    <features>
+        <gic version='3'/>
+    </features>
+    <cpu mode='custom' match='exact'>
+        <model fallback='allow'>cortex-a57</model>
+    </cpu>
+    <devices>
+        <emulator>/usr/bin/qemu-system-aarch64</emulator>
+        <controller type='scsi' model='virtio-scsi'/>
+        {disks}
+        {ifaces}
+        <console type='pty'>
+            <target type='serial'/>
+        </console>
+        <serial type='pty'>
+            <target port='0'/>
+        </serial>
+    </devices>
+</domain>
