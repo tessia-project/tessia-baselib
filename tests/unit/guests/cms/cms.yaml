@@ -1015,3 +1015,79 @@ hotplug_ok:
     data:                                                             RUNNING   HOSTNAME  
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
+
+ipl_cms_zvm74:
+  - |
+    data: cp i cms                                                                        
+    data: z/VM V7.4.0    2026-06-30 01:54                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: access (noprof                                                                  
+    data: Ready; T=0.01/0.01 15:21:31                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+
+ipl_cms_zcms75:
+  - |
+    data: cp i cms                                                                        
+    data: Z/CMS V7.5.0   2026-06-22 11:30                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+  - |
+    data: access (noprof                                                                  
+    data: Ready; T=0.01/0.01 15:21:31                                                     
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             RUNNING   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok
+
+ipl_cms_vm_read:
+  - |
+    data: cp i cms                                                                        
+    data: Z/CMS V7.5.0   2026-06-22 11:30                                                 
+    data:                                                                             VM READ
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                                                 
+    data:                                                             VM READ   HOSTNAME  
+    U F U C(hostname.com) I 4 43 80 41 0 0x0 -
+    ok

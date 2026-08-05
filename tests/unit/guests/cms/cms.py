@@ -522,4 +522,53 @@ class TestGuestCms(TestCase):
 
     # TODO: test attach of pci device
     # TODO: test definition of virtual interfaces
+
+    def test_ipl_cms_zvm74_banner(self):
+        """
+        Exercise ipl_cms() completing successfully when the terminal shows
+        the classic 'z/VM' banner produced by 32-bit CMS on z/VM 7.4.
+        """
+        guest_obj = cms.GuestCms(
+            self._user, self._hostname, self._user, self._passwd,
+            {'noprof': True, 'noipl': True})
+        patch_s3270(self, self._data['ipl_cms_zvm74'])
+        # establish s3270 connection so _is_connected() returns True
+        guest_obj._terminal.connect(self._hostname)
+        # must not raise
+        guest_obj.ipl_cms()
+    # test_ipl_cms_zvm74_banner()
+
+    def test_ipl_cms_zcms75_banner(self):
+        """
+        Exercise ipl_cms() completing successfully when the terminal shows
+        the 'Z/CMS' banner produced by zcms (64-bit CMS) on z/VM 7.5.
+
+        Regression test for issue #1440: the original wait_for=['z/VM']
+        did not match 'Z/CMS', leaving the terminal in VM READ forever.
+        """
+        guest_obj = cms.GuestCms(
+            self._user, self._hostname, self._user, self._passwd,
+            {'noprof': True, 'noipl': True})
+        patch_s3270(self, self._data['ipl_cms_zcms75'])
+        # establish s3270 connection so _is_connected() returns True
+        guest_obj._terminal.connect(self._hostname)
+        # must not raise
+        guest_obj.ipl_cms()
+    # test_ipl_cms_zcms75_banner()
+
+    def test_ipl_cms_raises_on_vm_read(self):
+        """
+        Exercise ipl_cms() raising RuntimeError when the terminal never
+        leaves VM READ — simulating the z/VM 7.5 failure before the fix.
+        """
+        guest_obj = cms.GuestCms(
+            self._user, self._hostname, self._user, self._passwd,
+            {'noprof': True, 'noipl': True})
+        patch_s3270(self, self._data['ipl_cms_vm_read'])
+        # establish s3270 connection so _is_connected() returns True
+        guest_obj._terminal.connect(self._hostname)
+        with self.assertRaises(RuntimeError):
+            guest_obj.ipl_cms()
+    # test_ipl_cms_raises_on_vm_read()
+
 # TestGuestCms
