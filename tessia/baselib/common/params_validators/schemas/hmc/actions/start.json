@@ -23,6 +23,10 @@
         },
         "cpus_ifl": {
             "type": "number"
+        },
+        "cpu_mode": {
+            "type": "string",
+            "enum": ["shared", "dedicated"]
         }
     },
     "required": [

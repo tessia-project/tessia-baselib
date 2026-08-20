@@ -837,17 +837,24 @@ class HypervisorHmc(HypervisorBase):
         if 'mem' in args and img_properties['central-storage'] != args['mem']:
             updates['central-storage'] = args['mem']
 
-        if 'cp' in args and (
-                img_properties['number-shared-general-purpose-processors'] !=
-                args['cp']):
-            updates['number-shared-general-purpose-processors'] = args['cp']
+        # honour the requested processor mode; fall back to 'shared' when
+        # no explicit mode was requested (preserves original behaviour)
+        desired_mode = args.get('cpu_mode', 'shared')
+        if desired_mode == 'dedicated':
+            cp_key = 'number-dedicated-general-purpose-processors'
+            ifl_key = 'number-dedicated-ifl-processors'
+        else:
+            cp_key = 'number-shared-general-purpose-processors'
+            ifl_key = 'number-shared-ifl-processors'
 
-        if 'ifl' in args and (
-                img_properties['number-shared-ifl-processors'] != args['ifl']):
-            updates['number-shared-ifl-processors'] = args['ifl']
+        if 'cp' in args and img_properties.get(cp_key) != args['cp']:
+            updates[cp_key] = args['cp']
 
-        if img_properties['processor-usage'] != 'shared':
-            updates['processor-usage'] = 'shared'
+        if 'ifl' in args and img_properties.get(ifl_key) != args['ifl']:
+            updates[ifl_key] = args['ifl']
+
+        if img_properties['processor-usage'] != desired_mode:
+            updates['processor-usage'] = desired_mode
 
         # new config matches profile: nothing to do
         if not updates:
@@ -909,8 +916,11 @@ class HypervisorHmc(HypervisorBase):
         if 'ifl' in args and properties['ifl-processors'] != args['ifl']:
             updates['ifl-processors'] = args['ifl']
 
-        if properties['processor-mode'] != 'shared':
-            updates['processor-mode'] = 'shared'
+        # honour the requested processor mode; fall back to 'shared' when
+        # no explicit mode was requested (preserves original behaviour)
+        desired_mode = args.get('cpu_mode', 'shared')
+        if properties['processor-mode'] != desired_mode:
+            updates['processor-mode'] = desired_mode
 
         # new config matches partition profile: nothing to do
         if not updates:
@@ -1151,15 +1161,20 @@ class HypervisorHmc(HypervisorBase):
         guest_obj = self._get_guest(cpc_obj, guest_name)
 
         resource_args = {}
+        cpus_cp = parameters.get('cpus_cp', 0)
+        cpus_ifl = parameters.get('cpus_ifl', 0)
+
         # cpu specified: compute number of processors
-        if cpu or parameters.get('cpus_cp') or parameters.get('cpus_ifl'):
+        if cpu or cpus_cp or cpus_ifl:
             resource_args = self._compute_cpus(
-                cpu, parameters.get('cpus_cp', 0),
-                parameters.get('cpus_ifl', 0),
+                cpu, cpus_cp, cpus_ifl,
                 {'cpus_ifl': cpc_obj.properties['processor-count-ifl'],
                  'cpus_cp': (
                      cpc_obj.properties['processor-count-general-purpose'])}
             )
+        # propagate cpu_mode so _update_resources_* can apply it
+        if parameters.get('cpu_mode'):
+            resource_args['cpu_mode'] = parameters['cpu_mode']
         # set storage (0 means do not update the parameter)
         if memory:
             resource_args['mem'] = memory

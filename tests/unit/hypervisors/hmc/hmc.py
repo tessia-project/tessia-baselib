@@ -493,6 +493,8 @@ class TestHypervisorHmc(TestCase):
             'central-storage': 4096,
             'number-shared-general-purpose-processors': 1,
             'number-shared-ifl-processors': 1,
+            'number-dedicated-general-purpose-processors': 0,
+            'number-dedicated-ifl-processors': 0,
             # set as dedicated to test whether it changes to shared
             'processor-usage': 'dedicated',
         })
@@ -1487,4 +1489,155 @@ class TestHypervisorHmc(TestCase):
         # with self.assertRaisesRegex(RuntimeError, error_msg):
         #     self.hmc_object.start(self.lpar_name, cpu, memory, parameters)
     # test_start_netboot_network_timeout()
+
+    def test_start_cpus_ifl_dpm(self):
+        """
+        Verify that cpus_ifl routes all CPUs to IFL processors on a DPM
+        partition.
+        """
+        dpm_cpc = '{}_dpm'.format(self.system_name)
+        self.hmc_object = hmc.HypervisorHmc(
+            dpm_cpc, self.host_name, self.user, self.passwd, self.parameters)
+        self._set_fakes()
+
+        memory = 2048
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': self._fake_sv_dasd.properties['device-number'],
+            },
+            'cpus_ifl': 4,
+            'cpu_mode': 'shared',
+        }
+
+        self.hmc_object.start(
+            self._fake_part.properties['name'], 0, memory, parameters)
+
+        self._assert_all_dpm(
+            self._fake_part,
+            self._fake_sv_dasd.properties['element-uri'],
+            memory, cpu_ifl=4, cpu_cp=0, cpu_mode='shared')
+    # test_start_cpus_ifl_dpm()
+
+    def test_start_cpus_cp_dpm(self):
+        """
+        Verify that cpus_cp routes all CPUs to general-purpose processors on
+        a DPM partition.
+        """
+        dpm_cpc = '{}_dpm'.format(self.system_name)
+        self.hmc_object = hmc.HypervisorHmc(
+            dpm_cpc, self.host_name, self.user, self.passwd, self.parameters)
+        self._set_fakes()
+
+        memory = 2048
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': self._fake_sv_dasd.properties['device-number'],
+            },
+            'cpus_cp': 3,
+            'cpu_mode': 'shared',
+        }
+
+        self.hmc_object.start(
+            self._fake_part.properties['name'], 0, memory, parameters)
+
+        self._assert_all_dpm(
+            self._fake_part,
+            self._fake_sv_dasd.properties['element-uri'],
+            memory, cpu_ifl=0, cpu_cp=3, cpu_mode='shared')
+    # test_start_cpus_cp_dpm()
+
+    def test_start_cpu_mode_dedicated_dpm(self):
+        """
+        Verify that cpu_mode='dedicated' is correctly propagated to the
+        DPM partition's processor-mode property.
+        """
+        dpm_cpc = '{}_dpm'.format(self.system_name)
+        self.hmc_object = hmc.HypervisorHmc(
+            dpm_cpc, self.host_name, self.user, self.passwd, self.parameters)
+        self._set_fakes()
+        # start with 'shared' so we can verify the change to 'dedicated'
+        self._fake_part.update({'processor-mode': 'shared'})
+
+        cpu = 0
+        memory = 2048
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': self._fake_sv_dasd.properties['device-number'],
+            },
+            'cpus_ifl': 2,
+            'cpu_mode': 'dedicated',
+        }
+
+        self.hmc_object.start(
+            self._fake_part.properties['name'], cpu, memory, parameters)
+
+        self._assert_all_dpm(
+            self._fake_part,
+            self._fake_sv_dasd.properties['element-uri'],
+            memory, cpu_ifl=2, cpu_cp=0, cpu_mode='dedicated')
+    # test_start_cpu_mode_dedicated_dpm()
+
+    def test_start_cpu_mode_default_shared_dpm(self):
+        """
+        Verify that when no cpu_mode is specified the partition's
+        processor-mode is still enforced to 'shared' (backward compatibility).
+        """
+        dpm_cpc = '{}_dpm'.format(self.system_name)
+        self.hmc_object = hmc.HypervisorHmc(
+            dpm_cpc, self.host_name, self.user, self.passwd, self.parameters)
+        self._set_fakes()
+        # fake partition starts as 'dedicated'; we expect 'shared' after start
+        self.assertEqual(
+            self._fake_part.properties['processor-mode'], 'dedicated')
+
+        cpu = 5
+        memory = 2048
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': self._fake_sv_dasd.properties['device-number'],
+            },
+        }
+
+        self.hmc_object.start(
+            self._fake_part.properties['name'], cpu, memory, parameters)
+
+        self._assert_all_dpm(
+            self._fake_part,
+            self._fake_sv_dasd.properties['element-uri'],
+            memory, cpu_ifl=5, cpu_cp=0, cpu_mode='shared')
+    # test_start_cpu_mode_default_shared_dpm()
+
+    def test_start_cpu_mode_dedicated_lpar(self):
+        """
+        Verify that cpu_mode='dedicated' causes _update_resources_lpar to
+        write number-dedicated-* keys to the image activation profile.
+        """
+        memory = 2048
+        parameters = {
+            'boot_params': {
+                'boot_method': 'dasd',
+                'devicenr': '9999',
+            },
+            'cpus_ifl': 2,
+            'cpu_mode': 'dedicated',
+        }
+
+        # classic mode: zhmcclient_mock does not support wait_for_completion=False
+        # so the call will raise AssertionError after updating the profile.
+        # We verify that the profile properties were updated correctly before
+        # the activation step triggers the mock limitation.
+        with self.assertRaises(AssertionError):
+            self.hmc_object.start(self.lpar_name, 0, memory, parameters)
+
+        img_props = self._fake_img_profile.properties
+        self.assertEqual(img_props['processor-usage'], 'dedicated')
+        self.assertEqual(img_props['number-dedicated-ifl-processors'], 2)
+        self.assertEqual(
+            img_props['number-dedicated-general-purpose-processors'], 0)
+    # test_start_cpu_mode_dedicated_lpar()
+
 # TestHypervisorHmc
