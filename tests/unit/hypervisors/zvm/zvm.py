@@ -490,7 +490,7 @@ class TestHypervisorZvm(TestCase):
             mock.call('access (noprof'),
             mock.call('#cp term more 1 1'),
             mock.call('q v ffff'),
-            mock.call('define vfb-512 as ffff blk 200000'),
+            mock.call('define vfb-512 as ffff blk 400000'),
             mock.call(r'format ffff t\n1\ntmpdsk'),
             mock.call('spool punch * rdr'),
             mock.call('close reader'),
