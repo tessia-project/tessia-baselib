@@ -124,10 +124,10 @@ class HypervisorZvm(HypervisorBase):
                 raise RuntimeError('Detach {} failed with: {}'.format(
                     vdisk_dev, re_match.group()))
 
-        # create the vdisk with approx. 100 MB size
+        # create the vdisk with approx. 200 MB size
         defined_msg = '(?i){} defined'.format(vdisk_dev)
         _, re_match = self._cms.run(
-            'define vfb-512 as ffff blk 200000',
+            'define vfb-512 as ffff blk 400000',
             wait_for=[ERROR_REGEX, defined_msg], timeout=5)
         if not re_match:
             raise RuntimeError('Define vdisk returned unexpected output')

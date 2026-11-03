@@ -1382,7 +1382,7 @@ start_netboot:
     U F U C(hostname.com) I 4 43 80 41 0 0x0 -
     ok
   - |
-    data: define vfb-512 as ffff blk 200000                                               
+    data: define vfb-512 as ffff blk 400000
     data: 00: DASD FFFF DEFINED                                                           
     data: Ready; T=0.01/0.01 11:36:03                                                     
     data:                                                                                 
@@ -1435,7 +1435,7 @@ start_netboot:
     data: DMSFOR605R Enter disk label:                                                    
     data: tmpdsk                                                                          
     data: DMSFOR733I Formatting disk T                                                    
-    data: DMSFOR732I 200000 FB-512 blocks formatted on T(FFFF)                            
+    data: DMSFOR732I 400000 FB-512 blocks formatted on T(FFFF)
     data: Ready; T=0.01/0.01 11:36:05                                                     
     data:                                                                                 
     data:                                                                                 
